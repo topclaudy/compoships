@@ -93,9 +93,6 @@ Thank you for considering contributing to **Compoships**! The following steps ar
 * Add new features, fix bug or bring improvements.
 * Make a pull request.
 
-## TODO
-* Unit Tests
-
 ### Contributor Code of Conduct
 
 As contributors and maintainers of this project, we pledge to respect all people who contribute through reporting issues,
@@ -116,6 +113,10 @@ Instances of abusive, harassing, or otherwise unacceptable behavior may be repor
 or more of the project maintainers.
 
 This Code of Conduct is adapted from the [Contributor Covenant](http:contributor-covenant.org), version 1.0.0, available at [http://contributor-covenant.org/version/1/0/0/](http://contributor-covenant.org/version/1/0/0/)
+
+## TODO
+
+* Unit Tests
 
 ## Author
 
