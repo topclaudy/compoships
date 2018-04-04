@@ -1,0 +1,38 @@
+{
+    "name": "awobaz/compoships",
+    "description": "Laravel relationships with support for composite/multiple keys",
+    "license": "MIT",
+    "keywords": [
+        "laravel composite keys",
+        "laravel",
+        "relationships"
+    ],
+    "authors": [
+        {"name": "Claudin J. Daniel", "email": "c.daniel@awobaz.com"}
+    ],
+    "require": {
+      "php": ">=7",
+      "illuminate/database": "~5.4",
+      "illuminate/console": "~5.4",
+      "illuminate/support": "~5.4",
+      "illuminate/cache": "~5.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.0.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Awobaz\\Compoships\\": "src"
+        },
+        "files": [
+
+        ]
+    },
+    "extra": {
+      "laravel": {
+        "providers": [
+          "Awobaz\\Compoships\\ComposhipsServiceProvider"
+        ]
+      }
+    }
+}
