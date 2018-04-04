@@ -38,11 +38,11 @@ Simply make your model class derive from the `Awobaz\Compoships\Database\Eloquen
 
 If for some reasons you can't derive your models from `Awobaz\Compoships\Database\Eloquent\Model`, you may take advantage of the `Awobaz\Compoships\Compoships` trait. Simply use the trait in your models.
  
-**Note:** To define a multiple keys relationship from a model *A* to another model *B*, **both models must either extend `Awobaz\Compoships\Database\Eloquent\Model` or use the `Awobaz\Compoships\Compoships` trait**
+**Note:** To define a multi-columns relationship from a model *A* to another model *B*, **both models must either extend `Awobaz\Compoships\Database\Eloquent\Model` or use the `Awobaz\Compoships\Compoships` trait**
 
 ### Syntax
 
-... and now we can define a relationship from a model *A* to another model *B* by matching two or more columns (by passing an arrays of fields instead of a string). 
+... and now we can define a relationship from a model *A* to another model *B* by matching two or more columns (by passing an array of columns instead of a string). 
 
 ```php
 namespace App;
