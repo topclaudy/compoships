@@ -16,10 +16,16 @@ class Foo extends Model
 {
     public function bars()
     {
+        //WON'T WORK WITH EAGER LOADING!!!
         return $this->hasMany('Bar', 'f1', 'f1')->where('f2', $this->f2);
     }
 }
 ```
+
+#### Related discussions:
+
+* [ [Bug] Querying relations with extra conditions not working as expected](https://github.com/laravel/framework/issues/1272)
+* [Querying relations with extra conditions in Eager Loading not working](https://github.com/laravel/framework/issues/19488)
 
 ## Installation
 
