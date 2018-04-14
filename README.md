@@ -28,6 +28,7 @@ class Foo extends Model
 * [Querying relations with extra conditions not working as expected](https://github.com/laravel/framework/issues/1272)
 * [Querying relations with extra conditions in Eager Loading not working](https://github.com/laravel/framework/issues/19488)
 * [BelongsTo relationship with 2 foreign keys](https://laravel.io/forum/08-02-2014-belongsto-relationship-with-2-foreign-keys)
+* [Laravel Eloquent: multiple foreign keys for relationship](https://stackoverflow.com/questions/48077890/laravel-eloquent-multiple-foreign-keys-for-relationship/49834070#49834070)
 * [Laravel hasMany association with multiple columns](https://stackoverflow.com/questions/32471084/laravel-hasmany-association-with-multiple-columns)
 
 ## Installation
