@@ -1,7 +1,7 @@
 Compoships
 ==========
 
-**Compoships** offers the ability to specify relationships based on two (or more) columns in Laravel 5's Eloquent. The need to match multiple columns in the definition of an Eloquent relationship often arises when working with third party or pre existing schema/database. Check the discussion [here](https://laravel.io/forum/08-02-2014-belongsto-relationship-with-2-foreign-keys).
+**Compoships** offers the ability to specify relationships based on two (or more) columns in Laravel 5's Eloquent. The need to match multiple columns in the definition of an Eloquent relationship often arises when working with third party or pre existing schema/database. 
 
 ## The problem
 
@@ -24,8 +24,11 @@ class Foo extends Model
 
 #### Related discussions:
 
-* [ [Bug] Querying relations with extra conditions not working as expected](https://github.com/laravel/framework/issues/1272)
+* [Relationship on multiple keys](https://laracasts.com/discuss/channels/eloquent/relationship-on-multiple-keys)
+* [Querying relations with extra conditions not working as expected](https://github.com/laravel/framework/issues/1272)
 * [Querying relations with extra conditions in Eager Loading not working](https://github.com/laravel/framework/issues/19488)
+* [BelongsTo relationship with 2 foreign keys](https://laravel.io/forum/08-02-2014-belongsto-relationship-with-2-foreign-keys)
+* [Laravel hasMany association with multiple columns](https://stackoverflow.com/questions/32471084/laravel-hasmany-association-with-multiple-columns)
 
 ## Installation
 
