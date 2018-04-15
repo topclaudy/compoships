@@ -8,7 +8,7 @@
         "relationships"
     ],
     "authors": [
-        {"name": "Claudin J. Daniel", "email": "c.daniel@awobaz.com"}
+        {"name": "Claudin J. Daniel", "email": "cdaniel@awobaz.com"}
     ],
     "require": {
       "php": ">=7",
