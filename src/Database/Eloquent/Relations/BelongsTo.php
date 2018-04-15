@@ -20,7 +20,7 @@ class BelongsTo extends BaseBelongsTo
             // of the related models matching on the foreign key that's on a parent.
             $table = $this->related->getTable();
 
-            if(is_array($this->ownerKey)){
+            if(is_array($this->ownerKey)){ //Check for multi-columns relationship
                 foreach($this->ownerKey as $index => $key){
                     if($this->child->{$this->foreignKey[$index]}) {
                         $this->query->where($table . '.' . $key, '=', $this->child->{$this->foreignKey[ $index ]});
@@ -40,7 +40,7 @@ class BelongsTo extends BaseBelongsTo
      */
     public function addEagerConstraints(array $models)
     {
-        if(is_array($this->ownerKey)){
+        if(is_array($this->ownerKey)){ //Check for multi-columns relationship
             $keys = [];
 
             foreach ($this->ownerKey as $key){
@@ -72,7 +72,7 @@ class BelongsTo extends BaseBelongsTo
         // to query for via the eager loading query. We will add them to an array then
         // execute a "where in" statement to gather up all of those related records.
         foreach ($models as $model) {
-            if(is_array($this->foreignKey)){
+            if(is_array($this->foreignKey)){ //Check for multi-columns relationship
                 $keys[] = array_map(function($k) use ($model) {
                     return $model->{$k};
                 }, $this->foreignKey);
@@ -115,7 +115,7 @@ class BelongsTo extends BaseBelongsTo
         $dictionary = [];
 
         foreach ($results as $result) {
-            if(is_array($owner)){
+            if(is_array($owner)){ //Check for multi-columns relationship
                 $dictKeyValues = array_map(function($k) use ($result) {
                     return $result->{$k};
                 }, $owner);
@@ -130,7 +130,7 @@ class BelongsTo extends BaseBelongsTo
         // and match back onto their children using these keys of the dictionary and
         // the primary key of the children to map them onto the correct instances.
         foreach ($models as $model) {
-            if(is_array($foreign)){
+            if(is_array($foreign)){ //Check for multi-columns relationship
                 $dictKeyValues = array_map(function($k) use ($model) {
                     return $model->{$k};
                 }, $foreign);

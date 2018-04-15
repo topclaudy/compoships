@@ -61,7 +61,7 @@ class HasOne extends HasOneOrMany
 
         $foreignKey = $this->getForeignKeyName();
 
-        if(is_array($foreignKey)){
+        if(is_array($foreignKey)){ //Check for multi-columns relationship
             foreach ($foreignKey as $index => $key){
                 $instance->setAttribute($key, $model->getAttribute($this->localKey[$index]));
             }

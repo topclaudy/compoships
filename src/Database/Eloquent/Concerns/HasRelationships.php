@@ -18,7 +18,7 @@ trait HasRelationships
     {
         $keyName = $this->getKeyName();
 
-        if(is_array($keyName)){
+        if(is_array($keyName)){ //Check for multi-columns relationship
             $keys = [];
 
             foreach ($keyName as $key){
@@ -45,10 +45,9 @@ trait HasRelationships
 
         $foreignKey = $foreignKey ?: $this->getForeignKey();
 
-        // Here we check for composite foreign keys
         $foreignKeys = null;
 
-        if(is_array($foreignKey)){
+        if(is_array($foreignKey)){ //Check for multi-columns relationship
             foreach ($foreignKey as $key){
                 $foreignKeys[] = $instance->getTable().'.'.$key;
             }
@@ -73,10 +72,9 @@ trait HasRelationships
 
         $foreignKey = $foreignKey ?: $this->getForeignKey();
 
-        // Here we check for composite foreign keys
         $foreignKeys = null;
 
-        if(is_array($foreignKey)){
+        if(is_array($foreignKey)){ //Check for multi-columns relationship
             foreach ($foreignKey as $key){
                 $foreignKeys[] = $instance->getTable().'.'.$key;
             }

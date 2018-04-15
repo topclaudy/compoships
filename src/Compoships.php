@@ -13,7 +13,7 @@ trait Compoships
 
     public function getAttribute($key)
     {
-        if(is_array($key)){
+        if(is_array($key)){ //Check for multi-columns relationship
             return array_map(function($k){
                 return parent::getAttribute($k);
             }, $key);
@@ -23,7 +23,7 @@ trait Compoships
     }
 
     /**
-     * We configure Eloquent to use Compoships Query Builder
+     * Configure Eloquent to use Compoships Query Builder
      *
      * @return \Awobaz\Compoships\Database\Query\Builder|static
      */
@@ -37,7 +37,7 @@ trait Compoships
     }
 
     /**
-     * We configure Eloquent to use Compoships Eloquent Builder
+     * Configure Eloquent to use Compoships Eloquent Builder
      *
      * Create a new Eloquent query builder for the model.
      *

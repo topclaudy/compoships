@@ -19,7 +19,7 @@ abstract class HasOneOrMany extends BaseHasOneOrMany
             $foreignKey = $this->getForeignKeyName();
             $parentKeyValue = $this->getParentKey();
 
-            //If the foreign key is an array, we adjust the query.
+            //If the foreign key is an array (multi-column relationship), we adjust the query.
             if(is_array($this->foreignKey)) {
                 foreach ($this->foreignKey as $index => $key){
                     list(, $key) = explode('.', $key);
