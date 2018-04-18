@@ -14,13 +14,13 @@ trait Compoships
 
     public function getAttribute($key)
     {
-        if(is_array($key)){ //Check for multi-column relationship
+        if(is_array($key)){ //Check for multi-columns relationship
             return array_map(function($k){
-                return parent::getAttribute(camel_case($k));
+                return parent::getAttribute($k);
             }, $key);
         }
 
-        return parent::getAttribute(camel_case($key));
+        return parent::getAttribute($key);
     }
 
 
