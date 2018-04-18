@@ -26,4 +26,28 @@ class Builder extends BaseQueryBuilder
 
         return parent::whereIn($column, $values, $boolean, $not);
     }
+
+    public function whereColumn($first, $operator = null, $second = null, $boolean = 'and')
+    {
+        // If the column and values are arrays, we will assume it is a multi-columns relationship
+        // and we adjust the 'where' clauses accordingly
+        if(is_array($first) && is_array($second)){
+            $type = 'Column';
+
+            foreach($first as $index => $f) {
+                $this->wheres[] = [
+                    'type'     => $type,
+                    'first'    => $f,
+                    'operator' => $operator,
+                    'second'   => $second[ $index ],
+                    'boolean'  => $boolean,
+
+                ];
+            }
+
+            return $this;
+        }
+
+        return parent::whereColumn($first, $operator, $second, $boolean);
+    }
 }
