@@ -61,6 +61,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class A extends Model
 {
+    use \Awobaz\Compoships\Compoships;
+    
     public function b()
     {
         return $this->hasMany('B', ['f1', 'f2'], ['f1', 'f2']);
@@ -77,6 +79,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class B extends Model
 {
+    use \Awobaz\Compoships\Compoships;
+    
     public function a()
     {
         return $this->belongsTo('A', ['f1', 'f2'], ['f1', 'f2']);
