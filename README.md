@@ -107,10 +107,6 @@ Please read [CONTRIBUTING.md](https://github.com/topclaudy/compoships/blob/maste
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/topclaudy/compoships/tags).
 
-## TODO
-
-* Unit Tests
-
 ## Authors
 
 * [Claudin J. Daniel](https://github.com/topclaudy) - *Initial work*
