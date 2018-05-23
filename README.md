@@ -107,6 +107,20 @@ Please read [CONTRIBUTING.md](https://github.com/topclaudy/compoships/blob/maste
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/topclaudy/compoships/tags).
 
+## Unit Tests
+
+In order to run the test suite, install the development dependencies:
+
+```bash
+$ composer install --dev
+```
+
+Then, run the following command:
+
+```bash
+$ vendor/bin/phpunit
+```
+
 ## Authors
 
 * [Claudin J. Daniel](https://github.com/topclaudy) - *Initial work*
