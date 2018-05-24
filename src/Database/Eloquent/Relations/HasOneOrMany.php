@@ -112,6 +112,21 @@ abstract class HasOneOrMany extends BaseHasOneOrMany
         return $dictionary;
     }
 
+    /**
+     * Get the fully qualified parent key name.
+     *
+     * @return string
+     */
+    public function getQualifiedParentKeyName()
+    {
+        if (is_array($this->localKey)) { //Check for multi-columns relationship
+            return array_map(function ($k) {
+                return $this->parent->getTable().'.'.$k;
+            }, $this->localKey);
+        } else {
+            return $this->parent->getTable().'.'.$this->localKey;
+        }
+    }
 
     /**
      * Get the plain foreign key.
