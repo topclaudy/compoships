@@ -87,7 +87,6 @@ class B extends Model
     }
 }
 ```
-
 ## Supported relationships
 
 **Compoships** only supports the following Laravel 5's Eloquent relationships:
