@@ -91,4 +91,13 @@ class ComposhipsTest extends TestCase
 
         $this->assertInternalType('array', $allocations);
     }
+
+    public function testWhereHasCallback()
+    {
+        $allocations = Allocation::wherehas('trackingTasks', function ($query)  {
+            $query->where('vehicle_id',  1);
+        })->get()->toArray();
+
+        $this->assertInternalType('array', $allocations);
+    }
 }
