@@ -50,23 +50,4 @@ class Builder extends BaseQueryBuilder
 
         return parent::whereColumn($first, $operator, $second, $boolean);
     }
-
-    /**
-     * Merge an array of where clauses and bindings.
-     *
-     * @param  array  $wheres
-     * @param  array  $bindings
-     * @return void
-     */
-    public function mergeWheres($wheres, $bindings)
-    {
-        $this->wheres = array_merge($this->wheres, (array) $wheres);
-
-        //Fix to remove duplicate wheres
-        $this->wheres = array_unique($this->wheres, SORT_REGULAR);
-
-        $this->bindings['where'] = array_values(
-            array_merge($this->bindings['where'], (array) $bindings)
-        );
-    }
 }
