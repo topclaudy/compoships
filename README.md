@@ -125,6 +125,12 @@ $ vendor/bin/phpunit
 
 * [Claudin J. Daniel](https://github.com/topclaudy) - *Initial work*
 
+## Sponsored by
+
+[Awobaz](https://awobaz.com)
+
+Web/Mobile agency based in Montreal, Canada
+
 ## License
 
 **Compoships** is licensed under the [MIT License](http://opensource.org/licenses/MIT).
