@@ -127,9 +127,7 @@ $ vendor/bin/phpunit
 
 ## Sponsored by
 
-[Awobaz](https://awobaz.com)
-
-Web/Mobile agency based in Montreal, Canada
+* [Awobaz](https://awobaz.com) - Web/Mobile agency based in Montreal, Canada
 
 ## License
 
