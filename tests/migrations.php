@@ -31,6 +31,23 @@ class Migration extends BaseMigration
             $table->timestamps();
             $table->softDeletes();
         });
+
+        Schema::create('pickup_points', function (Blueprint $table) {
+            $table->string('contract_number');
+            $table->integer('pickup_index')->unsigned();
+            $table->timestamps();
+        });
+
+        Schema::create('pickup_times', function (Blueprint $table) {
+            $table->string('contract_number');
+            $table->integer('pickup_index')->unsigned();
+            $table->string('days')->unsigned();
+            $table->time('pickup_time')->unsigned();
+
+            $table->foreign('pickup_index')->references('pickup_index')->on('pickup_point')->onUpdate('cascade')->onDelete('cascade');
+
+            $table->timestamps();
+        });
     }
 
     /**

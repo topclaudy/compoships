@@ -2,6 +2,7 @@
 
 use Awobaz\Compoships\Database\Eloquent\Model;
 use Awobaz\Compoships\Tests\Model\Allocation;
+use Awobaz\Compoships\Tests\Model\PickupPoint;
 use Awobaz\Compoships\Tests\Model\TrackingTask;
 
 require_once __DIR__. '/TestCase.php';
@@ -99,5 +100,24 @@ class ComposhipsTest extends TestCase
         })->get()->toArray();
 
         $this->assertInternalType('array', $allocations);
+    }
+
+    public function testMixedTypeCompositeKey()
+    {
+        Model::unguard();
+
+        $pickupPoint = new PickupPoint();
+        $pickupPoint->contract_number = 'AAA';
+        $pickupPoint->pickup_index = 1;
+        $pickupPoint->save();
+
+        $pickupPoint->pickupTimes()->create([
+            'days'        => 'mon tue',
+            'pickup_time' => '08:00:00',
+        ]);
+
+        $this->assertNotNull($pickupPoint->pickupTimes);
+
+        Model::unguard();
     }
 }
