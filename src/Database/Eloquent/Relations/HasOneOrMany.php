@@ -24,10 +24,12 @@ abstract class HasOneOrMany extends BaseHasOneOrMany
                 foreach ($this->foreignKey as $index => $key){
 
                     $keyPortions = explode('.', $key);
-                    if(count($keyPortions) === 2)
+
+                    if(count($keyPortions) === 2) {
                         $fullKey = $this->getRelated()->getTable() . '.' . $key;
-                    else
+                    } else {
                         $fullKey = $key;
+                    }
 
                     $this->query->where($fullKey, '=', $parentKeyValue[$index]);
                     $this->query->whereNotNull($fullKey);
