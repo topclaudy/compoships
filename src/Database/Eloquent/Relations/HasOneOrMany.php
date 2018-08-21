@@ -22,15 +22,8 @@ abstract class HasOneOrMany extends BaseHasOneOrMany
             //If the foreign key is an array (multi-column relationship), we adjust the query.
             if(is_array($this->foreignKey)) {
                 foreach ($this->foreignKey as $index => $key){
-
-                    $keyPortions = explode('.', $key);
-
-                    if(count($keyPortions) === 2) {
-                        $fullKey = $this->getRelated()->getTable() . '.' . $key;
-                    } else {
-                        $fullKey = $key;
-                    }
-
+                    list(, $key) = explode('.', $key);
+                    $fullKey = $this->getRelated()->getTable() . '.' . $key;
                     $this->query->where($fullKey, '=', $parentKeyValue[$index]);
                     $this->query->whereNotNull($fullKey);
                 }
