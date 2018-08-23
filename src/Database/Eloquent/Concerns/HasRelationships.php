@@ -32,6 +32,13 @@ trait HasRelationships
         return $this->getTable().'.'.$keyName;
     }
 
+    /**
+     * Validate the related model for Compoships compatibility
+     *
+     * @param  $related
+     * @return void
+     * @throws InvalidUsageException
+     */
     private function validateRelatedModel($related){
         $uses = class_uses_recursive($related);
 
