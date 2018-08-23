@@ -5,6 +5,7 @@ namespace Awobaz\Compoships\Database\Eloquent\Concerns;
 use Awobaz\Compoships\Database\Eloquent\Relations\HasOne;
 use Awobaz\Compoships\Database\Eloquent\Relations\HasMany;
 use Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo;
+use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Illuminate\Support\Str;
 
 trait HasRelationships
@@ -31,6 +32,14 @@ trait HasRelationships
         return $this->getTable().'.'.$keyName;
     }
 
+    private function validateRelatedModel($related){
+        $uses = class_uses_recursive($related);
+
+        if(! array_key_exists('Awobaz\Compoships\Compoships', $uses) && ! is_subclass_of($related, 'Awobaz\Compoships\Database\Eloquent\Model')){
+            throw new InvalidUsageException("The related model '${related}' must either extend 'Awobaz\Compoships\Database\Eloquent\Model' or use the 'Awobaz\Compoships\Compoships' trait");
+        }
+    }
+
     /**
      * Define a one-to-one relationship.
      *
@@ -41,6 +50,8 @@ trait HasRelationships
      */
     public function hasOne($related, $foreignKey = null, $localKey = null)
     {
+        $this->validateRelatedModel($related);
+
         $instance = $this->newRelatedInstance($related);
 
         $foreignKey = $foreignKey ?: $this->getForeignKey();
@@ -68,6 +79,8 @@ trait HasRelationships
      */
     public function hasMany($related, $foreignKey = null, $localKey = null)
     {
+        $this->validateRelatedModel($related);
+
         $instance = $this->newRelatedInstance($related);
 
         $foreignKey = $foreignKey ?: $this->getForeignKey();
@@ -98,6 +111,8 @@ trait HasRelationships
      */
     public function belongsTo($related, $foreignKey = null, $ownerKey = null, $relation = null)
     {
+        $this->validateRelatedModel($related);
+
         // If no relation name was given, we will use this debug backtrace to extract
         // the calling method's name and use that as the relationship name as most
         // of the time this will be what we desire to use for the relationships.
