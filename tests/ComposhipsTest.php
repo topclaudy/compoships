@@ -77,6 +77,13 @@ class ComposhipsTest extends TestCase
         Model::unguard();
     }
 
+    public function testHas()
+    {
+        $allocations = Allocation::has('trackingTasks')->get()->toArray();
+
+        $this->assertInternalType('array', $allocations);
+    }
+
     /**
      * A basic test example.
      *

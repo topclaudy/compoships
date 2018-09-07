@@ -3,14 +3,13 @@
 namespace Awobaz\Compoships;
 
 use Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships;
-use Awobaz\Compoships\Database\Eloquent\Concerns\QueriesRelationships;
-use Awobaz\Compoships\Database\Eloquent\Builder as EloquentBuilder;
 use Awobaz\Compoships\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Str;
 
 trait Compoships
 {
-    use HasRelationships, QueriesRelationships;
+    use HasRelationships;
 
     public function getAttribute($key)
     {
@@ -58,8 +57,8 @@ trait Compoships
      *
      * Create a new Eloquent query builder for the model.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @return \Awobaz\Compoships\Database\Eloquent\Builder|static
+     * @param  \Illuminate\Database\Query\Builder $query
+     * @return EloquentBuilder
      */
     public function newEloquentBuilder($query)
     {
