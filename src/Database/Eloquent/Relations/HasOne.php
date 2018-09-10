@@ -5,9 +5,8 @@ namespace Awobaz\Compoships\Database\Eloquent\Relations;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Concerns\SupportsDefaultModels;
-use Illuminate\Database\Eloquent\Relations\HasOne as BaseHasOne;
 
-class HasOne extends BaseHasOne
+class HasOne extends HasOneOrMany
 {
     use SupportsDefaultModels;
 
