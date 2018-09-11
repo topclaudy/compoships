@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\Concerns\SupportsDefaultModels;
 class HasOne extends HasOneOrMany
 {
     use SupportsDefaultModels;
-    use HasOneOrMany;
 
     /**
      * Indicates if a default model instance should be used.
