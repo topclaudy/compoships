@@ -4,9 +4,8 @@ namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOneOrMany as BaseHasOneOrMany;
 
-abstract class HasOneOrMany extends BaseHasOneOrMany
+trait HasOneOrMany
 {
     /**
      * Set the base constraints on the relation query.

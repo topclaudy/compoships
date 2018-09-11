@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany as BaseHasMany;
 
 class HasMany extends BaseHasMany
 {
+    use HasOneOrMany;
+
     /**
      * Get the results of the relationship.
      *

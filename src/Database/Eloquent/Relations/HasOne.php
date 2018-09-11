@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne as BaseHasOne;
 class HasOne extends BaseHasOne
 {
     use SupportsDefaultModels;
+    use HasOneOrMany;
 
     /**
      * Indicates if a default model instance should be used.
