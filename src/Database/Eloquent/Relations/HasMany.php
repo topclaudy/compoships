@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Collection;
 
 class HasMany extends HasOneOrMany
 {
+    use HasOneOrMany;
+
     /**
      * Get the results of the relationship.
      *
