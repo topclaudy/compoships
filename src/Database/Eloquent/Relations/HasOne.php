@@ -5,10 +5,12 @@ namespace Awobaz\Compoships\Database\Eloquent\Relations;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\Concerns\SupportsDefaultModels;
+use Illuminate\Database\Eloquent\Relations\HasOne as BaseHasOne;
 
-class HasOne extends HasOneOrMany
+class HasOne extends BaseHasOne
 {
     use SupportsDefaultModels;
+    use HasOneOrMany;
 
     /**
      * Indicates if a default model instance should be used.
