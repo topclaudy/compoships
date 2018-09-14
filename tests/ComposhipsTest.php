@@ -4,6 +4,8 @@ use Awobaz\Compoships\Database\Eloquent\Model;
 use Awobaz\Compoships\Tests\Model\Allocation;
 use Awobaz\Compoships\Tests\Model\PickupPoint;
 use Awobaz\Compoships\Tests\Model\TrackingTask;
+use Illuminate\Database\Eloquent\Factory;
+use Faker\Generator as Faker;
 
 require_once __DIR__. '/TestCase.php';
 
@@ -126,5 +128,30 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($pickupPoint->pickupTimes);
 
         Model::unguard();
+    }
+
+    public function testFactories(){
+        $factory = app(Factory::class);
+
+        $factory->define(Allocation::class, function (Faker $faker) {
+            return [
+                'booking_id' => rand(1, 100),
+                'vehicle_id' => rand(1, 100)
+            ];
+        });
+
+        $factory->define(TrackingTask::class, function (Faker $faker) {
+            return [
+
+            ];
+        });
+
+        factory(Allocation::class)->create()->each(function ($a) {
+            $a->trackingTasks()->save(factory(TrackingTask::class)->make());
+        });
+
+        $allocation = Allocation::firstOrFail();
+
+        $this->assertNotNull($allocation->trackingTasks);
     }
 }
