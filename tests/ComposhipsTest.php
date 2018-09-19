@@ -79,6 +79,27 @@ class ComposhipsTest extends TestCase
         Model::unguard();
     }
 
+    /**
+     * Test the make method on a relationship
+     *
+     * @return void
+     */
+    public function testMake()
+    {
+        Model::unguard();
+
+        $allocation = new Allocation();
+        $allocation->booking_id = 1;
+        $allocation->vehicle_id = 1;
+        $allocation->save();
+
+        $trackingTasks = $allocation->trackingTasks()->make([]);
+
+        $this->assertNotNull($trackingTasks);
+
+        Model::unguard();
+    }
+
     public function testHas()
     {
         $allocations = Allocation::has('trackingTasks')->get()->toArray();
