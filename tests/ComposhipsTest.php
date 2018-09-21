@@ -175,4 +175,11 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($allocation->trackingTasks);
     }
+
+    public function testHasForSelfRelation()
+    {
+        $trackingTask = TrackingTask::has('subTasks')->get()->toArray();
+
+        $this->assertInternalType('array', $trackingTask);
+    }
 }

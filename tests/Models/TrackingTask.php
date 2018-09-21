@@ -15,4 +15,11 @@ class TrackingTask extends Model
             ['booking_id', 'vehicle_id'],
             ['booking_id', 'vehicle_id']);
     }
+
+    public function subTasks()
+    {
+        return $this->hasMany(TrackingTask::class,
+            ['booking_id', 'vehicle_id'],
+            ['booking_id', 'vehicle_id']);
+    }
 }
