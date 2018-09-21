@@ -4,6 +4,7 @@ namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 trait HasOneOrMany
 {
@@ -211,5 +212,29 @@ trait HasOneOrMany
         } else {
             parent::setForeignAttributesForCreate($model);
         }
+    }
+
+    /**
+     * Add the constraints for a relationship query on the same table.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $parentQuery
+     * @param  array|mixed  $columns
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function getRelationExistenceQueryForSelfRelation(Builder $query, Builder $parentQuery, $columns = ['*'])
+    {
+        $query->from($query->getModel()->getTable().' as '.$hash = $this->getRelationCountHash());
+
+        $query->getModel()->setTable($hash);
+
+        return $query->select($columns)->whereColumn(
+            $this->getQualifiedParentKeyName(),
+            '=',
+            is_array($this->getForeignKeyName()) ? //Check for multi-columns relationship
+                array_map(function ($k) use ($hash) {
+                    return $hash . '.' . $k;
+                }, $this->getForeignKeyName()) : $hash . '.' . $this->getForeignKeyName()
+        );
     }
 }
