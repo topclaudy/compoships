@@ -54,6 +54,7 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($allocation->trackingTasks);
         $this->assertEquals($allocation->trackingTasks->count(), 3);
+        $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
 
         Model::unguard();
     }
@@ -75,6 +76,7 @@ class ComposhipsTest extends TestCase
         $allocation->trackingTasks()->create([]);
 
         $this->assertNotNull($allocation->trackingTasks);
+        $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
 
         Model::unguard();
     }
@@ -93,9 +95,10 @@ class ComposhipsTest extends TestCase
         $allocation->vehicle_id = 1;
         $allocation->save();
 
-        $trackingTasks = $allocation->trackingTasks()->make([]);
+        $trackingTask = $allocation->trackingTasks()->make([]);
 
-        $this->assertNotNull($trackingTasks);
+        $this->assertNotNull($trackingTask);
+        $this->assertInstanceOf(Allocation::class, $trackingTask->allocation);
 
         Model::unguard();
     }
