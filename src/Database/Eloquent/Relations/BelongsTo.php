@@ -21,8 +21,9 @@ class BelongsTo extends BaseBelongsTo
             $table = $this->related->getTable();
 
             if(is_array($this->ownerKey)){ //Check for multi-columns relationship
+                $childAttributes = $this->child->attributesToArray();
                 foreach($this->ownerKey as $index => $key){
-                    if($this->child->{$this->foreignKey[$index]}) {
+                    if( array_key_exists($this->foreignKey[$index], $childAttributes) ) {
                         $this->query->where($table . '.' . $key, '=', $this->child->{$this->foreignKey[ $index ]});
                     }
                 }
