@@ -36,5 +36,10 @@
           "Awobaz\\Compoships\\ComposhipsServiceProvider"
         ]
       }
+    },
+    "suggest": {
+      "awobaz/eloquent-mutators": "Reusable mutators (getters/setters) for Laravel 5's Eloquent",
+      "awobaz/blade-active": "Blade directives for the Laravel 'Active' package",
+      "awobaz/syntactic": "Syntactic sugar for named and indexed parameters call."
     }
 }
