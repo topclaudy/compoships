@@ -1,45 +1,47 @@
 {
-    "name": "awobaz/compoships",
-    "description": "Laravel relationships with support for composite/multiple keys",
-    "license": "MIT",
-    "keywords": [
-        "laravel",
-        "laravel composite keys",
-        "laravel relationships"
-    ],
-    "authors": [
-        {"name": "Claudin J. Daniel", "email": "cdaniel@awobaz.com"}
-    ],
-    "require": {
-      "php": ">=5.6.4",
-      "illuminate/database": "~5.4",
-      "illuminate/console": "~5.4",
-      "illuminate/support": "~5.4",
-      "illuminate/cache": "~5.4"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "5.*",
-        "laravel/laravel": "~5.4",
-        "fzaninotto/faker": "^1.8"
-    },
-    "autoload": {
-        "psr-4": {
-            "Awobaz\\Compoships\\": "src"
-        },
-        "files": [
-
-        ]
-    },
-    "extra": {
-      "laravel": {
-        "providers": [
-          "Awobaz\\Compoships\\ComposhipsServiceProvider"
-        ]
-      }
-    },
-    "suggest": {
-      "awobaz/eloquent-mutators": "Reusable mutators (getters/setters) for Laravel 5's Eloquent",
-      "awobaz/blade-active": "Blade directives for the Laravel 'Active' package",
-      "awobaz/syntactic": "Syntactic sugar for named and indexed parameters call."
+  "name": "awobaz/compoships",
+  "description": "Laravel relationships with support for composite/multiple keys",
+  "license": "MIT",
+  "keywords": [
+    "laravel",
+    "laravel composite keys",
+    "laravel relationships"
+  ],
+  "authors": [
+    {
+      "name": "Claudin J. Daniel",
+      "email": "cdaniel@awobaz.com"
     }
+  ],
+  "require": {
+    "php": ">=5.6.4",
+    "illuminate/database": "~5.4",
+    "illuminate/console": "~5.4",
+    "illuminate/support": "~5.4",
+    "illuminate/cache": "~5.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "5.*",
+    "laravel/laravel": "~5.4",
+    "fzaninotto/faker": "^1.8"
+  },
+  "autoload": {
+    "psr-4": {
+      "Awobaz\\Compoships\\": "src"
+    },
+    "files": [
+    ]
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Awobaz\\Compoships\\ComposhipsServiceProvider"
+      ]
+    }
+  },
+  "suggest": {
+    "awobaz/eloquent-mutators": "Reusable mutators (getters/setters) for Laravel 5's Eloquent",
+    "awobaz/blade-active": "Blade directives for the Laravel 'Active' package",
+    "awobaz/syntactic": "Syntactic sugar for named and indexed parameters call."
+  }
 }

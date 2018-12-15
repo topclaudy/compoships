@@ -4,10 +4,10 @@ use Awobaz\Compoships\Database\Eloquent\Model;
 use Awobaz\Compoships\Tests\Model\Allocation;
 use Awobaz\Compoships\Tests\Model\PickupPoint;
 use Awobaz\Compoships\Tests\Model\TrackingTask;
-use Illuminate\Database\Eloquent\Factory;
 use Faker\Generator as Faker;
+use Illuminate\Database\Eloquent\Factory;
 
-require_once __DIR__. '/TestCase.php';
+require_once __DIR__.'/TestCase.php';
 
 class ComposhipsTest extends TestCase
 {
@@ -49,7 +49,7 @@ class ComposhipsTest extends TestCase
         $allocation->trackingTasks()->saveMany([
             new TrackingTask(),
             new TrackingTask(),
-            new TrackingTask()
+            new TrackingTask(),
         ]);
 
         $this->assertNotNull($allocation->trackingTasks);
@@ -128,8 +128,8 @@ class ComposhipsTest extends TestCase
 
     public function testWhereHasCallback()
     {
-        $allocations = Allocation::wherehas('trackingTasks', function ($query)  {
-            $query->where('vehicle_id',  1);
+        $allocations = Allocation::wherehas('trackingTasks', function ($query) {
+            $query->where('vehicle_id', 1);
         })->get()->toArray();
 
         $this->assertInternalType('array', $allocations);
@@ -145,7 +145,7 @@ class ComposhipsTest extends TestCase
         $pickupPoint->save();
 
         $pickupPoint->pickupTimes()->create([
-            'days'        => 'mon tue',
+            'days' => 'mon tue',
             'pickup_time' => '08:00:00',
         ]);
 
@@ -154,13 +154,14 @@ class ComposhipsTest extends TestCase
         Model::unguard();
     }
 
-    public function testFactories(){
+    public function testFactories()
+    {
         $factory = app(Factory::class);
 
         $factory->define(Allocation::class, function (Faker $faker) {
             return [
                 'booking_id' => rand(1, 100),
-                'vehicle_id' => rand(1, 100)
+                'vehicle_id' => rand(1, 100),
             ];
         });
 

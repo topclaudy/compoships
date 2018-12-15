@@ -28,7 +28,7 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $this->app['config']->set('database.default','sqlite');
+        $this->app['config']->set('database.default', 'sqlite');
         $this->app['config']->set('database.connections.sqlite.database', ':memory:');
 
         $this->migrate();
@@ -42,7 +42,7 @@ abstract class TestCase extends BaseTestCase
     public function migrate()
     {
         $fileSystem = new Filesystem;
-        $fileSystem->requireOnce(__DIR__ . "/migrations.php");
+        $fileSystem->requireOnce(__DIR__."/migrations.php");
 
         (new Migration())->up();
     }

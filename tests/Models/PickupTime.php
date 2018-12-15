@@ -8,6 +8,9 @@ class PickupTime extends Model
 {
     public function pickupPoint()
     {
-        return $this->belongsTo(PickupPoint::class, ['contract_number', 'pickup_index'], ['contract_number', 'pickup_index']);
+        return $this->belongsTo(PickupPoint::class, ['contract_number', 'pickup_index'], [
+            'contract_number',
+            'pickup_index',
+        ]);
     }
 }

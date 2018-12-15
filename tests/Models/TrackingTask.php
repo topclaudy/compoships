@@ -11,15 +11,11 @@ class TrackingTask extends Model
 
     public function allocation()
     {
-        return $this->belongsTo(Allocation::class,
-            ['booking_id', 'vehicle_id'],
-            ['booking_id', 'vehicle_id']);
+        return $this->belongsTo(Allocation::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
     }
 
     public function subTasks()
     {
-        return $this->hasMany(TrackingTask::class,
-            ['booking_id', 'vehicle_id'],
-            ['booking_id', 'vehicle_id']);
+        return $this->hasMany(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
     }
 }

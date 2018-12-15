@@ -20,11 +20,11 @@ class BelongsTo extends BaseBelongsTo
             // of the related models matching on the foreign key that's on a parent.
             $table = $this->related->getTable();
 
-            if(is_array($this->ownerKey)){ //Check for multi-columns relationship
+            if (is_array($this->ownerKey)) { //Check for multi-columns relationship
                 $childAttributes = $this->child->attributesToArray();
-                foreach($this->ownerKey as $index => $key){
-                    if( array_key_exists($this->foreignKey[$index], $childAttributes) ) {
-                        $this->query->where($table . '.' . $key, '=', $this->child->{$this->foreignKey[ $index ]});
+                foreach ($this->ownerKey as $index => $key) {
+                    if (array_key_exists($this->foreignKey[$index], $childAttributes)) {
+                        $this->query->where($table.'.'.$key, '=', $this->child->{$this->foreignKey[$index]});
                     }
                 }
             } else {
@@ -36,15 +36,15 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Set the constraints for an eager load of the relation.
      *
-     * @param  array  $models
+     * @param  array $models
      * @return void
      */
     public function addEagerConstraints(array $models)
     {
-        if(is_array($this->ownerKey)){ //Check for multi-columns relationship
+        if (is_array($this->ownerKey)) { //Check for multi-columns relationship
             $keys = [];
 
-            foreach ($this->ownerKey as $key){
+            foreach ($this->ownerKey as $key) {
                 $keys[] = $this->related->getTable().'.'.$key;
             }
 
@@ -61,24 +61,23 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Gather the keys from an array of related models.
      *
-     * @param  array  $models
+     * @param  array $models
      * @return array
      */
     protected function getEagerModelKeys(array $models)
     {
         $keys = [];
 
-
         // First we need to gather all of the keys from the parent models so we know what
         // to query for via the eager loading query. We will add them to an array then
         // execute a "where in" statement to gather up all of those related records.
         foreach ($models as $model) {
-            if(is_array($this->foreignKey)){ //Check for multi-columns relationship
-                $keys[] = array_map(function($k) use ($model) {
+            if (is_array($this->foreignKey)) { //Check for multi-columns relationship
+                $keys[] = array_map(function ($k) use ($model) {
                     return $model->{$k};
                 }, $this->foreignKey);
             } else {
-                if (!is_null($value = $model->{$this->foreignKey})) {
+                if (! is_null($value = $model->{$this->foreignKey})) {
                     $keys[] = $value;
                 }
             }
@@ -99,9 +98,9 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Match the eagerly loaded results to their parents.
      *
-     * @param  array   $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
-     * @param  string  $relation
+     * @param  array $models
+     * @param  \Illuminate\Database\Eloquent\Collection $results
+     * @param  string $relation
      * @return array
      */
     public function match(array $models, Collection $results, $relation)
@@ -116,12 +115,12 @@ class BelongsTo extends BaseBelongsTo
         $dictionary = [];
 
         foreach ($results as $result) {
-            if(is_array($owner)){ //Check for multi-columns relationship
-                $dictKeyValues = array_map(function($k) use ($result) {
+            if (is_array($owner)) { //Check for multi-columns relationship
+                $dictKeyValues = array_map(function ($k) use ($result) {
                     return $result->{$k};
                 }, $owner);
 
-                $dictionary[ implode('-', $dictKeyValues) ] = $result;
+                $dictionary[implode('-', $dictKeyValues)] = $result;
             } else {
                 $dictionary[$result->getAttribute($owner)] = $result;
             }
@@ -131,8 +130,8 @@ class BelongsTo extends BaseBelongsTo
         // and match back onto their children using these keys of the dictionary and
         // the primary key of the children to map them onto the correct instances.
         foreach ($models as $model) {
-            if(is_array($foreign)){ //Check for multi-columns relationship
-                $dictKeyValues = array_map(function($k) use ($model) {
+            if (is_array($foreign)) { //Check for multi-columns relationship
+                $dictKeyValues = array_map(function ($k) use ($model) {
                     return $model->{$k};
                 }, $foreign);
 

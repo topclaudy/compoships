@@ -10,11 +10,11 @@ class Builder extends BaseQueryBuilder
     {
         //Here we implement custom support for multi-column 'IN'
         //A multi-column 'IN' is a series of OR/AND clauses
-        if(is_array($column)){
-            $this->where(function($query) use ($column, $values){
-                foreach($values as $value){
-                    $query->orWhere(function($query) use ($column, $value){
-                        foreach($column as $index => $aColumn){
+        if (is_array($column)) {
+            $this->where(function ($query) use ($column, $values) {
+                foreach ($values as $value) {
+                    $query->orWhere(function ($query) use ($column, $value) {
+                        foreach ($column as $index => $aColumn) {
                             $query->where($aColumn, $value[$index]);
                         }
                     });
@@ -31,16 +31,16 @@ class Builder extends BaseQueryBuilder
     {
         // If the column and values are arrays, we will assume it is a multi-columns relationship
         // and we adjust the 'where' clauses accordingly
-        if(is_array($first) && is_array($second)){
+        if (is_array($first) && is_array($second)) {
             $type = 'Column';
 
-            foreach($first as $index => $f) {
+            foreach ($first as $index => $f) {
                 $this->wheres[] = [
-                    'type'     => $type,
-                    'first'    => $f,
+                    'type' => $type,
+                    'first' => $f,
                     'operator' => $operator,
-                    'second'   => $second[ $index ],
-                    'boolean'  => $boolean,
+                    'second' => $second[$index],
+                    'boolean' => $boolean,
 
                 ];
             }
