@@ -36,8 +36,8 @@ trait HasRelationships
      * Define a one-to-one relationship.
      *
      * @param  string $related
-     * @param  string $foreignKey
-     * @param  string $localKey
+     * @param  string|array|null $foreignKey
+     * @param  string|array|null $localKey
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
      */
     public function hasOne($related, $foreignKey = null, $localKey = null)
@@ -81,8 +81,8 @@ trait HasRelationships
      * Define a one-to-many relationship.
      *
      * @param  string $related
-     * @param  string $foreignKey
-     * @param  string $localKey
+     * @param  string|array|null $foreignKey
+     * @param  string|array|null $localKey
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
      */
     public function hasMany($related, $foreignKey = null, $localKey = null)
@@ -110,8 +110,8 @@ trait HasRelationships
      * Define an inverse one-to-one or many relationship.
      *
      * @param  string $related
-     * @param  string $foreignKey
-     * @param  string $ownerKey
+     * @param  string|array|null $foreignKey
+     * @param  string|array|null $ownerKey
      * @param  string $relation
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
      */
