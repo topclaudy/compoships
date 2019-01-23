@@ -28,6 +28,12 @@ class HasOne extends BaseHasOne
      */
     public function getResults()
     {
+        if (! is_array($this->getParentKey())) {
+            if (is_null($this->getParentKey())) {
+                return $this->getDefaultFor($this->parent);
+            }
+        }
+
         return $this->query->first() ?: $this->getDefaultFor($this->parent);
     }
 

@@ -16,6 +16,10 @@ class HasMany extends BaseHasMany
      */
     public function getResults()
     {
+        if (! is_array($this->getParentKey())) {
+            return ! is_null($this->getParentKey()) ? $this->query->get() : $this->related->newCollection();
+        }
+
         return $this->query->get();
     }
 

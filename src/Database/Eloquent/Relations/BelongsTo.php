@@ -8,6 +8,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo as BaseBelongsTo;
 class BelongsTo extends BaseBelongsTo
 {
     /**
+     * Get the results of the relationship.
+     *
+     * @return mixed
+     */
+    public function getResults()
+    {
+        if (! is_array($this->foreignKey)) {
+            if (is_null($this->child->{$this->foreignKey})) {
+                return $this->getDefaultFor($this->parent);
+            }
+        }
+
+        return $this->query->first() ?: $this->getDefaultFor($this->parent);
+    }
+
+    /**
      * Set the base constraints on the relation query.
      *
      * @return void
