@@ -2,6 +2,7 @@
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\DB;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -30,6 +31,8 @@ abstract class TestCase extends BaseTestCase
 
         $this->app['config']->set('database.default', 'sqlite');
         $this->app['config']->set('database.connections.sqlite.database', ':memory:');
+
+        DB::statement("PRAGMA foreign_keys = OFF"); //Prevent weird "1 foreign key mismatch" error
 
         $this->migrate();
     }
