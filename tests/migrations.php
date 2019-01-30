@@ -20,6 +20,13 @@ class Migration extends BaseMigration
             $table->timestamps();
         });
 
+        Schema::create('spaces', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('booking_id')
+                ->unsigned();
+            $table->timestamps();
+        });
+
         Schema::create('tracking_tasks', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('booking_id')->unsigned();

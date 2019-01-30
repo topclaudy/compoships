@@ -42,7 +42,9 @@ trait HasRelationships
      */
     public function hasOne($related, $foreignKey = null, $localKey = null)
     {
-        $this->validateRelatedModel($related);
+        if (is_array($foreignKey)) { //Check for multi-columns relationship
+            $this->validateRelatedModel($related);
+        }
 
         $instance = $this->newRelatedInstance($related);
 
@@ -87,7 +89,9 @@ trait HasRelationships
      */
     public function hasMany($related, $foreignKey = null, $localKey = null)
     {
-        $this->validateRelatedModel($related);
+        if (is_array($foreignKey)) { //Check for multi-columns relationship
+            $this->validateRelatedModel($related);
+        }
 
         $instance = $this->newRelatedInstance($related);
 
@@ -117,7 +121,9 @@ trait HasRelationships
      */
     public function belongsTo($related, $foreignKey = null, $ownerKey = null, $relation = null)
     {
-        $this->validateRelatedModel($related);
+        if (is_array($foreignKey)) { //Check for multi-columns relationship
+            $this->validateRelatedModel($related);
+        }
 
         // If no relation name was given, we will use this debug backtrace to extract
         // the calling method's name and use that as the relationship name as most
