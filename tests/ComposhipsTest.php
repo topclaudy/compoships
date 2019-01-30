@@ -3,6 +3,7 @@
 use Awobaz\Compoships\Database\Eloquent\Model;
 use Awobaz\Compoships\Tests\Model\Allocation;
 use Awobaz\Compoships\Tests\Model\PickupPoint;
+use Awobaz\Compoships\Tests\Model\Space;
 use Awobaz\Compoships\Tests\Model\TrackingTask;
 use Faker\Generator as Faker;
 use Illuminate\Database\Eloquent\Factory;
@@ -28,6 +29,28 @@ class ComposhipsTest extends TestCase
         $allocation->trackingTasks()->save(new TrackingTask());
 
         $this->assertNotNull($allocation->trackingTasks);
+
+        Model::unguard();
+    }
+
+    /**
+     * Test the save method on a relationship
+     *
+     * @return void
+     */
+    public function testSaveModelNotUsingCompoships()
+    {
+        Model::unguard();
+
+        $allocation = new Allocation();
+        $allocation->booking_id = 1;
+        $allocation->vehicle_id = 1;
+        $allocation->save();
+
+        $allocation->space()
+            ->save(new Space());
+
+        $this->assertNotNull($allocation->space);
 
         Model::unguard();
     }
