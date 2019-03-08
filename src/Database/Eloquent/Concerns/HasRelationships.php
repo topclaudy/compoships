@@ -6,6 +6,7 @@ use Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo;
 use Awobaz\Compoships\Database\Eloquent\Relations\HasMany;
 use Awobaz\Compoships\Database\Eloquent\Relations\HasOne;
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 trait HasRelationships
@@ -54,13 +55,15 @@ trait HasRelationships
 
         if (is_array($foreignKey)) { //Check for multi-columns relationship
             foreach ($foreignKey as $key) {
-                $foreignKeys[] = $instance->getTable().'.'.$key;
+                $foreignKeys[] = $this->maybeExpression($instance, $key);
             }
         }
 
         $localKey = $localKey ?: $this->getKeyName();
 
-        return new HasOne($instance->newQuery(), $this, $foreignKeys ?: $instance->getTable().'.'.$foreignKey, $localKey);
+        $foreignKey = $this->maybeExpression($instance, $foreignKey);
+
+        return new HasOne($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
     }
 
     /**
@@ -101,13 +104,15 @@ trait HasRelationships
 
         if (is_array($foreignKey)) { //Check for multi-columns relationship
             foreach ($foreignKey as $key) {
-                $foreignKeys[] = $instance->getTable().'.'.$key;
+                $foreignKeys[] = $this->maybeExpression($instance, $key);
             }
+        } else {
+            $foreignKey = $this->maybeExpression($instance, $foreignKey);
         }
 
         $localKey = $localKey ?: $this->getKeyName();
 
-        return new HasMany($instance->newQuery(), $this, $foreignKeys ?: $instance->getTable().'.'.$foreignKey, $localKey);
+        return new HasMany($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
     }
 
     /**
@@ -147,5 +152,21 @@ trait HasRelationships
         $ownerKey = $ownerKey ?: $instance->getKeyName();
 
         return new BelongsTo($instance->newQuery(), $this, $foreignKey, $ownerKey, $relation);
+    }
+
+    /**
+     * Honor DB::raw instances
+     *
+     * @param  string $instance
+     * @param  string $foreignKey
+     * @return string|Expression
+     */
+    protected function maybeExpression($instance, $foreignKey)
+    {
+        $grammar = $this->getConnection()->getQueryGrammar();
+
+        return $grammar->isExpression($foreignKey) 
+            ? DB::raw($instance->getTable().'.'.$foreignKey)
+            : $instance->getTable().'.'.$foreignKey;
     }
 }
