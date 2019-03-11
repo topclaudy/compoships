@@ -55,13 +55,13 @@ trait HasRelationships
 
         if (is_array($foreignKey)) { //Check for multi-columns relationship
             foreach ($foreignKey as $key) {
-                $foreignKeys[] = $this->maybeExpression($instance, $key);
+                $foreignKeys[] = $this->sanitizeKey($instance, $key);
             }
         }
 
         $localKey = $localKey ?: $this->getKeyName();
 
-        $foreignKey = $this->maybeExpression($instance, $foreignKey);
+        $foreignKey = $this->sanitizeKey($instance, $foreignKey);
 
         return new HasOne($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
     }
@@ -104,10 +104,10 @@ trait HasRelationships
 
         if (is_array($foreignKey)) { //Check for multi-columns relationship
             foreach ($foreignKey as $key) {
-                $foreignKeys[] = $this->maybeExpression($instance, $key);
+                $foreignKeys[] = $this->sanitizeKey($instance, $key);
             }
         } else {
-            $foreignKey = $this->maybeExpression($instance, $foreignKey);
+            $foreignKey = $this->sanitizeKey($instance, $foreignKey);
         }
 
         $localKey = $localKey ?: $this->getKeyName();
@@ -161,7 +161,7 @@ trait HasRelationships
      * @param  string $foreignKey
      * @return string|Expression
      */
-    protected function maybeExpression($instance, $foreignKey)
+    protected function sanitizeKey($instance, $foreignKey)
     {
         $grammar = $this->getConnection()->getQueryGrammar();
 
