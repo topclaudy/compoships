@@ -57,11 +57,11 @@ trait HasRelationships
             foreach ($foreignKey as $key) {
                 $foreignKeys[] = $this->sanitizeKey($instance, $key);
             }
+        } else {
+            $foreignKey = $this->sanitizeKey($instance, $foreignKey);
         }
 
         $localKey = $localKey ?: $this->getKeyName();
-
-        $foreignKey = $this->sanitizeKey($instance, $foreignKey);
 
         return new HasOne($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
     }
