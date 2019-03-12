@@ -57,11 +57,11 @@ trait HasRelationships
             foreach ($foreignKey as $key) {
                 $foreignKeys[] = $this->maybeExpression($instance, $key);
             }
+        } else {
+            $foreignKey = $this->maybeExpression($instance, $foreignKey);
         }
 
         $localKey = $localKey ?: $this->getKeyName();
-
-        $foreignKey = $this->maybeExpression($instance, $foreignKey);
 
         return new HasOne($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
     }
