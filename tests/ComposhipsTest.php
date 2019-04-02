@@ -26,7 +26,8 @@ class ComposhipsTest extends TestCase
         $allocation->vehicle_id = 1;
         $allocation->save();
 
-        $allocation->trackingTasks()->save(new TrackingTask());
+        $allocation->trackingTasks()
+            ->save(new TrackingTask());
 
         $this->assertNotNull($allocation->trackingTasks);
 
@@ -69,11 +70,12 @@ class ComposhipsTest extends TestCase
         $allocation->vehicle_id = 1;
         $allocation->save();
 
-        $allocation->trackingTasks()->saveMany([
-            new TrackingTask(),
-            new TrackingTask(),
-            new TrackingTask(),
-        ]);
+        $allocation->trackingTasks()
+            ->saveMany([
+                new TrackingTask(),
+                new TrackingTask(),
+                new TrackingTask(),
+            ]);
 
         $this->assertNotNull($allocation->trackingTasks);
         $this->assertEquals($allocation->trackingTasks->count(), 3);
@@ -96,7 +98,8 @@ class ComposhipsTest extends TestCase
         $allocation->vehicle_id = 1;
         $allocation->save();
 
-        $allocation->trackingTasks()->create([]);
+        $allocation->trackingTasks()
+            ->create([]);
 
         $this->assertNotNull($allocation->trackingTasks);
         $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
@@ -118,7 +121,8 @@ class ComposhipsTest extends TestCase
         $allocation->vehicle_id = 1;
         $allocation->save();
 
-        $trackingTask = $allocation->trackingTasks()->make([]);
+        $trackingTask = $allocation->trackingTasks()
+            ->make([]);
 
         $this->assertNotNull($trackingTask);
         $this->assertInstanceOf(Allocation::class, $trackingTask->allocation);
@@ -128,7 +132,9 @@ class ComposhipsTest extends TestCase
 
     public function testHas()
     {
-        $allocations = Allocation::has('trackingTasks')->get()->toArray();
+        $allocations = Allocation::has('trackingTasks')
+            ->get()
+            ->toArray();
 
         $this->assertInternalType('array', $allocations);
     }
@@ -140,11 +146,16 @@ class ComposhipsTest extends TestCase
      */
     public function testWhereHas()
     {
-        $allocations = Allocation::wherehas('trackingTasks')->get()->toArray();
+        $allocations = Allocation::wherehas('trackingTasks')
+            ->get()
+            ->toArray();
 
         $this->assertInternalType('array', $allocations);
 
-        $allocations = Allocation::query()->has('trackingTasks')->get()->toArray();
+        $allocations = Allocation::query()
+            ->has('trackingTasks')
+            ->get()
+            ->toArray();
 
         $this->assertInternalType('array', $allocations);
     }
@@ -153,7 +164,9 @@ class ComposhipsTest extends TestCase
     {
         $allocations = Allocation::wherehas('trackingTasks', function ($query) {
             $query->where('vehicle_id', 1);
-        })->get()->toArray();
+        })
+            ->get()
+            ->toArray();
 
         $this->assertInternalType('array', $allocations);
     }
@@ -167,10 +180,11 @@ class ComposhipsTest extends TestCase
         $pickupPoint->pickup_index = 1;
         $pickupPoint->save();
 
-        $pickupPoint->pickupTimes()->create([
-            'days' => 'mon tue',
-            'pickup_time' => '08:00:00',
-        ]);
+        $pickupPoint->pickupTimes()
+            ->create([
+                'days'        => 'mon tue',
+                'pickup_time' => '08:00:00',
+            ]);
 
         $this->assertNotNull($pickupPoint->pickupTimes);
 
@@ -194,9 +208,12 @@ class ComposhipsTest extends TestCase
             ];
         });
 
-        factory(Allocation::class)->create()->each(function ($a) {
-            $a->trackingTasks()->save(factory(TrackingTask::class)->make());
-        });
+        factory(Allocation::class)
+            ->create()
+            ->each(function ($a) {
+                $a->trackingTasks()
+                    ->save(factory(TrackingTask::class)->make());
+            });
 
         $allocation = Allocation::firstOrFail();
 
@@ -205,7 +222,9 @@ class ComposhipsTest extends TestCase
 
     public function testHasForSelfRelation()
     {
-        $trackingTask = TrackingTask::has('subTasks')->get()->toArray();
+        $trackingTask = TrackingTask::has('subTasks')
+            ->get()
+            ->toArray();
 
         $this->assertInternalType('array', $trackingTask);
     }

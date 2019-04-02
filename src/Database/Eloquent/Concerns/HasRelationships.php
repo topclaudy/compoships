@@ -36,9 +36,9 @@ trait HasRelationships
     /**
      * Define a one-to-one relationship.
      *
-     * @param  string $related
-     * @param  string|array|null $foreignKey
-     * @param  string|array|null $localKey
+     * @param  string  $related
+     * @param  string|array|null  $foreignKey
+     * @param  string|array|null  $localKey
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
      */
     public function hasOne($related, $foreignKey = null, $localKey = null)
@@ -77,7 +77,8 @@ trait HasRelationships
     {
         $uses = class_uses_recursive($related);
 
-        if (! array_key_exists('Awobaz\Compoships\Compoships', $uses) && ! is_subclass_of($related, 'Awobaz\Compoships\Database\Eloquent\Model')) {
+        if (! array_key_exists('Awobaz\Compoships\Compoships', $uses) && ! is_subclass_of($related,
+                'Awobaz\Compoships\Database\Eloquent\Model')) {
             throw new InvalidUsageException("The related model '${related}' must either extend 'Awobaz\Compoships\Database\Eloquent\Model' or use the 'Awobaz\Compoships\Compoships' trait");
         }
     }
@@ -85,9 +86,9 @@ trait HasRelationships
     /**
      * Define a one-to-many relationship.
      *
-     * @param  string $related
-     * @param  string|array|null $foreignKey
-     * @param  string|array|null $localKey
+     * @param  string  $related
+     * @param  string|array|null  $foreignKey
+     * @param  string|array|null  $localKey
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
      */
     public function hasMany($related, $foreignKey = null, $localKey = null)
@@ -118,10 +119,10 @@ trait HasRelationships
     /**
      * Define an inverse one-to-one or many relationship.
      *
-     * @param  string $related
-     * @param  string|array|null $foreignKey
-     * @param  string|array|null $ownerKey
-     * @param  string $relation
+     * @param  string  $related
+     * @param  string|array|null  $foreignKey
+     * @param  string|array|null  $ownerKey
+     * @param  string  $relation
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
      */
     public function belongsTo($related, $foreignKey = null, $ownerKey = null, $relation = null)
@@ -157,15 +158,16 @@ trait HasRelationships
     /**
      * Honor DB::raw instances
      *
-     * @param  string $instance
-     * @param  string $foreignKey
+     * @param  string  $instance
+     * @param  string  $foreignKey
      * @return string|Expression
      */
     protected function sanitizeKey($instance, $foreignKey)
     {
-        $grammar = $this->getConnection()->getQueryGrammar();
+        $grammar = $this->getConnection()
+            ->getQueryGrammar();
 
-        return $grammar->isExpression($foreignKey) 
+        return $grammar->isExpression($foreignKey)
             ? DB::raw($instance->getTable().'.'.$foreignKey)
             : $instance->getTable().'.'.$foreignKey;
     }

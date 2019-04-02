@@ -15,8 +15,10 @@ class Migration extends BaseMigration
     {
         Schema::create('allocations', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('booking_id')->unsigned();
-            $table->integer('vehicle_id')->unsigned();
+            $table->integer('booking_id')
+                ->unsigned();
+            $table->integer('vehicle_id')
+                ->unsigned();
             $table->timestamps();
         });
 
@@ -29,11 +31,21 @@ class Migration extends BaseMigration
 
         Schema::create('tracking_tasks', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('booking_id')->unsigned();
-            $table->integer('vehicle_id')->unsigned();
+            $table->integer('booking_id')
+                ->unsigned();
+            $table->integer('vehicle_id')
+                ->unsigned();
 
-            $table->foreign('booking_id')->references('booking_id')->on('allocations')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreign('vehicle_id')->references('vehicle_id')->on('allocations')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('booking_id')
+                ->references('booking_id')
+                ->on('allocations')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+            $table->foreign('vehicle_id')
+                ->references('vehicle_id')
+                ->on('allocations')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
 
             $table->timestamps();
             $table->softDeletes();
@@ -41,17 +53,25 @@ class Migration extends BaseMigration
 
         Schema::create('pickup_points', function (Blueprint $table) {
             $table->string('contract_number');
-            $table->integer('pickup_index')->unsigned();
+            $table->integer('pickup_index')
+                ->unsigned();
             $table->timestamps();
         });
 
         Schema::create('pickup_times', function (Blueprint $table) {
             $table->string('contract_number');
-            $table->integer('pickup_index')->unsigned();
-            $table->string('days')->unsigned();
-            $table->time('pickup_time')->unsigned();
+            $table->integer('pickup_index')
+                ->unsigned();
+            $table->string('days')
+                ->unsigned();
+            $table->time('pickup_time')
+                ->unsigned();
 
-            $table->foreign('pickup_index')->references('pickup_index')->on('pickup_point')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('pickup_index')
+                ->references('pickup_index')
+                ->on('pickup_point')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
 
             $table->timestamps();
         });

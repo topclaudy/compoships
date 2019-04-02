@@ -52,7 +52,7 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Set the constraints for an eager load of the relation.
      *
-     * @param  array $models
+     * @param  array  $models
      * @return void
      */
     public function addEagerConstraints(array $models)
@@ -77,7 +77,7 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Gather the keys from an array of related models.
      *
-     * @param  array $models
+     * @param  array  $models
      * @return array
      */
     protected function getEagerModelKeys(array $models)
@@ -114,9 +114,9 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Match the eagerly loaded results to their parents.
      *
-     * @param  array $models
-     * @param  \Illuminate\Database\Eloquent\Collection $results
-     * @param  string $relation
+     * @param  array  $models
+     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param  string  $relation
      * @return array
      */
     public function match(array $models, Collection $results, $relation)

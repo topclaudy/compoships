@@ -42,7 +42,7 @@ trait Compoships
      *
      * Create a new Eloquent query builder for the model.
      *
-     * @param  \Illuminate\Database\Query\Builder $query
+     * @param  \Illuminate\Database\Query\Builder  $query
      * @return EloquentBuilder
      */
     public function newEloquentBuilder($query)

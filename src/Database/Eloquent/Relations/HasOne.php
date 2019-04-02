@@ -29,7 +29,7 @@ class HasOne extends BaseHasOne
     /**
      * Get the default value for this relation.
      *
-     * @param  \Illuminate\Database\Eloquent\Model $model
+     * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Database\Eloquent\Model|null
      */
     protected function getDefaultFor(Model $model)
@@ -64,8 +64,8 @@ class HasOne extends BaseHasOne
     /**
      * Initialize the relation on a set of models.
      *
-     * @param  array $models
-     * @param  string $relation
+     * @param  array  $models
+     * @param  string  $relation
      * @return array
      */
     public function initRelation(array $models, $relation)
@@ -80,9 +80,9 @@ class HasOne extends BaseHasOne
     /**
      * Match the eagerly loaded results to their parents.
      *
-     * @param  array $models
-     * @param  \Illuminate\Database\Eloquent\Collection $results
-     * @param  string $relation
+     * @param  array  $models
+     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param  string  $relation
      * @return array
      */
     public function match(array $models, Collection $results, $relation)
@@ -93,7 +93,7 @@ class HasOne extends BaseHasOne
     /**
      * Make a new related instance for the given model.
      *
-     * @param  \Illuminate\Database\Eloquent\Model $parent
+     * @param  \Illuminate\Database\Eloquent\Model  $parent
      * @return \Illuminate\Database\Eloquent\Model
      */
     public function newRelatedInstanceFor(Model $parent)

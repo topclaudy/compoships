@@ -36,11 +36,11 @@ class Builder extends BaseQueryBuilder
 
             foreach ($first as $index => $f) {
                 $this->wheres[] = [
-                    'type' => $type,
-                    'first' => $f,
+                    'type'     => $type,
+                    'first'    => $f,
                     'operator' => $operator,
-                    'second' => $second[$index],
-                    'boolean' => $boolean,
+                    'second'   => $second[$index],
+                    'boolean'  => $boolean,
 
                 ];
             }
