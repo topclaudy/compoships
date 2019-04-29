@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo as BaseBelongsTo;
 
@@ -109,6 +110,48 @@ class BelongsTo extends BaseBelongsTo
         sort($keys);
 
         return array_values(array_unique($keys, SORT_REGULAR));
+    }
+
+    /**
+     * Get the fully qualified foreign key of the relationship.
+     *
+     * @return string
+     */
+    public function getQualifiedForeignKey()
+    {
+        if (is_array($this->foreignKey)) { //Check for multi-columns relationship
+            return array_map(function ($k) {
+                return $this->child->getTable().'.'.$k;
+            }, $this->foreignKey);
+        } else {
+            return $this->child->getTable().'.'.$this->foreignKey;
+        }
+    }
+
+    /**
+     * Add the constraints for a relationship query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $parentQuery
+     * @param  array|mixed  $columns
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function getRelationExistenceQuery(Builder $query, Builder $parentQuery, $columns = ['*'])
+    {
+        if ($parentQuery->getQuery()->from == $query->getQuery()->from) {
+            return $this->getRelationExistenceQueryForSelfRelation($query, $parentQuery, $columns);
+        }
+
+        $modelTable = $query->getModel()
+            ->getTable();
+
+        return $query->select($columns)
+            ->whereColumn(
+                $this->getQualifiedForeignKey(), '=', is_array($this->ownerKey) ? //Check for multi-columns relationship
+                array_map(function ($k) use ($modelTable) {
+                    return $modelTable.'.'.$k;
+                }, $this->ownerKey) : $modelTable.'.'.$this->ownerKey
+            );
     }
 
     /**

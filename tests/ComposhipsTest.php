@@ -3,6 +3,7 @@
 use Awobaz\Compoships\Database\Eloquent\Model;
 use Awobaz\Compoships\Tests\Model\Allocation;
 use Awobaz\Compoships\Tests\Model\PickupPoint;
+use Awobaz\Compoships\Tests\Model\PickupTime;
 use Awobaz\Compoships\Tests\Model\Space;
 use Awobaz\Compoships\Tests\Model\TrackingTask;
 use Faker\Generator as Faker;
@@ -117,6 +118,11 @@ class ComposhipsTest extends TestCase
         Model::unguard();
 
         $allocation = new Allocation();
+
+        if (! method_exists($allocation->trackingTasks(), 'make')) {
+            return;
+        }
+
         $allocation->booking_id = 1;
         $allocation->vehicle_id = 1;
         $allocation->save();
@@ -227,5 +233,14 @@ class ComposhipsTest extends TestCase
             ->toArray();
 
         $this->assertInternalType('array', $trackingTask);
+    }
+
+    public function testHasWithBelongsToRelation()
+    {
+        $pickup_times = PickupTime::has('pickupPoint')
+            ->get()
+            ->toArray();
+
+        $this->assertInternalType('array', $pickup_times);
     }
 }
