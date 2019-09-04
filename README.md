@@ -1,7 +1,7 @@
 Compoships
 ==========
 
-**Compoships** offers the ability to specify relationships based on two (or more) columns in Laravel 5's Eloquent. The need to match multiple columns in the definition of an Eloquent relationship often arises when working with third party or pre existing schema/database. 
+**Compoships** offers the ability to specify relationships based on two (or more) columns in Laravel's Eloquent ORM. The need to match multiple columns in the definition of an Eloquent relationship often arises when working with third party or pre existing schema/database. 
 
 ## The problem
 
@@ -89,7 +89,7 @@ class B extends Model
 ```
 ## Supported relationships
 
-**Compoships** only supports the following Laravel 5's Eloquent relationships:
+**Compoships** only supports the following Laravel's Eloquent relationships:
 
 * hasOne
 * HasMany
@@ -97,7 +97,7 @@ class B extends Model
 
 ## Disclaimer
 
-**Compoships** doesn't bring support for composite keys in Laravel 5's Eloquent. This package only offers the ability to specify relationships based on more than one column. We believe that all models' tables should have a single primary key. But there are situations where you'll need to match many columns in the definition of a relationship even when your models' tables have a single primary key.
+**Compoships** doesn't bring support for composite keys in Laravel's Eloquent. This package only offers the ability to specify relationships based on more than one column. We believe that all models' tables should have a single primary key. But there are situations where you'll need to match many columns in the definition of a relationship even when your models' tables have a single primary key.
 
 ## Contributing
 
