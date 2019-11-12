@@ -6,6 +6,9 @@ use Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo;
 use Awobaz\Compoships\Database\Eloquent\Relations\HasMany;
 use Awobaz\Compoships\Database\Eloquent\Relations\HasOne;
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -63,7 +66,21 @@ trait HasRelationships
 
         $localKey = $localKey ?: $this->getKeyName();
 
-        return new HasOne($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
+        return $this->newHasOne($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
+    }
+
+    /**
+     * Instantiate a new HasOne relationship.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  \Illuminate\Database\Eloquent\Model  $parent
+     * @param  string|array  $foreignKey
+     * @param  string|array  $localKey
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
+     */
+    protected function newHasOne(Builder $query, Model $parent, $foreignKey, $localKey)
+    {
+        return new HasOne($query, $parent, $foreignKey, $localKey);
     }
 
     /**
@@ -113,7 +130,21 @@ trait HasRelationships
 
         $localKey = $localKey ?: $this->getKeyName();
 
-        return new HasMany($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
+        return $this->newHasMany($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
+    }
+
+    /**
+     * Instantiate a new HasMany relationship.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  \Illuminate\Database\Eloquent\Model  $parent
+     * @param  string|array  $foreignKey
+     * @param  string|array  $localKey
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
+     */
+    protected function newHasMany(Builder $query, Model $parent, $foreignKey, $localKey)
+    {
+        return new HasMany($query, $parent, $foreignKey, $localKey);
     }
 
     /**
@@ -152,7 +183,22 @@ trait HasRelationships
         // actually be responsible for retrieving and hydrating every relations.
         $ownerKey = $ownerKey ?: $instance->getKeyName();
 
-        return new BelongsTo($instance->newQuery(), $this, $foreignKey, $ownerKey, $relation);
+        return $this->newBelongsTo($instance->newQuery(), $this, $foreignKey, $ownerKey, $relation);
+    }
+
+    /**
+     * Instantiate a new BelongsTo relationship.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  \Illuminate\Database\Eloquent\Model  $child
+     * @param  string|array  $foreignKey
+     * @param  string|array  $ownerKey
+     * @param  string  $relation
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
+     */
+    protected function newBelongsTo(Builder $query, Model $child, $foreignKey, $ownerKey, $relation)
+    {
+        return new BelongsTo($query, $child, $foreignKey, $ownerKey, $relation);
     }
 
     /**
