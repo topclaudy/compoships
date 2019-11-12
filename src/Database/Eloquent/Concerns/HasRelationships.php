@@ -39,9 +39,10 @@ trait HasRelationships
     /**
      * Define a one-to-one relationship.
      *
-     * @param  string  $related
-     * @param  string|array|null  $foreignKey
-     * @param  string|array|null  $localKey
+     * @param string            $related
+     * @param string|array|null $foreignKey
+     * @param string|array|null $localKey
+     *
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
      */
     public function hasOne($related, $foreignKey = null, $localKey = null)
@@ -72,10 +73,11 @@ trait HasRelationships
     /**
      * Instantiate a new HasOne relationship.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  \Illuminate\Database\Eloquent\Model  $parent
-     * @param  string|array  $foreignKey
-     * @param  string|array  $localKey
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Model   $parent
+     * @param string|array                          $foreignKey
+     * @param string|array                          $localKey
+     *
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
      */
     protected function newHasOne(Builder $query, Model $parent, $foreignKey, $localKey)
@@ -84,17 +86,19 @@ trait HasRelationships
     }
 
     /**
-     * Validate the related model for Compoships compatibility
+     * Validate the related model for Compoships compatibility.
      *
      * @param  $related
-     * @return void
+     *
      * @throws InvalidUsageException
+     *
+     * @return void
      */
     private function validateRelatedModel($related)
     {
         $uses = class_uses_recursive($related);
 
-        if (! array_key_exists('Awobaz\Compoships\Compoships', $uses) && ! is_subclass_of($related,
+        if (!array_key_exists('Awobaz\Compoships\Compoships', $uses) && !is_subclass_of($related,
                 'Awobaz\Compoships\Database\Eloquent\Model')) {
             throw new InvalidUsageException("The related model '${related}' must either extend 'Awobaz\Compoships\Database\Eloquent\Model' or use the 'Awobaz\Compoships\Compoships' trait");
         }
@@ -103,9 +107,10 @@ trait HasRelationships
     /**
      * Define a one-to-many relationship.
      *
-     * @param  string  $related
-     * @param  string|array|null  $foreignKey
-     * @param  string|array|null  $localKey
+     * @param string            $related
+     * @param string|array|null $foreignKey
+     * @param string|array|null $localKey
+     *
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
      */
     public function hasMany($related, $foreignKey = null, $localKey = null)
@@ -136,10 +141,11 @@ trait HasRelationships
     /**
      * Instantiate a new HasMany relationship.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  \Illuminate\Database\Eloquent\Model  $parent
-     * @param  string|array  $foreignKey
-     * @param  string|array  $localKey
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Model   $parent
+     * @param string|array                          $foreignKey
+     * @param string|array                          $localKey
+     *
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
      */
     protected function newHasMany(Builder $query, Model $parent, $foreignKey, $localKey)
@@ -150,10 +156,11 @@ trait HasRelationships
     /**
      * Define an inverse one-to-one or many relationship.
      *
-     * @param  string  $related
-     * @param  string|array|null  $foreignKey
-     * @param  string|array|null  $ownerKey
-     * @param  string  $relation
+     * @param string            $related
+     * @param string|array|null $foreignKey
+     * @param string|array|null $ownerKey
+     * @param string            $relation
+     *
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
      */
     public function belongsTo($related, $foreignKey = null, $ownerKey = null, $relation = null)
@@ -189,11 +196,12 @@ trait HasRelationships
     /**
      * Instantiate a new BelongsTo relationship.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  \Illuminate\Database\Eloquent\Model  $child
-     * @param  string|array  $foreignKey
-     * @param  string|array  $ownerKey
-     * @param  string  $relation
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Model   $child
+     * @param string|array                          $foreignKey
+     * @param string|array                          $ownerKey
+     * @param string                                $relation
+     *
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
      */
     protected function newBelongsTo(Builder $query, Model $child, $foreignKey, $ownerKey, $relation)
@@ -202,10 +210,11 @@ trait HasRelationships
     }
 
     /**
-     * Honor DB::raw instances
+     * Honor DB::raw instances.
      *
-     * @param  string  $instance
-     * @param  string  $foreignKey
+     * @param string $instance
+     * @param string $foreignKey
+     *
      * @return string|Expression
      */
     protected function sanitizeKey($instance, $foreignKey)
