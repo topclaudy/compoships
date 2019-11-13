@@ -4,7 +4,6 @@ namespace Awobaz\Compoships;
 
 use Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships;
 use Awobaz\Compoships\Database\Query\Builder as QueryBuilder;
-use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Support\Str;
 
 trait Compoships
@@ -38,20 +37,7 @@ trait Compoships
     }
 
     /**
-     * Configure Eloquent to use Compoships Eloquent Builder
-     *
-     * Create a new Eloquent query builder for the model.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @return EloquentBuilder
-     */
-    public function newEloquentBuilder($query)
-    {
-        return new EloquentBuilder($query);
-    }
-
-    /**
-     * Configure Eloquent to use Compoships Query Builder
+     * Configure Eloquent to use Compoships Query Builder.
      *
      * @return \Awobaz\Compoships\Database\Query\Builder|static
      */
