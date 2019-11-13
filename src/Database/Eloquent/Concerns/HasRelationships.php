@@ -2,12 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Concerns;
 
-use Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo;
-use Awobaz\Compoships\Database\Eloquent\Relations\HasMany;
-use Awobaz\Compoships\Database\Eloquent\Relations\HasOne;
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -71,21 +66,6 @@ trait HasRelationships
     }
 
     /**
-     * Instantiate a new HasOne relationship.
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param \Illuminate\Database\Eloquent\Model   $parent
-     * @param string|array                          $foreignKey
-     * @param string|array                          $localKey
-     *
-     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
-     */
-    protected function newHasOne(Builder $query, Model $parent, $foreignKey, $localKey)
-    {
-        return new HasOne($query, $parent, $foreignKey, $localKey);
-    }
-
-    /**
      * Validate the related model for Compoships compatibility.
      *
      * @param  $related
@@ -139,21 +119,6 @@ trait HasRelationships
     }
 
     /**
-     * Instantiate a new HasMany relationship.
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param \Illuminate\Database\Eloquent\Model   $parent
-     * @param string|array                          $foreignKey
-     * @param string|array                          $localKey
-     *
-     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
-     */
-    protected function newHasMany(Builder $query, Model $parent, $foreignKey, $localKey)
-    {
-        return new HasMany($query, $parent, $foreignKey, $localKey);
-    }
-
-    /**
      * Define an inverse one-to-one or many relationship.
      *
      * @param string            $related
@@ -191,22 +156,6 @@ trait HasRelationships
         $ownerKey = $ownerKey ?: $instance->getKeyName();
 
         return $this->newBelongsTo($instance->newQuery(), $this, $foreignKey, $ownerKey, $relation);
-    }
-
-    /**
-     * Instantiate a new BelongsTo relationship.
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param \Illuminate\Database\Eloquent\Model   $child
-     * @param string|array                          $foreignKey
-     * @param string|array                          $ownerKey
-     * @param string                                $relation
-     *
-     * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
-     */
-    protected function newBelongsTo(Builder $query, Model $child, $foreignKey, $ownerKey, $relation)
-    {
-        return new BelongsTo($query, $child, $foreignKey, $ownerKey, $relation);
     }
 
     /**
