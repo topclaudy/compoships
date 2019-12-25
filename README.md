@@ -127,6 +127,7 @@ $ vendor/bin/phpunit
 
 ## Sponsored by
 
+* [StockTreats](https://stocktreats.com) - Stock Market Insights With Trading Tips And Tricks
 * [Awobaz](https://awobaz.com) - Web/Mobile agency based in Montreal, Canada
 
 ## License
