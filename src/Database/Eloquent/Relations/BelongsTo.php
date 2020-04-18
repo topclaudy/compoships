@@ -45,7 +45,7 @@ class BelongsTo extends BaseBelongsTo
                     }
                 }
             } else {
-                $this->query->where($table.'.'.$this->ownerKey, '=', $this->child->{$this->foreignKey});
+                parent::addConstraints();
             }
         }
     }
@@ -67,11 +67,7 @@ class BelongsTo extends BaseBelongsTo
 
             $this->query->whereIn($keys, $this->getEagerModelKeys($models));
         } else {
-            // We'll grab the primary key name of the related models since it could be set to
-            // a non-standard name and not "id". We will then construct the constraint for
-            // our eagerly loading query so it returns the proper models from execution.
-            $key = $this->related->getTable().'.'.$this->ownerKey;
-            $this->query->whereIn($key, $this->getEagerModelKeys($models));
+            parent::addEagerConstraints($models);
         }
     }
 

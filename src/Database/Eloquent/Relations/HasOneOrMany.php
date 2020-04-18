@@ -29,23 +29,9 @@ trait HasOneOrMany
                     $this->query->whereNotNull($fullKey);
                 }
             } else {
-                $fullKey = $this->getRelated()
-                        ->getTable().'.'.$foreignKey;
-                $this->query->where($fullKey, '=', $parentKeyValue);
-                $this->query->whereNotNull($fullKey);
+                parent::addConstraints();
             }
         }
-    }
-
-    /**
-     * Set the constraints for an eager load of the relation.
-     *
-     * @param  array  $models
-     * @return void
-     */
-    public function addEagerConstraints(array $models)
-    {
-        $this->query->whereIn($this->foreignKey, $this->getKeys($models, $this->localKey));
     }
 
     /**
