@@ -166,7 +166,8 @@ trait HasOneOrMany
                 is_array($this->getForeignKeyName()) ? //Check for multi-columns relationship
                     array_map(function ($k) use ($hash) {
                         return $hash.'.'.$k;
-                    }, $this->getForeignKeyName()) : $hash . '.' . $this->getForeignKeyName());
+                    }, $this->getForeignKeyName()) : $hash.'.'.$this->getForeignKeyName()
+            );
     }
 
     /**
