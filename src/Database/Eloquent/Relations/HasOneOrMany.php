@@ -37,17 +37,18 @@ trait HasOneOrMany
     /**
      * Get the name of the "where in" method for eager loading.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @param  string|array  $key
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param string|array                        $key
+     *
      * @return string
      */
     protected function whereInMethod(Model $model, $key)
     {
-        if (! is_array($key)) {
+        if (!is_array($key)) {
             return parent::whereInMethod($model, $key);
         }
 
-        $where = collect($key)->filter(function($key) use ($model) {
+        $where = collect($key)->filter(function ($key) use ($model) {
             return $model->getKeyName() === last(explode('.', $key))
                 && in_array($model->getKeyType(), ['int', 'integer']);
         });
@@ -96,7 +97,8 @@ trait HasOneOrMany
     /**
      * Attach a model instance to the parent model.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param \Illuminate\Database\Eloquent\Model $model
+     *
      * @return \Illuminate\Database\Eloquent\Model
      */
     public function save(Model $model)
@@ -118,7 +120,8 @@ trait HasOneOrMany
     /**
      * Create a new instance of the related model.
      *
-     * @param  array  $attributes
+     * @param array $attributes
+     *
      * @return \Illuminate\Database\Eloquent\Model
      */
     public function create(array $attributes = [])
@@ -142,9 +145,10 @@ trait HasOneOrMany
     /**
      * Add the constraints for a relationship query on the same table.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  \Illuminate\Database\Eloquent\Builder  $parentQuery
-     * @param  array|mixed  $columns
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder $parentQuery
+     * @param array|mixed                           $columns
+     *
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function getRelationExistenceQueryForSelfRelation(Builder $query, Builder $parentQuery, $columns = ['*'])
@@ -156,20 +160,23 @@ trait HasOneOrMany
             ->setTable($hash);
 
         return $query->select($columns)
-            ->whereColumn($this->getQualifiedParentKeyName(), '=',
+            ->whereColumn(
+                $this->getQualifiedParentKeyName(),
+                '=',
                 is_array($this->getForeignKeyName()) ? //Check for multi-columns relationship
                     array_map(function ($k) use ($hash) {
                         return $hash.'.'.$k;
-                    }, $this->getForeignKeyName()) : $hash.'.'.$this->getForeignKeyName());
+                    }, $this->getForeignKeyName()) : $hash . '.' . $this->getForeignKeyName());
     }
 
     /**
      * Match the eagerly loaded results to their many parents.
      *
-     * @param  array  $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
-     * @param  string  $relation
-     * @param  string  $type
+     * @param array                                    $models
+     * @param \Illuminate\Database\Eloquent\Collection $results
+     * @param string                                   $relation
+     * @param string                                   $type
+     *
      * @return array
      */
     protected function matchOneOrMany(array $models, Collection $results, $relation, $type)
@@ -196,7 +203,8 @@ trait HasOneOrMany
     /**
      * Build model dictionary keyed by the relation's foreign key.
      *
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
+     * @param \Illuminate\Database\Eloquent\Collection $results
+     *
      * @return array
      */
     protected function buildDictionary(Collection $results)
@@ -227,7 +235,8 @@ trait HasOneOrMany
     /**
      * Set the foreign ID for creating a related model.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param \Illuminate\Database\Eloquent\Model $model
+     *
      * @return void
      */
     protected function setForeignAttributesForCreate(Model $model)
