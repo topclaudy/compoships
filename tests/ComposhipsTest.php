@@ -33,7 +33,7 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($allocation->trackingTasks);
 
-        Model::unguard();
+        Model::reguard();
     }
 
     /**
@@ -55,7 +55,7 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($allocation->space);
 
-        Model::unguard();
+        Model::reguard();
     }
 
     /**
@@ -82,6 +82,9 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($allocation->trackingTasks);
         $this->assertEquals($allocation->trackingTasks->count(), 3);
         $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
+
+        Model::reguard();
+    }
 
     /**
      * Test the save method on a relationship with a null value
@@ -172,7 +175,7 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($allocation->trackingTasks);
         $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
 
-        Model::unguard();
+        Model::reguard();
     }
 
     /**
@@ -200,7 +203,7 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($trackingTask);
         $this->assertInstanceOf(Allocation::class, $trackingTask->allocation);
 
-        Model::unguard();
+        Model::reguard();
     }
 
     public function testHas()
@@ -261,7 +264,7 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($pickupPoint->pickupTimes);
 
-        Model::unguard();
+        Model::reguard();
     }
 
     public function testFactories()
