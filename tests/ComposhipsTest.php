@@ -32,6 +32,7 @@ class ComposhipsTest extends TestCase
             ->save(new TrackingTask());
 
         $this->assertNotNull($allocation->trackingTasks);
+        $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
 
         Model::reguard();
     }
