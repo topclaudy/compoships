@@ -15,10 +15,15 @@ class Migration extends BaseMigration
     {
         Schema::create('allocations', function (Blueprint $table) {
             $table->increments('id');
+            $table->integer('user_id')
+                ->unsigned()
+                ->nullable();
             $table->integer('booking_id')
-                ->unsigned();
+                ->unsigned()
+                ->nullable();
             $table->integer('vehicle_id')
-                ->unsigned();
+                ->unsigned()
+                ->nullable();
             $table->timestamps();
         });
 
@@ -32,9 +37,11 @@ class Migration extends BaseMigration
         Schema::create('tracking_tasks', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('booking_id')
-                ->unsigned();
+                ->unsigned()
+                ->nullable();
             $table->integer('vehicle_id')
-                ->unsigned();
+                ->unsigned()
+                ->nullable();
 
             $table->foreign('booking_id')
                 ->references('booking_id')
@@ -73,6 +80,14 @@ class Migration extends BaseMigration
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
 
+            $table->timestamps();
+        });
+
+        Schema::create('users', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('booking_id')
+                ->unsigned()
+                ->nullable();
             $table->timestamps();
         });
     }

@@ -15,4 +15,9 @@ class Allocation extends Model
     {
         return $this->hasOne(Space::class, 'booking_id', 'booking_id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, ['user_id', 'booking_id'], ['id', 'booking_id']);
+    }
 }

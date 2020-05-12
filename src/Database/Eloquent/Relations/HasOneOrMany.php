@@ -21,12 +21,17 @@ trait HasOneOrMany
 
             //If the foreign key is an array (multi-column relationship), we adjust the query.
             if (is_array($this->foreignKey)) {
+                $allParentKeyValuesAreNull = array_unique($parentKeyValue) === [null];
+
                 foreach ($this->foreignKey as $index => $key) {
                     list(, $key) = explode('.', $key);
                     $fullKey = $this->getRelated()
                             ->getTable().'.'.$key;
                     $this->query->where($fullKey, '=', $parentKeyValue[$index]);
-                    $this->query->whereNotNull($fullKey);
+
+                    if ($allParentKeyValuesAreNull) {
+                        $this->query->whereNotNull($fullKey);
+                    }
                 }
             } else {
                 parent::addConstraints();
