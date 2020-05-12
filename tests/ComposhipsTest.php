@@ -6,6 +6,7 @@ use Awobaz\Compoships\Tests\Model\PickupPoint;
 use Awobaz\Compoships\Tests\Model\PickupTime;
 use Awobaz\Compoships\Tests\Model\Space;
 use Awobaz\Compoships\Tests\Model\TrackingTask;
+use Awobaz\Compoships\Tests\Model\User;
 use Faker\Generator as Faker;
 use Illuminate\Database\Eloquent\Factory;
 
@@ -31,8 +32,9 @@ class ComposhipsTest extends TestCase
             ->save(new TrackingTask());
 
         $this->assertNotNull($allocation->trackingTasks);
+        $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
 
-        Model::unguard();
+        Model::reguard();
     }
 
     /**
@@ -54,7 +56,7 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($allocation->space);
 
-        Model::unguard();
+        Model::reguard();
     }
 
     /**
@@ -82,7 +84,76 @@ class ComposhipsTest extends TestCase
         $this->assertEquals($allocation->trackingTasks->count(), 3);
         $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
 
+        Model::reguard();
+    }
+
+    /**
+     * Test the save method on a relationship with a null value
+     *
+     * @return void
+     */
+    public function testSaveWithANullValue()
+    {
         Model::unguard();
+
+        $allocation = new Allocation();
+        $allocation->booking_id = 1;
+        $allocation->vehicle_id = null;
+        $allocation->save();
+
+        $allocation->trackingTasks()
+            ->save(new TrackingTask());
+
+        $this->assertNotNull($allocation->trackingTasks);
+        $this->assertTrue($allocation->trackingTasks->isNotEmpty());
+        $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
+
+        Model::reguard();
+    }
+
+    /**
+     * Test a relationship with only null values is not supported
+     *
+     * @return void
+     */
+    public function testARelationshipWithOnlyNullValuesIsNotSupported()
+    {
+        Model::unguard();
+
+        $allocation = new Allocation();
+        $allocation->booking_id = null;
+        $allocation->vehicle_id = null;
+        $allocation->save();
+
+        $allocation->trackingTasks()
+            ->save(new TrackingTask());
+
+        $this->assertNotNull($allocation->trackingTasks);
+        $this->assertTrue($allocation->trackingTasks->isEmpty());
+        $this->assertNull(TrackingTask::first()->allocation);
+
+        Model::reguard();
+    }
+
+    /**
+     * Test a relationship with a foreign key is empty on a new instance
+     *
+     * @return void
+     */
+    public function testARelationshipWithAForeignKeyIsEmptyOnANewInstance()
+    {
+        Model::unguard();
+
+        $allocation = new Allocation();
+        $allocation->user_id = null;
+        $allocation->save();
+
+        $user = new User();
+
+        $this->assertNotNull($user->allocations);
+        $this->assertTrue($user->allocations->isEmpty());
+
+        Model::reguard();
     }
 
     /**
@@ -105,7 +176,7 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($allocation->trackingTasks);
         $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
 
-        Model::unguard();
+        Model::reguard();
     }
 
     /**
@@ -133,7 +204,7 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($trackingTask);
         $this->assertInstanceOf(Allocation::class, $trackingTask->allocation);
 
-        Model::unguard();
+        Model::reguard();
     }
 
     public function testHas()
@@ -194,7 +265,7 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($pickupPoint->pickupTimes);
 
-        Model::unguard();
+        Model::reguard();
     }
 
     public function testFactories()

@@ -39,9 +39,20 @@ class BelongsTo extends BaseBelongsTo
 
             if (is_array($this->ownerKey)) { //Check for multi-columns relationship
                 $childAttributes = $this->child->attributesToArray();
+
+                $allOwnerKeyValuesKeysAreNull = array_unique(array_values(
+                    array_intersect_key($childAttributes, array_flip($this->ownerKey))
+                )) === [null];
+
                 foreach ($this->ownerKey as $index => $key) {
+                    $fullKey = $table.'.'.$key;
+
                     if (array_key_exists($this->foreignKey[$index], $childAttributes)) {
-                        $this->query->where($table.'.'.$key, '=', $this->child->{$this->foreignKey[$index]});
+                        $this->query->where($fullKey, '=', $this->child->{$this->foreignKey[$index]});
+                    }
+
+                    if ($allOwnerKeyValuesKeysAreNull) {
+                        $this->query->whereNotNull($fullKey);
                     }
                 }
             } else {
