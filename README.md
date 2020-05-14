@@ -154,6 +154,16 @@ Version 2.x brings support for nullable columns. The results may now be differen
 
 Please read [CONTRIBUTING.md](https://github.com/topclaudy/compoships/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests.
 
+
+[![](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/images/0)](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/links/0)
+[![](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/images/1)](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/links/1)
+[![](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/images/2)](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/links/2)
+[![](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/images/3)](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/links/3)
+[![](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/images/4)](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/links/4)
+[![](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/images/5)](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/links/5)
+[![](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/images/6)](https://sourcerer.io/fame/topclaudy/topclaudy/compoships/links/6)
+
+
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/topclaudy/compoships/tags).
