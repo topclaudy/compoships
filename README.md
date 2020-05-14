@@ -5,19 +5,19 @@ Compoships
 
 ## The problem
 
-Eloquent doesn't support composite keys. As a consequence, there is no way to define a relationship from one model to another by matching more than one column. Trying to use `where clauses` (like in the example below) won't work when eager loading the relationship because at the time the relationship is processed **$this->l2** is null. 
+Eloquent doesn't support composite keys. As a consequence, there is no way to define a relationship from one model to another by matching more than one column. Trying to use `where clauses` (like in the example below) won't work when eager loading the relationship because at the time the relationship is processed **$this->team_id** is null. 
 
 ```php
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Foo extends Model
+class User extends Model
 {
-    public function bars()
+    public function tasks()
     {
         //WON'T WORK WITH EAGER LOADING!!!
-        return $this->hasMany('Bar', 'f1', 'l1')->where('f2', $this->l2);
+        return $this->hasMany(Task::class)->where('team_id', $this->team_id);
     }
 }
 ```
@@ -65,7 +65,7 @@ class A extends Model
     
     public function b()
     {
-        return $this->hasMany('B', ['f1', 'f2'], ['l1', 'l2']);
+        return $this->hasMany('B', ['foreignKey1', 'foreignKey2'], ['localKey1', 'localKey2']);
     }
 }
 ```
@@ -83,7 +83,52 @@ class B extends Model
     
     public function a()
     {
-        return $this->belongsTo('A', ['f1', 'f2'], ['l1', 'l2']);
+        return $this->belongsTo('A', ['foreignKey1', 'foreignKey2'], ['localKey1', 'localKey2']);
+    }
+}
+```
+
+### Example
+
+As an example, let's pretend we have a task list with categories, managed by several teams of users where:
+* a task belongs to a category
+* a task is assigned to a team
+* a team has many users
+* a user belongs to one team
+* a user is responsible for one category of tasks
+
+The user responsible for a particular task is the user _currently_ in charge for the category inside the team.
+
+```php
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class User extends Model
+{
+    use \Awobaz\Compoships\Compoships;
+    
+    public function tasks()
+    {
+        return $this->hasMany(Task::class, ['team_id', 'category_id'], ['team_id', 'category_id']);
+    }
+}
+```
+
+Again, same syntax to define the inverse of the relationship:
+
+```php
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Tasks
+{
+    use \Awobaz\Compoships\Compoships;
+    
+    public function user()
+    {
+        return $this->belongsTo(User::class, ['team_id', 'category_id'], ['team_id', 'category_id']);
     }
 }
 ```
@@ -94,6 +139,8 @@ class B extends Model
 * hasOne
 * HasMany
 * belongsTo
+
+Also please note that while **nullable columns are supported by Compoships**, relationships with only null values are not currently possible.
 
 ## Disclaimer
 

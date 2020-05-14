@@ -40,7 +40,7 @@ class BelongsTo extends BaseBelongsTo
             if (is_array($this->ownerKey)) { //Check for multi-columns relationship
                 $childAttributes = $this->child->attributesToArray();
 
-                $allOwnerKeyValuesKeysAreNull = array_unique(array_values(
+                $allOwnerKeyValuesAreNull = array_unique(array_values(
                     array_intersect_key($childAttributes, array_flip($this->ownerKey))
                 )) === [null];
 
@@ -51,7 +51,7 @@ class BelongsTo extends BaseBelongsTo
                         $this->query->where($fullKey, '=', $this->child->{$this->foreignKey[$index]});
                     }
 
-                    if ($allOwnerKeyValuesKeysAreNull) {
+                    if ($allOwnerKeyValuesAreNull) {
                         $this->query->whereNotNull($fullKey);
                     }
                 }
