@@ -142,6 +142,10 @@ class Tasks
 
 Also please note that while **nullable columns are supported by Compoships**, relationships with only null values are not currently possible.
 
+## Support for nullable columns in 2.x
+
+Version 2.x brings support for nullable columns. The results may now be different than on version 1.x when a column is null on a relationship, so we bumped the version to 2.x, as this might be a breaking change.
+
 ## Disclaimer
 
 **Compoships** doesn't bring support for composite keys in Laravel's Eloquent. This package only offers the ability to specify relationships based on more than one column. We believe that all models' tables should have a single primary key. But there are situations where you'll need to match many columns in the definition of a relationship even when your models' tables have a single primary key.
