@@ -38,7 +38,7 @@ class BelongsTo extends BaseBelongsTo
             $table = $this->related->getTable();
 
             if (is_array($this->ownerKey)) { //Check for multi-columns relationship
-                $childAttributes = $this->child->attributesToArray();
+                $childAttributes = $this->child->getAttributes();
 
                 $allOwnerKeyValuesAreNull = array_unique(array_values(
                     array_intersect_key($childAttributes, array_flip($this->ownerKey))
