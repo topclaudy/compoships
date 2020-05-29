@@ -122,7 +122,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Tasks
+class Task extends Model
 {
     use \Awobaz\Compoships\Compoships;
     
