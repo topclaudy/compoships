@@ -24,7 +24,8 @@ trait HasOneOrMany
                 $allParentKeyValuesAreNull = array_unique($parentKeyValue) === [null];
 
                 foreach ($this->foreignKey as $index => $key) {
-                    list(, $key) = explode('.', $key);
+                    $tmp = explode('.', $key);
+                    $key = end($tmp);
                     $fullKey = $this->getRelated()
                             ->getTable().'.'.$key;
                     $this->query->where($fullKey, '=', $parentKeyValue[$index]);
