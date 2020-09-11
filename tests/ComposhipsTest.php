@@ -269,7 +269,6 @@ class ComposhipsTest extends TestCase
         Model::reguard();
     }
 
-
     public function testFactories()
     {
         if (class_exists('\Illuminate\Database\Eloquent\Factory')) {
