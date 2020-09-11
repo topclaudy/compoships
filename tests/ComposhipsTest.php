@@ -2,6 +2,7 @@
 
 use Awobaz\Compoships\Database\Eloquent\Model;
 use Awobaz\Compoships\Tests\Factories\AllocationFactory;
+use Awobaz\Compoships\Tests\Factories\TrackingTaskFactory;
 use Awobaz\Compoships\Tests\Model\Allocation;
 use Awobaz\Compoships\Tests\Model\PickupPoint;
 use Awobaz\Compoships\Tests\Model\PickupTime;
@@ -15,7 +16,7 @@ require_once __DIR__.'/TestCase.php';
 class ComposhipsTest extends TestCase
 {
     /**
-     * Test the save method on a relationship
+     * Test the save method on a relationship.
      *
      * @return void
      */
@@ -38,7 +39,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the save method on a relationship
+     * Test the save method on a relationship.
      *
      * @return void
      */
@@ -60,7 +61,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the save method on a relationship
+     * Test the save method on a relationship.
      *
      * @return void
      */
@@ -88,7 +89,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the save method on a relationship with a null value
+     * Test the save method on a relationship with a null value.
      *
      * @return void
      */
@@ -112,7 +113,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test a relationship with only null values is not supported
+     * Test a relationship with only null values is not supported.
      *
      * @return void
      */
@@ -136,7 +137,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test a relationship with a foreign key is empty on a new instance
+     * Test a relationship with a foreign key is empty on a new instance.
      *
      * @return void
      */
@@ -157,7 +158,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the create method on a relationship
+     * Test the create method on a relationship.
      *
      * @return void
      */
@@ -180,7 +181,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the make method on a relationship
+     * Test the make method on a relationship.
      *
      * @return void
      */
@@ -298,7 +299,7 @@ class ComposhipsTest extends TestCase
 
             AllocationFactory::new()->create()->each(function($a){
                 $a->trackingTasks()
-                  ->save(\Awobaz\Compoships\Tests\Factories\TrackingTaskFactory::new()->make());
+                  ->save(TrackingTaskFactory::new()->make());
             });
         }
 

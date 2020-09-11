@@ -3,7 +3,6 @@
 
 namespace Awobaz\Compoships\Tests\Factories;
 
-use Awobaz\Compoships\Tests\Model\Allocation;
 use Awobaz\Compoships\Tests\Model\TrackingTask;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
