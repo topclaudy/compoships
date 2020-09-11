@@ -191,7 +191,7 @@ class ComposhipsTest extends TestCase
 
         $allocation = new Allocation();
 
-        if (! method_exists($allocation->trackingTasks(), 'make')) {
+        if (!method_exists($allocation->trackingTasks(), 'make')) {
             return;
         }
 
@@ -295,10 +295,10 @@ class ComposhipsTest extends TestCase
                     $a->trackingTasks()
                       ->save(factory(TrackingTask::class)->make());
                 });
-        }else{
+        } else {
             //Laravel 8 and above
 
-            AllocationFactory::new()->create()->each(function($a){
+            AllocationFactory::new()->create()->each(function($a) {
                 $a->trackingTasks()
                   ->save(TrackingTaskFactory::new()->make());
             });
