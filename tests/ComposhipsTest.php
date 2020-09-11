@@ -298,7 +298,7 @@ class ComposhipsTest extends TestCase
         } else {
             //Laravel 8 and above
 
-            AllocationFactory::new()->create()->each(function($a) {
+            AllocationFactory::new()->create()->each(function ($a) {
                 $a->trackingTasks()
                   ->save(TrackingTaskFactory::new()->make());
             });
