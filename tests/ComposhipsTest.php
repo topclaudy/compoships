@@ -1,6 +1,7 @@
 <?php
 
 use Awobaz\Compoships\Database\Eloquent\Model;
+use Awobaz\Compoships\Tests\Factories\AllocationFactory;
 use Awobaz\Compoships\Tests\Model\Allocation;
 use Awobaz\Compoships\Tests\Model\PickupPoint;
 use Awobaz\Compoships\Tests\Model\PickupTime;
@@ -8,7 +9,6 @@ use Awobaz\Compoships\Tests\Model\Space;
 use Awobaz\Compoships\Tests\Model\TrackingTask;
 use Awobaz\Compoships\Tests\Model\User;
 use Faker\Generator as Faker;
-use Illuminate\Database\Eloquent\Factory;
 
 require_once __DIR__.'/TestCase.php';
 
@@ -270,27 +270,37 @@ class ComposhipsTest extends TestCase
 
     public function testFactories()
     {
-        $factory = app(Factory::class);
+        if (class_exists('\Illuminate\Database\Eloquent\Factory')) {
+            //Laravel 7 and below
+            $factory = app(\Illuminate\Database\Eloquent\Factory::class);
 
-        $factory->define(Allocation::class, function (Faker $faker) {
-            return [
-                'booking_id' => rand(1, 100),
-                'vehicle_id' => rand(1, 100),
-            ];
-        });
-
-        $factory->define(TrackingTask::class, function (Faker $faker) {
-            return [
-
-            ];
-        });
-
-        factory(Allocation::class)
-            ->create()
-            ->each(function ($a) {
-                $a->trackingTasks()
-                    ->save(factory(TrackingTask::class)->make());
+            $factory->define(Allocation::class, function (Faker $faker) {
+                return [
+                    'booking_id' => rand(1, 100),
+                    'vehicle_id' => rand(1, 100),
+                ];
             });
+
+            $factory->define(TrackingTask::class, function (Faker $faker) {
+                return [
+
+                ];
+            });
+
+            factory(Allocation::class)
+                ->create()
+                ->each(function ($a) {
+                    $a->trackingTasks()
+                      ->save(factory(TrackingTask::class)->make());
+                });
+        }else{
+            //Laravel 8 and above
+
+            AllocationFactory::new()->create()->each(function($a){
+                $a->trackingTasks()
+                  ->save(\Awobaz\Compoships\Tests\Factories\TrackingTaskFactory::new()->make());
+            });
+        }
 
         $allocation = Allocation::firstOrFail();
 
