@@ -1,19 +1,22 @@
 <?php
 
 use Awobaz\Compoships\Database\Eloquent\Model;
+use Awobaz\Compoships\Tests\Factories\AllocationFactory;
+use Awobaz\Compoships\Tests\Factories\TrackingTaskFactory;
 use Awobaz\Compoships\Tests\Model\Allocation;
 use Awobaz\Compoships\Tests\Model\PickupPoint;
 use Awobaz\Compoships\Tests\Model\PickupTime;
 use Awobaz\Compoships\Tests\Model\Space;
 use Awobaz\Compoships\Tests\Model\TrackingTask;
 use Awobaz\Compoships\Tests\Model\User;
+use Faker\Generator as Faker;
 
 require_once __DIR__.'/TestCase.php';
 
 class ComposhipsTest extends TestCase
 {
     /**
-     * Test the save method on a relationship
+     * Test the save method on a relationship.
      *
      * @return void
      */
@@ -36,7 +39,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the save method on a relationship
+     * Test the save method on a relationship.
      *
      * @return void
      */
@@ -58,7 +61,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the save method on a relationship
+     * Test the save method on a relationship.
      *
      * @return void
      */
@@ -86,7 +89,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the save method on a relationship with a null value
+     * Test the save method on a relationship with a null value.
      *
      * @return void
      */
@@ -110,7 +113,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test a relationship with only null values is not supported
+     * Test a relationship with only null values is not supported.
      *
      * @return void
      */
@@ -134,7 +137,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test a relationship with a foreign key is empty on a new instance
+     * Test a relationship with a foreign key is empty on a new instance.
      *
      * @return void
      */
@@ -155,7 +158,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the create method on a relationship
+     * Test the create method on a relationship.
      *
      * @return void
      */
@@ -178,7 +181,7 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the make method on a relationship
+     * Test the make method on a relationship.
      *
      * @return void
      */
@@ -188,7 +191,7 @@ class ComposhipsTest extends TestCase
 
         $allocation = new Allocation();
 
-        if (! method_exists($allocation->trackingTasks(), 'make')) {
+        if (!method_exists($allocation->trackingTasks(), 'make')) {
             return;
         }
 
@@ -264,6 +267,45 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($pickupPoint->pickupTimes);
 
         Model::reguard();
+    }
+
+    public function testFactories()
+    {
+        if (class_exists('\Illuminate\Database\Eloquent\Factory')) {
+            //Laravel 7 and below
+            $factory = app(\Illuminate\Database\Eloquent\Factory::class);
+
+            $factory->define(Allocation::class, function (Faker $faker) {
+                return [
+                    'booking_id' => rand(1, 100),
+                    'vehicle_id' => rand(1, 100),
+                ];
+            });
+
+            $factory->define(TrackingTask::class, function (Faker $faker) {
+                return [
+
+                ];
+            });
+
+            factory(Allocation::class)
+                ->create()
+                ->each(function ($a) {
+                    $a->trackingTasks()
+                      ->save(factory(TrackingTask::class)->make());
+                });
+        } else {
+            //Laravel 8 and above
+
+            AllocationFactory::new()->create()->each(function ($a) {
+                $a->trackingTasks()
+                  ->save(TrackingTaskFactory::new()->make());
+            });
+        }
+
+        $allocation = Allocation::firstOrFail();
+
+        $this->assertNotNull($allocation->trackingTasks);
     }
 
     public function testHasForSelfRelation()
