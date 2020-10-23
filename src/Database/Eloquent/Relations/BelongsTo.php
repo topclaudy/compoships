@@ -4,6 +4,7 @@ namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo as BaseBelongsTo;
 
 class BelongsTo extends BaseBelongsTo
@@ -22,6 +23,36 @@ class BelongsTo extends BaseBelongsTo
         }
 
         return $this->query->first() ?: $this->getDefaultFor($this->parent);
+    }
+
+    /**
+     * Associate the model instance to the given parent.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model|int|string  $model
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function associate($model)
+    {
+        if (is_array($this->ownerKey)) {
+
+            $ownerKey = $model instanceof Model ? $model->getAttribute($this->ownerKey) : $model;
+            for ($i = 0; $i < count($this->foreignKey); $i++) {
+                $foreignKey = $this->foreignKey[$i];
+                $value = $ownerKey[$i];
+                $this->child->setAttribute($foreignKey, $value);
+            }
+
+            if ($model instanceof Model) {
+                $this->child->setRelation($this->relationName, $model);
+            } else {
+                $this->child->unsetRelation($this->relationName);
+            }
+
+            return $this->child;
+
+        } else {
+            return parent::associate($model);
+        }
     }
 
     /**
