@@ -148,7 +148,7 @@ Version 2.x brings support for nullable columns. The results may now be differen
 
 ## Disclaimer
 
-**Compoships** doesn't bring support for composite keys in Laravel's Eloquent. This package only offers the ability to specify relationships based on more than one column. We believe that all models' tables should have a single primary key. But there are situations where you'll need to match many columns in the definition of a relationship even when your models' tables have a single primary key.
+**Compoships** doesn't bring support for composite keys in Laravel's Eloquent. This package only offers the ability to specify relationships based on more than one column. In a Laravel project, it's recommended for all models' tables to have a single primary key. But there are situations where you'll need to match many columns in the definition of a relationship even when your models' tables have a single primary key.
 
 ## Contributing
 
