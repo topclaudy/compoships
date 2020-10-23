@@ -325,4 +325,25 @@ class ComposhipsTest extends TestCase
 
         $this->assertInternalType('array', $pickup_times);
     }
+
+    /**
+     * Test the associate method on a belongsTo relationship
+     *
+     * @return void
+     */
+    public function testAssociate()
+    {
+        Model::unguard();
+
+        $user = new User();
+        $user->booking_id = 1;
+        $user->save();
+
+        $allocation = new Allocation();
+        $allocation->user()->associate($user);
+
+        $this->assertNotNull($allocation->user);
+
+        Model::reguard();
+    }
 }
