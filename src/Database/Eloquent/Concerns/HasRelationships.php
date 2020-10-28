@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Concerns;
 
+use Awobaz\Compoships\Compoships;
 use Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo;
 use Awobaz\Compoships\Database\Eloquent\Relations\HasMany;
 use Awobaz\Compoships\Database\Eloquent\Relations\HasOne;
@@ -96,11 +97,9 @@ trait HasRelationships
      */
     private function validateRelatedModel($related)
     {
-        $uses = class_uses_recursive($related);
-
-        if (!array_key_exists('Awobaz\Compoships\Compoships', $uses) && !is_subclass_of($related,
-                'Awobaz\Compoships\Database\Eloquent\Model')) {
-            throw new InvalidUsageException("The related model '${related}' must either extend 'Awobaz\Compoships\Database\Eloquent\Model' or use the 'Awobaz\Compoships\Compoships' trait");
+        $traitClass = Compoships::class;
+        if (!array_key_exists($traitClass, class_uses_recursive($related))) {
+            throw new InvalidUsageException("The related model '{$related}' must use the '{$traitClass}' trait");
         }
     }
 
