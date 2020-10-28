@@ -33,26 +33,26 @@ class BelongsTo extends BaseBelongsTo
      */
     public function associate($model)
     {
-        if (is_array($this->ownerKey)) {
-
-            $ownerKey = $model instanceof Model ? $model->getAttribute($this->ownerKey) : $model;
-            for ($i = 0; $i < count($this->foreignKey); $i++) {
-                $foreignKey = $this->foreignKey[$i];
-                $value = $ownerKey[$i];
-                $this->child->setAttribute($foreignKey, $value);
-            }
-
-            if ($model instanceof Model) {
-                $this->child->setRelation($this->relationName, $model);
-            } else {
-                $this->child->unsetRelation($this->relationName);
-            }
-
-            return $this->child;
-
-        } else {
+        if (!is_array($this->ownerKey)) {
             return parent::associate($model);
         }
+
+        $ownerKey = $model instanceof Model ? $model->getAttribute($this->ownerKey) : $model;
+        for ($i = 0; $i < count($this->foreignKey); $i++) {
+            $foreignKey = $this->foreignKey[$i];
+            $value = $ownerKey[$i];
+            $this->child->setAttribute($foreignKey, $value);
+        }
+        // BC break in 5.8 : https://github.com/illuminate/database/commit/87b9833019f48b88d98a6afc46f38ce37f08237d
+        $relationName = property_exists($this, 'relationName') ? $this->relationName : $this->relation;
+        if ($model instanceof Model) {
+            $this->child->setRelation($relationName, $model);
+            // proper unset // https://github.com/illuminate/database/commit/44411c7288fc7b7d4e5680cfcdaa46d348b5c981
+        } elseif ($this->child->isDirty($this->foreignKey)) {
+            $this->child->unsetRelation($relationName);
+        }
+
+        return $this->child;
     }
 
     /**
