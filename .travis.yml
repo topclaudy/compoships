@@ -1,0 +1,45 @@
+language: php
+php:
+  - 7.2
+  - 7.3
+  - 7.4
+env:
+  - ILLUMINATE_DATABASE=5.6
+  - ILLUMINATE_DATABASE=~5.0
+  - ILLUMINATE_DATABASE=~6.0
+  - ILLUMINATE_DATABASE=~7.0
+  - ILLUMINATE_DATABASE=~8.0
+jobs:
+  include:
+    - php: 7.1
+      env: ILLUMINATE_DATABASE=5.6
+    - php: 7.1
+      env: ILLUMINATE_DATABASE=~5.0
+  exclude:
+    - php: 7.2
+      env: ILLUMINATE_DATABASE=~8.0
+  allow_failures:
+    - php: 7.3
+      env: ILLUMINATE_DATABASE=5.6
+    - php: 7.4
+      env: ILLUMINATE_DATABASE=5.6
+git:
+  depth: 3
+  submodules: false
+dist: xenial
+os: linux
+install:
+  - composer require "illuminate/database:$ILLUMINATE_DATABASE"
+  - composer update
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then wget -O vendor/bin/phpunit https://phar.phpunit.de/phpunit-6.phar; fi
+  - if [ ! -f "vendor/bin/phpunit" ]; then wget -O vendor/bin/phpunit https://phar.phpunit.de/phpunit-8.phar; fi
+  - chmod +x vendor/bin/phpunit
+before_script:
+  - wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
+  - chmod +x cc-test-reporter
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./cc-test-reporter before-build; fi 
+script:
+  - ./vendor/bin/phpunit --version
+  - ./vendor/bin/phpunit --coverage-text --coverage-clover build/logs/clover.xml
+after_script:
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
