@@ -1,24 +1,26 @@
 <?php
 
+namespace Awobaz\Compoships\Tests;
+
 use Awobaz\Compoships\Database\Eloquent\Model;
-use Awobaz\Compoships\Tests\Factories\AllocationFactory;
-use Awobaz\Compoships\Tests\Factories\TrackingTaskFactory;
-use Awobaz\Compoships\Tests\Model\Allocation;
-use Awobaz\Compoships\Tests\Model\PickupPoint;
-use Awobaz\Compoships\Tests\Model\PickupTime;
-use Awobaz\Compoships\Tests\Model\Space;
-use Awobaz\Compoships\Tests\Model\TrackingTask;
-use Awobaz\Compoships\Tests\Model\User;
-use Faker\Generator as Faker;
+use Awobaz\Compoships\Tests\Models\Allocation;
+use Awobaz\Compoships\Tests\Models\PickupPoint;
+use Awobaz\Compoships\Tests\Models\PickupTime;
+use Awobaz\Compoships\Tests\Models\Space;
+use Awobaz\Compoships\Tests\Models\TrackingTask;
+use Awobaz\Compoships\Tests\Models\User;
+use Awobaz\Compoships\Tests\TestCase\TestCase;
 
-require_once __DIR__.'/TestCase.php';
-
+/**
+ * @covers \Awobaz\Compoships\Compoships
+ * @covers \Awobaz\Compoships\Database\Query\Builder
+ * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
+ * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
+ */
 class ComposhipsTest extends TestCase
 {
     /**
      * Test the save method on a relationship.
-     *
-     * @return void
      */
     public function testSave()
     {
@@ -39,11 +41,9 @@ class ComposhipsTest extends TestCase
     }
 
     /**
-     * Test the save method on a relationship.
-     *
-     * @return void
+     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
      */
-    public function testSaveModelNotUsingCompoships()
+    public function testSaveModelNotUsingCompoships_onHasOne()
     {
         Model::unguard();
 
@@ -62,8 +62,6 @@ class ComposhipsTest extends TestCase
 
     /**
      * Test the save method on a relationship.
-     *
-     * @return void
      */
     public function testSaveMany()
     {
@@ -90,8 +88,6 @@ class ComposhipsTest extends TestCase
 
     /**
      * Test the save method on a relationship with a null value.
-     *
-     * @return void
      */
     public function testSaveWithANullValue()
     {
@@ -114,8 +110,6 @@ class ComposhipsTest extends TestCase
 
     /**
      * Test a relationship with only null values is not supported.
-     *
-     * @return void
      */
     public function testARelationshipWithOnlyNullValuesIsNotSupported()
     {
@@ -138,8 +132,6 @@ class ComposhipsTest extends TestCase
 
     /**
      * Test a relationship with a foreign key is empty on a new instance.
-     *
-     * @return void
      */
     public function testARelationshipWithAForeignKeyIsEmptyOnANewInstance()
     {
@@ -159,8 +151,6 @@ class ComposhipsTest extends TestCase
 
     /**
      * Test the create method on a relationship.
-     *
-     * @return void
      */
     public function testCreate()
     {
@@ -182,19 +172,12 @@ class ComposhipsTest extends TestCase
 
     /**
      * Test the make method on a relationship.
-     *
-     * @return void
      */
     public function testMake()
     {
         Model::unguard();
 
         $allocation = new Allocation();
-
-        if (!method_exists($allocation->trackingTasks(), 'make')) {
-            return;
-        }
-
         $allocation->booking_id = 1;
         $allocation->vehicle_id = 1;
         $allocation->save();
@@ -214,13 +197,11 @@ class ComposhipsTest extends TestCase
             ->get()
             ->toArray();
 
-        $this->assertInternalType('array', $allocations);
+        $this->assertIsArray($allocations);
     }
 
     /**
      * A basic test example.
-     *
-     * @return void
      */
     public function testWhereHas()
     {
@@ -228,14 +209,14 @@ class ComposhipsTest extends TestCase
             ->get()
             ->toArray();
 
-        $this->assertInternalType('array', $allocations);
+        $this->assertIsArray($allocations);
 
         $allocations = Allocation::query()
             ->has('trackingTasks')
             ->get()
             ->toArray();
 
-        $this->assertInternalType('array', $allocations);
+        $this->assertIsArray($allocations);
     }
 
     public function testWhereHasCallback()
@@ -246,7 +227,7 @@ class ComposhipsTest extends TestCase
             ->get()
             ->toArray();
 
-        $this->assertInternalType('array', $allocations);
+        $this->assertIsArray($allocations);
     }
 
     public function testMixedTypeCompositeKey()
@@ -260,7 +241,7 @@ class ComposhipsTest extends TestCase
 
         $pickupPoint->pickupTimes()
             ->create([
-                'days'        => 'mon tue',
+                'days' => 'mon tue',
                 'pickup_time' => '08:00:00',
             ]);
 
@@ -269,43 +250,22 @@ class ComposhipsTest extends TestCase
         Model::reguard();
     }
 
-    public function testFactories()
+    protected function makeTrackingTask()
     {
-        if (class_exists('\Illuminate\Database\Eloquent\Factory')) {
-            //Laravel 7 and below
-            $factory = app(\Illuminate\Database\Eloquent\Factory::class);
+        $task = new TrackingTask();
+        $task->booking_id = rand(1, 100);
+        $task->vehicle_id = rand(1, 100);
+        $task->save();
+        return $task;
+    }
 
-            $factory->define(Allocation::class, function (Faker $faker) {
-                return [
-                    'booking_id' => rand(1, 100),
-                    'vehicle_id' => rand(1, 100),
-                ];
-            });
-
-            $factory->define(TrackingTask::class, function (Faker $faker) {
-                return [
-
-                ];
-            });
-
-            factory(Allocation::class)
-                ->create()
-                ->each(function ($a) {
-                    $a->trackingTasks()
-                      ->save(factory(TrackingTask::class)->make());
-                });
-        } else {
-            //Laravel 8 and above
-
-            AllocationFactory::new()->create()->each(function ($a) {
-                $a->trackingTasks()
-                  ->save(TrackingTaskFactory::new()->make());
-            });
-        }
-
-        $allocation = Allocation::firstOrFail();
-
-        $this->assertNotNull($allocation->trackingTasks);
+    protected function makeAllocation()
+    {
+        $allocation = new Allocation();
+        $allocation->booking_id = rand(1, 100);
+        $allocation->vehicle_id = rand(1, 100);
+        $allocation->save();
+        return $allocation;
     }
 
     public function testHasForSelfRelation()
@@ -314,7 +274,7 @@ class ComposhipsTest extends TestCase
             ->get()
             ->toArray();
 
-        $this->assertInternalType('array', $trackingTask);
+        $this->assertIsArray($trackingTask);
     }
 
     public function testHasWithBelongsToRelation()
@@ -323,15 +283,10 @@ class ComposhipsTest extends TestCase
             ->get()
             ->toArray();
 
-        $this->assertInternalType('array', $pickup_times);
+        $this->assertIsArray($pickup_times);
     }
 
-    /**
-     * Test the associate method on a belongsTo relationship
-     *
-     * @return void
-     */
-    public function testAssociate()
+    public function testAssociateOnbelongsTo()
     {
         Model::unguard();
 

@@ -1,19 +1,21 @@
 <?php
 
+namespace Awobaz\Compoships\Tests;
+
+use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Migrations\Migration as BaseMigration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 class Migration extends BaseMigration
 {
     /**
      * Run the migrations.
      *
-     * @return  void
+     * @return void
      */
     public function up()
     {
-        Schema::create('allocations', function (Blueprint $table) {
+        Capsule::schema()->create('allocations', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id')
                 ->unsigned()
@@ -27,14 +29,14 @@ class Migration extends BaseMigration
             $table->timestamps();
         });
 
-        Schema::create('spaces', function (Blueprint $table) {
+        Capsule::schema()->create('spaces', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('booking_id')
                 ->unsigned();
             $table->timestamps();
         });
 
-        Schema::create('tracking_tasks', function (Blueprint $table) {
+        Capsule::schema()->create('tracking_tasks', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('booking_id')
                 ->unsigned()
@@ -58,14 +60,14 @@ class Migration extends BaseMigration
             $table->softDeletes();
         });
 
-        Schema::create('pickup_points', function (Blueprint $table) {
+        Capsule::schema()->create('pickup_points', function (Blueprint $table) {
             $table->string('contract_number');
             $table->integer('pickup_index')
                 ->unsigned();
             $table->timestamps();
         });
 
-        Schema::create('pickup_times', function (Blueprint $table) {
+        Capsule::schema()->create('pickup_times', function (Blueprint $table) {
             $table->string('contract_number');
             $table->integer('pickup_index')
                 ->unsigned();
@@ -83,23 +85,12 @@ class Migration extends BaseMigration
             $table->timestamps();
         });
 
-        Schema::create('users', function (Blueprint $table) {
+        Capsule::schema()->create('users', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('booking_id')
                 ->unsigned()
                 ->nullable();
             $table->timestamps();
         });
-    }
-
-    /**
-     * Reverse the migrations.
-     *
-     * @return  void
-     */
-    public function down()
-    {
-        Schema::drop('tracking_tasks');
-        Schema::drop('allocations');
     }
 }

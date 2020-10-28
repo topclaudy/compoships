@@ -1,10 +1,13 @@
 <?php
 
-namespace Awobaz\Compoships\Tests\Model;
+namespace Awobaz\Compoships\Tests\Models;
 
 use Awobaz\Compoships\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @mixin \Illuminate\Database\Eloquent\Builder
+ */
 class TrackingTask extends Model
 {
     use SoftDeletes;
