@@ -2,7 +2,7 @@
 
 namespace Awobaz\Compoships\Tests;
 
-use Awobaz\Compoships\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model as Model;
 use Awobaz\Compoships\Tests\Models\Allocation;
 use Awobaz\Compoships\Tests\Models\PickupPoint;
 use Awobaz\Compoships\Tests\Models\PickupTime;

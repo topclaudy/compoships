@@ -2,7 +2,8 @@
 
 namespace Awobaz\Compoships\Tests\Models;
 
-use Awobaz\Compoships\Database\Eloquent\Model;
+use Awobaz\Compoships\Compoships;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class TrackingTask extends Model
 {
     use SoftDeletes;
+    use Compoships;
 
     public function allocation()
     {

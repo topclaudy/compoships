@@ -2,13 +2,16 @@
 
 namespace Awobaz\Compoships\Tests\Models;
 
-use Awobaz\Compoships\Database\Eloquent\Model;
+use Awobaz\Compoships\Compoships;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class Allocation extends Model
 {
+    use Compoships;
+
     public function trackingTasks()
     {
         return $this->hasMany(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
