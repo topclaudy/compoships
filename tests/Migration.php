@@ -29,6 +29,18 @@ class Migration extends BaseMigration
             $table->timestamps();
         });
 
+        // contains original single PK relations
+        Capsule::schema()->create('original_packages', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name')->nullable();
+            $table->integer('allocation_id');
+            $table->foreign('allocation_id')
+                ->references('id')
+                ->on('allocations')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
+
         Capsule::schema()->create('spaces', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('booking_id')

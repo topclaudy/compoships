@@ -60,31 +60,6 @@ class ComposhipsTest extends TestCase
         Model::reguard();
     }
 
-    /**
-     * Test the save method on a relationship.
-     */
-    public function testSaveMany()
-    {
-        Model::unguard();
-
-        $allocation = new Allocation();
-        $allocation->booking_id = 1;
-        $allocation->vehicle_id = 1;
-        $allocation->save();
-
-        $allocation->trackingTasks()
-            ->saveMany([
-                new TrackingTask(),
-                new TrackingTask(),
-                new TrackingTask(),
-            ]);
-
-        $this->assertNotNull($allocation->trackingTasks);
-        $this->assertEquals($allocation->trackingTasks->count(), 3);
-        $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
-
-        Model::reguard();
-    }
 
     /**
      * Test the save method on a relationship with a null value.
@@ -248,24 +223,6 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($pickupPoint->pickupTimes);
 
         Model::reguard();
-    }
-
-    protected function makeTrackingTask()
-    {
-        $task = new TrackingTask();
-        $task->booking_id = rand(1, 100);
-        $task->vehicle_id = rand(1, 100);
-        $task->save();
-        return $task;
-    }
-
-    protected function makeAllocation()
-    {
-        $allocation = new Allocation();
-        $allocation->booking_id = rand(1, 100);
-        $allocation->vehicle_id = rand(1, 100);
-        $allocation->save();
-        return $allocation;
     }
 
     public function testHasForSelfRelation()
