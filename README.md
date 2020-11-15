@@ -170,17 +170,18 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Unit Tests
 
-In order to run the test suite, install the development dependencies:
+To run unit tests you have to obtain manually proper version of PHPUnit
 
+* if you have PHP version 7.0 or 7.1 please get [PHPUnit 6](https://phar.phpunit.de/phpunit-6.phar)
+* if you have PHP version 7.2 and higher please get [PHPUnit 8](https://phar.phpunit.de/phpunit-8.phar)
+
+Example
 ```bash
-$ composer install --dev
+wget -O phpunit https://phar.phpunit.de/phpunit-8.phar
+chmod +x phpunit
+./phpunit
 ```
 
-Then, run the following command:
-
-```bash
-$ vendor/bin/phpunit
-```
 
 ## Authors
 
