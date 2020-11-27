@@ -90,6 +90,7 @@ trait HasRelationships
      * Validate the related model for Compoships compatibility.
      *
      * @param  $related
+     *
      * @throws InvalidUsageException
      */
     private function validateRelatedModel($related)

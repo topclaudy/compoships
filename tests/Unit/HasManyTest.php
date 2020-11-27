@@ -40,11 +40,16 @@ class HasManyTest extends TestCase
                 new TrackingTask(),
             ]);
 
-        $trackingTasks = Allocation::where('id', $allocation->id)->with(['trackingTasks' => function (HasMany $query) {
-                // missing 'vehicle column'
-                $query->select('booking_id');
-            }]
-        )->first()->trackingTasks;
+        $trackingTasks = Allocation::where('id', $allocation->id)
+            ->with(
+                [
+                    'trackingTasks' => function (HasMany $query) {
+                        // missing 'vehicle column'
+                        $query->select('booking_id');
+                    },
+                ]
+            )
+            ->first()->trackingTasks;
         $this->assertCount(1, $trackingTasks); // TODO: must be error or 3 items?
     }
 
@@ -58,28 +63,34 @@ class HasManyTest extends TestCase
     {
         $expectedData = [
             [
-                'id' => (string)1,
-                'booking_id' => (string)1,
-                'vehicle_id' => (string)1,
-                'updated_at' => Carbon::now()->toDateTimeString(),
-                'created_at' => Carbon::now()->toDateTimeString(),
-                'deleted_at' => null
+                'id'         => (string) 1,
+                'booking_id' => (string) 1,
+                'vehicle_id' => (string) 1,
+                'updated_at' => Carbon::now()
+                    ->toDateTimeString(),
+                'created_at' => Carbon::now()
+                    ->toDateTimeString(),
+                'deleted_at' => null,
             ],
             [
-                'id' => (string)2,
-                'booking_id' => (string)1,
-                'vehicle_id' => (string)1,
-                'updated_at' => Carbon::now()->toDateTimeString(),
-                'created_at' => Carbon::now()->toDateTimeString(),
-                'deleted_at' => null
+                'id'         => (string) 2,
+                'booking_id' => (string) 1,
+                'vehicle_id' => (string) 1,
+                'updated_at' => Carbon::now()
+                    ->toDateTimeString(),
+                'created_at' => Carbon::now()
+                    ->toDateTimeString(),
+                'deleted_at' => null,
             ],
             [
-                'id' => (string)3,
-                'booking_id' => (string)1,
-                'vehicle_id' => (string)1,
-                'updated_at' => Carbon::now()->toDateTimeString(),
-                'created_at' => Carbon::now()->toDateTimeString(),
-                'deleted_at' => null
+                'id'         => (string) 3,
+                'booking_id' => (string) 1,
+                'vehicle_id' => (string) 1,
+                'updated_at' => Carbon::now()
+                    ->toDateTimeString(),
+                'created_at' => Carbon::now()
+                    ->toDateTimeString(),
+                'deleted_at' => null,
             ],
         ];
 
@@ -93,7 +104,7 @@ class HasManyTest extends TestCase
         $this->assertEquals(count($expectedData), $allocation->trackingTasks->count());
         $this->assertEquals($expectedData, $allocation->trackingTasks->toArray());
         $this->assertEquals($expectedData, array_map(function ($item) {
-            return (array)$item;
+            return (array) $item;
         }, Capsule::table('tracking_tasks')->get()->all()));
     }
 
@@ -102,31 +113,40 @@ class HasManyTest extends TestCase
         $allocation = $this->createAllocation();
         $trackingTask = $allocation->trackingTasks()->create();
         $this->assertEquals([
-            'id' => 1,
+            'id'         => 1,
             'booking_id' => 1,
             'vehicle_id' => 1,
-            'updated_at' => Carbon::now()->toDateTimeString(),
-            'created_at' => Carbon::now()->toDateTimeString(),
+            'updated_at' => Carbon::now()
+                ->toDateTimeString(),
+            'created_at' => Carbon::now()
+                ->toDateTimeString(),
         ], $trackingTask->toArray());
 
-        $this->assertEquals(1, Capsule::table('tracking_tasks')->count());
+        $this->assertEquals(1, Capsule::table('tracking_tasks')
+            ->count());
         $this->AssertEquals([
-            'id' => (string)1,
-            'booking_id' => (string)1,
-            'vehicle_id' => (string)1,
-            'updated_at' => Carbon::now()->toDateTimeString(),
-            'created_at' => Carbon::now()->toDateTimeString(),
-            'deleted_at' => null
-        ], (array)Capsule::table('tracking_tasks')->select()->first());
+            'id'         => (string) 1,
+            'booking_id' => (string) 1,
+            'vehicle_id' => (string) 1,
+            'updated_at' => Carbon::now()
+                ->toDateTimeString(),
+            'created_at' => Carbon::now()
+                ->toDateTimeString(),
+            'deleted_at' => null,
+        ], (array) Capsule::table('tracking_tasks')
+            ->select()
+            ->first());
 
         $trackingTask->refresh();
         $this->assertEquals([
-            'id' => (string)1,
-            'booking_id' => (string)1,
-            'vehicle_id' => (string)1,
-            'updated_at' => Carbon::now()->toDateTimeString(),
-            'created_at' => Carbon::now()->toDateTimeString(),
-            'deleted_at' => null
+            'id'         => (string) 1,
+            'booking_id' => (string) 1,
+            'vehicle_id' => (string) 1,
+            'updated_at' => Carbon::now()
+                ->toDateTimeString(),
+            'created_at' => Carbon::now()
+                ->toDateTimeString(),
+            'deleted_at' => null,
         ], $trackingTask->toArray());
     }
 
@@ -146,12 +166,14 @@ class HasManyTest extends TestCase
         $allocation::unguard(false);
         $package->refresh();
         $this->assertEquals([
-            'id' => (string)1,
-            'booking_id' => (string)1,  // correct, as it was not changed
-            'vehicle_id' => (string)1,
-            'updated_at' => Carbon::now()->toDateTimeString(),
-            'created_at' => Carbon::now()->toDateTimeString(),
-            'deleted_at' => null
+            'id'         => (string) 1,
+            'booking_id' => (string) 1,  // correct, as it was not changed
+            'vehicle_id' => (string) 1,
+            'updated_at' => Carbon::now()
+                ->toDateTimeString(),
+            'created_at' => Carbon::now()
+                ->toDateTimeString(),
+            'deleted_at' => null,
         ], $package->toArray());
     }
 
@@ -163,12 +185,15 @@ class HasManyTest extends TestCase
         $allocation::unguard(false);
         $trackingTask->refresh();
         $this->assertEquals([
-            'id' => (string)1,
-            'booking_id' => (string)1,
-            'vehicle_id' => (string)1,
-            'updated_at' => Carbon::now()->toDateTimeString(),
-            'created_at' => Carbon::now()->addDay()->toDateTimeString(),
-            'deleted_at' => null
+            'id'         => (string) 1,
+            'booking_id' => (string) 1,
+            'vehicle_id' => (string) 1,
+            'updated_at' => Carbon::now()
+                ->toDateTimeString(),
+            'created_at' => Carbon::now()
+                ->addDay()
+                ->toDateTimeString(),
+            'deleted_at' => null,
         ], $trackingTask->toArray());
     }
 
@@ -188,16 +213,20 @@ class HasManyTest extends TestCase
         $trackingTaskId1 = Capsule::table('tracking_tasks')->insertGetId([
             'booking_id' => 1,
             'vehicle_id' => 1,
-            'created_at' => Carbon::now()->toDateTimeString(),
-            'updated_at' => Carbon::now()->toDateTimeString(),
-            'deleted_at' => null
+            'created_at' => Carbon::now()
+                ->toDateTimeString(),
+            'updated_at' => Carbon::now()
+                ->toDateTimeString(),
+            'deleted_at' => null,
         ]);
         $trackingTaskId2 = Capsule::table('tracking_tasks')->insertGetId([
             'booking_id' => 1,
             'vehicle_id' => 1,
-            'created_at' => Carbon::now()->toDateTimeString(),
-            'updated_at' => Carbon::now()->toDateTimeString(),
-            'deleted_at' => null
+            'created_at' => Carbon::now()
+                ->toDateTimeString(),
+            'updated_at' => Carbon::now()
+                ->toDateTimeString(),
+            'deleted_at' => null,
         ]);
 
         $allocations1 = Allocation::where('id', $allocationId1)->with('trackingTasks')->get()->all();
@@ -211,7 +240,6 @@ class HasManyTest extends TestCase
         $this->assertCount(1, $allocations2);
         $this->assertCount(0, $allocations2[0]->trackingTasks);
     }
-
 
     /**
      * @covers \Awobaz\Compoships\Database\Query\Builder::whereIn
@@ -228,11 +256,11 @@ class HasManyTest extends TestCase
             'vehicle_id' => 2,
         ]);
         $package1 = Capsule::table('original_packages')->insertGetId([
-            'name' => 'name 1',
+            'name'          => 'name 1',
             'allocation_id' => 1,
         ]);
         $package2 = Capsule::table('original_packages')->insertGetId([
-            'name' => 'name 2',
+            'name'          => 'name 2',
             'allocation_id' => 1,
         ]);
 
@@ -255,9 +283,9 @@ class HasManyTest extends TestCase
         $allocation::unguard(false);
         $package->refresh();
         $this->assertEquals([
-            'id' => (string)1,
-            'allocation_id' => (string)1,
-            'name' => 'some name'
+            'id'            => (string) 1,
+            'allocation_id' => (string) 1,
+            'name'          => 'some name',
         ], $package->toArray());
     }
 
@@ -269,9 +297,9 @@ class HasManyTest extends TestCase
         $allocation::unguard(false);
         $package->refresh();
         $this->assertEquals([
-            'id' => (string)1,
-            'allocation_id' => (string)1, // correct, as it was not changed
-            'name' => null,
+            'id'            => (string) 1,
+            'allocation_id' => (string) 1, // correct, as it was not changed
+            'name'          => null,
         ], $package->toArray());
     }
 
@@ -281,9 +309,9 @@ class HasManyTest extends TestCase
         $package = $allocation->originalPackages()->create();
         $package->refresh();
         $this->assertEquals([
-            'id' => (string)1,
-            'allocation_id' => (string)1,
-            'name' => null
+            'id'            => (string) 1,
+            'allocation_id' => (string) 1,
+            'name'          => null,
         ], $package->toArray());
     }
 
@@ -299,19 +327,19 @@ class HasManyTest extends TestCase
     {
         $expectedData = [
             [
-                'id' => (string)1,
-                'allocation_id' => (string)1,
-                'name' => 'name 1'
+                'id'            => (string) 1,
+                'allocation_id' => (string) 1,
+                'name'          => 'name 1',
             ],
             [
-                'id' => (string)2,
-                'allocation_id' => (string)1,
-                'name' => 'name 2'
+                'id'            => (string) 2,
+                'allocation_id' => (string) 1,
+                'name'          => 'name 2',
             ],
             [
-                'id' => (string)3,
-                'allocation_id' => (string)1,
-                'name' => 'name 3'
+                'id'            => (string) 3,
+                'allocation_id' => (string) 1,
+                'name'          => 'name 3',
             ],
         ];
 
@@ -328,14 +356,14 @@ class HasManyTest extends TestCase
         $this->assertEquals(count($expectedData), $allocation->originalPackages->count());
         $this->assertEquals($expectedData, $allocation->originalPackages->toArray());
         $this->assertEquals($expectedData, array_map(function ($item) {
-            return (array)$item;
+            return (array) $item;
         }, Capsule::table('original_packages')->get()->all()));
     }
-
 
     /**
      * @param int $bookingId
      * @param int $vehicleId
+     *
      * @return Allocation
      */
     protected function createAllocation($bookingId = 1, $vehicleId = 1)
@@ -344,17 +372,20 @@ class HasManyTest extends TestCase
         $allocation->booking_id = $bookingId;
         $allocation->vehicle_id = $vehicleId;
         $allocation->save();
-        $this->assertEquals(1, Capsule::table('allocations')->count());
+        $this->assertEquals(1, Capsule::table('allocations')
+            ->count());
         $this->assertEquals([
-            'id' => (string)1,
-            'booking_id' => (string)$allocation->booking_id,
-            'vehicle_id' => (string)$allocation->vehicle_id,
-            'created_at' => Carbon::now()->toDateTimeString(),
-            'updated_at' => Carbon::now()->toDateTimeString(),
-            'user_id' => null
-        ], (array)Capsule::table('allocations')->first());
+            'id'         => (string) 1,
+            'booking_id' => (string) $allocation->booking_id,
+            'vehicle_id' => (string) $allocation->vehicle_id,
+            'created_at' => Carbon::now()
+                ->toDateTimeString(),
+            'updated_at' => Carbon::now()
+                ->toDateTimeString(),
+            'user_id'    => null,
+        ], (array) Capsule::table('allocations')
+            ->first());
 
         return $allocation;
     }
-
 }

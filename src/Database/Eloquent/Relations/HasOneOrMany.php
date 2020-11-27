@@ -43,11 +43,11 @@ trait HasOneOrMany
     /**
      * Get the name of the "where in" method for eager loading.
      *
-     * @param \Illuminate\Database\Eloquent\Model $model
-     * @param string|array $key
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  string|array  $key
      *
      * @return string
-     * 
+     *
      * 5.6 - no method \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::whereInMethod
      * added in this commit (5.7.17) https://github.com/illuminate/database/commit/9af300d1c50c9ec526823c1e6548daa3949bf9a9
      */

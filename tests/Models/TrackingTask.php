@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $deleted_at
  * @property-read Allocation $allocation
  * @property-read TrackingTask[] $subTasks
- * 
+ *
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class TrackingTask extends Model

@@ -18,7 +18,7 @@ use Illuminate\Support\Collection;
  * @property-read OriginalPackage[]|Collection $originalPackages
  * @property-read Space $space
  * @property-read User $user
- * 
+ *
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class Allocation extends Model

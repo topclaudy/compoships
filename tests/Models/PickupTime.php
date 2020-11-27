@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $days
  * @property string $pickup_time
  * @property-read PickupPoint $pickupPoint
- * 
+ *
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class PickupTime extends Model

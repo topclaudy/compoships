@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read PickupTime[] $pickupTimes
- * 
+ *
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class PickupPoint extends Model

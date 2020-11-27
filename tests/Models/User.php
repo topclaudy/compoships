@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Allocation[] $allocations
- * 
+ *
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class User extends Model

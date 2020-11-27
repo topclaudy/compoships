@@ -1,12 +1,13 @@
 <?php
+
 namespace Awobaz\Compoships\Tests\TestCase;
 
 use PHPUnit\Framework\Assert;
 
 /**
  * PHP 7.0 | 7.1
- * PHPUnit 6.x
- * 
+ * PHPUnit 6.x.
+ *
  * @see https://github.com/sebastianbergmann/phpunit/issues/3368
  * @see https://phpunit.de/supported-versions.html
  */

@@ -2,7 +2,6 @@
 
 namespace Awobaz\Compoships\Tests;
 
-use Illuminate\Database\Eloquent\Model as Model;
 use Awobaz\Compoships\Tests\Models\Allocation;
 use Awobaz\Compoships\Tests\Models\PickupPoint;
 use Awobaz\Compoships\Tests\Models\PickupTime;
@@ -10,6 +9,7 @@ use Awobaz\Compoships\Tests\Models\Space;
 use Awobaz\Compoships\Tests\Models\TrackingTask;
 use Awobaz\Compoships\Tests\Models\User;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
+use Illuminate\Database\Eloquent\Model as Model;
 
 /**
  * @covers \Awobaz\Compoships\Compoships
@@ -59,7 +59,6 @@ class ComposhipsTest extends TestCase
 
         Model::reguard();
     }
-
 
     /**
      * Test the save method on a relationship with a null value.
@@ -216,7 +215,7 @@ class ComposhipsTest extends TestCase
 
         $pickupPoint->pickupTimes()
             ->create([
-                'days' => 'mon tue',
+                'days'        => 'mon tue',
                 'pickup_time' => '08:00:00',
             ]);
 

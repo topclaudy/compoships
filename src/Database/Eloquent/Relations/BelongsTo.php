@@ -29,6 +29,7 @@ class BelongsTo extends BaseBelongsTo
      * Associate the model instance to the given parent.
      *
      * @param  \Illuminate\Database\Eloquent\Model|int|string  $model
+     *
      * @return \Illuminate\Database\Eloquent\Model
      */
     public function associate($model)
@@ -96,6 +97,7 @@ class BelongsTo extends BaseBelongsTo
      * Set the constraints for an eager load of the relation.
      *
      * @param  array  $models
+     *
      * @return void
      */
     public function addEagerConstraints(array $models)
@@ -120,6 +122,7 @@ class BelongsTo extends BaseBelongsTo
      * Gather the keys from an array of related models.
      *
      * @param  array  $models
+     *
      * @return array
      */
     protected function getEagerModelKeys(array $models)
@@ -175,6 +178,7 @@ class BelongsTo extends BaseBelongsTo
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  \Illuminate\Database\Eloquent\Builder  $parentQuery
      * @param  array|mixed  $columns
+     *
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function getRelationExistenceQuery(Builder $query, Builder $parentQuery, $columns = ['*'])
@@ -188,10 +192,12 @@ class BelongsTo extends BaseBelongsTo
 
         return $query->select($columns)
             ->whereColumn(
-                $this->getQualifiedForeignKey(), '=', is_array($this->ownerKey) ? //Check for multi-columns relationship
-                array_map(function ($k) use ($modelTable) {
-                    return $modelTable.'.'.$k;
-                }, $this->ownerKey) : $modelTable.'.'.$this->ownerKey
+                $this->getQualifiedForeignKey(),
+                '=',
+                is_array($this->ownerKey) ? //Check for multi-columns relationship
+                    array_map(function ($k) use ($modelTable) {
+                        return $modelTable.'.'.$k;
+                    }, $this->ownerKey) : $modelTable.'.'.$this->ownerKey
             );
     }
 
@@ -201,6 +207,7 @@ class BelongsTo extends BaseBelongsTo
      * @param  array  $models
      * @param  \Illuminate\Database\Eloquent\Collection  $results
      * @param  string  $relation
+     *
      * @return array
      */
     public function match(array $models, Collection $results, $relation)

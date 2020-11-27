@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
  * @property int $booking_id
  * @property Carbon $created_at
  * @property Carbon $updated_at
- * 
+ *
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
 class Space extends Model

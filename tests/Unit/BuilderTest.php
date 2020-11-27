@@ -33,11 +33,11 @@ class BuilderTest extends TestCase
             'vehicle_id' => 2,
         ]);
         $package1 = Capsule::table('original_packages')->insertGetId([
-            'name' => 'name 1',
+            'name'          => 'name 1',
             'allocation_id' => 1,
         ]);
         $package2 = Capsule::table('original_packages')->insertGetId([
-            'name' => 'name 2',
+            'name'          => 'name 2',
             'allocation_id' => 1,
         ]);
 
@@ -54,5 +54,4 @@ class BuilderTest extends TestCase
         $this->assertCount(1, $allocations);
         $this->assertCount(2, $allocations[0]->originalPackages);
     }
-
 }

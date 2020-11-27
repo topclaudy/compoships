@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Awobaz\Compoships\Tests\Models;
 
 use Awobaz\Compoships\Compoships;

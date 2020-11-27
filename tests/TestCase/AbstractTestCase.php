@@ -14,16 +14,15 @@ abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
 
         $capsuleManager = new Capsule();
         $capsuleManager->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'charset' => 'utf8',
+            'driver'    => 'sqlite',
+            'database'  => ':memory:',
+            'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',
-            'prefix' => '',
+            'prefix'    => '',
         ]);
         $capsuleManager->setAsGlobal();
         $capsuleManager->bootEloquent();
 
         (new Migration())->up();
     }
-
 }
