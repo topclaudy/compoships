@@ -29,30 +29,31 @@ class BelongsTo extends BaseBelongsTo
      * Associate the model instance to the given parent.
      *
      * @param  \Illuminate\Database\Eloquent\Model|int|string  $model
+     *
      * @return \Illuminate\Database\Eloquent\Model
      */
     public function associate($model)
     {
-        if (is_array($this->ownerKey)) {
-
-            $ownerKey = $model instanceof Model ? $model->getAttribute($this->ownerKey) : $model;
-            for ($i = 0; $i < count($this->foreignKey); $i++) {
-                $foreignKey = $this->foreignKey[$i];
-                $value = $ownerKey[$i];
-                $this->child->setAttribute($foreignKey, $value);
-            }
-
-            if ($model instanceof Model) {
-                $this->child->setRelation($this->relationName, $model);
-            } else {
-                $this->child->unsetRelation($this->relationName);
-            }
-
-            return $this->child;
-
-        } else {
+        if (!is_array($this->ownerKey)) {
             return parent::associate($model);
         }
+
+        $ownerKey = $model instanceof Model ? $model->getAttribute($this->ownerKey) : $model;
+        for ($i = 0; $i < count($this->foreignKey); $i++) {
+            $foreignKey = $this->foreignKey[$i];
+            $value = $ownerKey[$i];
+            $this->child->setAttribute($foreignKey, $value);
+        }
+        // BC break in 5.8 : https://github.com/illuminate/database/commit/87b9833019f48b88d98a6afc46f38ce37f08237d
+        $relationName = property_exists($this, 'relationName') ? $this->relationName : $this->relation;
+        if ($model instanceof Model) {
+            $this->child->setRelation($relationName, $model);
+            // proper unset // https://github.com/illuminate/database/commit/44411c7288fc7b7d4e5680cfcdaa46d348b5c981
+        } elseif ($this->child->isDirty($this->foreignKey)) {
+            $this->child->unsetRelation($relationName);
+        }
+
+        return $this->child;
     }
 
     /**
@@ -96,6 +97,7 @@ class BelongsTo extends BaseBelongsTo
      * Set the constraints for an eager load of the relation.
      *
      * @param  array  $models
+     *
      * @return void
      */
     public function addEagerConstraints(array $models)
@@ -107,6 +109,9 @@ class BelongsTo extends BaseBelongsTo
                 $keys[] = $this->related->getTable().'.'.$key;
             }
 
+            // method \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::whereInMethod
+            // 5.6 - does not exist
+            // 5.7 - added in 5.7.17 / https://github.com/illuminate/database/commit/9af300d1c50c9ec526823c1e6548daa3949bf9a9
             $this->query->whereIn($keys, $this->getEagerModelKeys($models));
         } else {
             parent::addEagerConstraints($models);
@@ -117,6 +122,7 @@ class BelongsTo extends BaseBelongsTo
      * Gather the keys from an array of related models.
      *
      * @param  array  $models
+     *
      * @return array
      */
     protected function getEagerModelKeys(array $models)
@@ -172,6 +178,7 @@ class BelongsTo extends BaseBelongsTo
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  \Illuminate\Database\Eloquent\Builder  $parentQuery
      * @param  array|mixed  $columns
+     *
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function getRelationExistenceQuery(Builder $query, Builder $parentQuery, $columns = ['*'])
@@ -185,10 +192,12 @@ class BelongsTo extends BaseBelongsTo
 
         return $query->select($columns)
             ->whereColumn(
-                $this->getQualifiedForeignKey(), '=', is_array($this->ownerKey) ? //Check for multi-columns relationship
-                array_map(function ($k) use ($modelTable) {
-                    return $modelTable.'.'.$k;
-                }, $this->ownerKey) : $modelTable.'.'.$this->ownerKey
+                $this->getQualifiedForeignKey(),
+                '=',
+                is_array($this->ownerKey) ? //Check for multi-columns relationship
+                    array_map(function ($k) use ($modelTable) {
+                        return $modelTable.'.'.$k;
+                    }, $this->ownerKey) : $modelTable.'.'.$this->ownerKey
             );
     }
 
@@ -198,6 +207,7 @@ class BelongsTo extends BaseBelongsTo
      * @param  array  $models
      * @param  \Illuminate\Database\Eloquent\Collection  $results
      * @param  string  $relation
+     *
      * @return array
      */
     public function match(array $models, Collection $results, $relation)

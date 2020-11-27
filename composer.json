@@ -14,29 +14,19 @@
     }
   ],
   "require": {
-    "php": ">=5.6.4",
-    "illuminate/database": "^7.27|~8.0",
-    "illuminate/console": "~5.4|~6.0|~7.0|~8.0",
-    "illuminate/support": "~5.4|~6.0|~7.0|~8.0",
-    "illuminate/cache": "~5.4|~6.0|~7.0|~8.0"
+    "illuminate/database": ">=5.6 <9.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "5.*",
-    "laravel/laravel": "~5.4|~6.0|~7.0|~8.0",
-    "fzaninotto/faker": "^1.8"
+    "ext-sqlite3": "*"
   },
   "autoload": {
     "psr-4": {
       "Awobaz\\Compoships\\": "src"
-    },
-    "files": [
-    ]
+    }
   },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "Awobaz\\Compoships\\ComposhipsServiceProvider"
-      ]
+  "autoload-dev": {
+    "psr-4": {
+      "Awobaz\\Compoships\\Tests\\": "tests"
     }
   },
   "suggest": {

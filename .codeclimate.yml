@@ -1,0 +1,9 @@
+versoin: 2
+languages:
+  PHP: true
+ratings:
+  paths:
+    - "**.php"
+exclude_paths:
+  - tests
+  - vendor

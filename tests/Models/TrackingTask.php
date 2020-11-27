@@ -1,13 +1,34 @@
 <?php
 
-namespace Awobaz\Compoships\Tests\Model;
+namespace Awobaz\Compoships\Tests\Models;
 
-use Awobaz\Compoships\Database\Eloquent\Model;
+use Awobaz\Compoships\Compoships;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $booking_id
+ * @property int $vehicle_id
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * @property Carbon $deleted_at
+ * @property-read Allocation $allocation
+ * @property-read TrackingTask[] $subTasks
+ *
+ * @mixin \Illuminate\Database\Eloquent\Builder
+ */
 class TrackingTask extends Model
 {
     use SoftDeletes;
+    use Compoships;
+
+    // NOTE: we need this because Laravel 7 uses Carbon's method toJSON() instead of toDateTimeString()
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
 
     public function allocation()
     {
