@@ -12,3 +12,6 @@ if (PHP_MAJOR_VERSION === 7 && in_array(PHP_MINOR_VERSION, [0, 1])) {
 $autoloader->addClassMap([
     \Awobaz\Compoships\Tests\TestCase\TestCase::class => $mappedTestCaseFilename,
 ]);
+
+// NOTE: we enforce UTC timezone because since Laravel 7 it has changed behavior for datetime casting (it includes timezone)
+date_default_timezone_set('UTC');
