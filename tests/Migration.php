@@ -32,11 +32,18 @@ class Migration extends BaseMigration
         // contains original single PK relations
         Capsule::schema()->create('original_packages', function (Blueprint $table) {
             $table->increments('id');
+            $table->string('pcid')->nullable();
             $table->string('name')->nullable();
             $table->integer('allocation_id');
+
             $table->foreign('allocation_id')
                 ->references('id')
                 ->on('allocations')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+            $table->foreign('pcid')
+                ->references('pcid')
+                ->on('product_codes')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
         });
@@ -103,6 +110,11 @@ class Migration extends BaseMigration
                 ->unsigned()
                 ->nullable();
             $table->timestamps();
+        });
+
+        Capsule::schema()->create('product_codes', function (Blueprint $table) {
+            $table->uuid('pcid')->unique();
+            $table->string('code');
         });
     }
 }

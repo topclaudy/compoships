@@ -286,6 +286,7 @@ class HasManyTest extends TestCase
             'id'            => (string) 1,
             'allocation_id' => (string) 1,
             'name'          => 'some name',
+            'pcid' => null,
         ], $package->toArray());
     }
 
@@ -300,6 +301,7 @@ class HasManyTest extends TestCase
             'id'            => (string) 1,
             'allocation_id' => (string) 1, // correct, as it was not changed
             'name'          => null,
+            'pcid' => null,
         ], $package->toArray());
     }
 
@@ -312,6 +314,7 @@ class HasManyTest extends TestCase
             'id'            => (string) 1,
             'allocation_id' => (string) 1,
             'name'          => null,
+            'pcid' => null,
         ], $package->toArray());
     }
 
@@ -330,16 +333,19 @@ class HasManyTest extends TestCase
                 'id'            => (string) 1,
                 'allocation_id' => (string) 1,
                 'name'          => 'name 1',
+                'pcid' => null,
             ],
             [
                 'id'            => (string) 2,
                 'allocation_id' => (string) 1,
                 'name'          => 'name 2',
+                'pcid' => null,
             ],
             [
                 'id'            => (string) 3,
                 'allocation_id' => (string) 1,
                 'name'          => 'name 3',
+                'pcid' => null,
             ],
         ];
 
