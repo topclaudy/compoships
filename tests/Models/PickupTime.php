@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property string $contract_number
- * @property int $pickup_index
+ * @property int    $pickup_index
  * @property string $days
  * @property string $pickup_time
  * @property-read PickupPoint $pickupPoint

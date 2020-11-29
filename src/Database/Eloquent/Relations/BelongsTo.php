@@ -16,7 +16,7 @@ class BelongsTo extends BaseBelongsTo
      */
     public function getResults()
     {
-        if (! is_array($this->foreignKey)) {
+        if (!is_array($this->foreignKey)) {
             if (is_null($this->child->{$this->foreignKey})) {
                 return $this->getDefaultFor($this->parent);
             }
@@ -28,7 +28,7 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Associate the model instance to the given parent.
      *
-     * @param  \Illuminate\Database\Eloquent\Model|int|string  $model
+     * @param \Illuminate\Database\Eloquent\Model|int|string $model
      *
      * @return \Illuminate\Database\Eloquent\Model
      */
@@ -48,7 +48,7 @@ class BelongsTo extends BaseBelongsTo
         $relationName = property_exists($this, 'relationName') ? $this->relationName : $this->relation;
         if ($model instanceof Model) {
             $this->child->setRelation($relationName, $model);
-            // proper unset // https://github.com/illuminate/database/commit/44411c7288fc7b7d4e5680cfcdaa46d348b5c981
+        // proper unset // https://github.com/illuminate/database/commit/44411c7288fc7b7d4e5680cfcdaa46d348b5c981
         } elseif ($this->child->isDirty($this->foreignKey)) {
             $this->child->unsetRelation($relationName);
         }
@@ -96,7 +96,7 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Set the constraints for an eager load of the relation.
      *
-     * @param  array  $models
+     * @param array $models
      *
      * @return void
      */
@@ -121,7 +121,7 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Gather the keys from an array of related models.
      *
-     * @param  array  $models
+     * @param array $models
      *
      * @return array
      */
@@ -138,7 +138,7 @@ class BelongsTo extends BaseBelongsTo
                     return $model->{$k};
                 }, $this->foreignKey);
             } else {
-                if (! is_null($value = $model->{$this->foreignKey})) {
+                if (!is_null($value = $model->{$this->foreignKey})) {
                     $keys[] = $value;
                 }
             }
@@ -175,9 +175,9 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Add the constraints for a relationship query.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  \Illuminate\Database\Eloquent\Builder  $parentQuery
-     * @param  array|mixed  $columns
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder $parentQuery
+     * @param array|mixed                           $columns
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
@@ -204,9 +204,9 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Match the eagerly loaded results to their parents.
      *
-     * @param  array  $models
-     * @param  \Illuminate\Database\Eloquent\Collection  $results
-     * @param  string  $relation
+     * @param array                                    $models
+     * @param \Illuminate\Database\Eloquent\Collection $results
+     * @param string                                   $relation
      *
      * @return array
      */

@@ -8,10 +8,10 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * @property int $id
- * @property int $user_id
- * @property int $booking_id
- * @property int $vehicle_id
+ * @property int    $id
+ * @property int    $user_id
+ * @property int    $booking_id
+ * @property int    $vehicle_id
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read TrackingTask[]|Collection $trackingTasks

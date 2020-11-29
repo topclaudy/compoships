@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property string $contract_number
- * @property int $pickup_index
+ * @property int    $pickup_index
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read PickupTime[] $pickupTimes

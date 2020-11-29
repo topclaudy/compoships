@@ -6,9 +6,9 @@ use Awobaz\Compoships\Compoships;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * @property int $id
+ * @property int    $id
  * @property string $name
- * @property int $allocation_id
+ * @property int    $allocation_id
  * @property-read Allocation $allocation
  *
  * @mixin \Illuminate\Database\Eloquent\Builder
