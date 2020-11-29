@@ -9,7 +9,6 @@ use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Model;
 
-
 class BelongsToTest extends TestCase
 {
     /**
@@ -17,7 +16,7 @@ class BelongsToTest extends TestCase
      */
     public function test_uuid_no_inrecemnt_relation()
     {
-        Model::unguard(true);
+        Model::unguard();
 
         $pcid = uniqid();
         $productCode = new ProductCode([
@@ -31,7 +30,7 @@ class BelongsToTest extends TestCase
 
         /** @var OriginalPackage $package */
         $package = $allocation->originalPackages()->create([
-            'pcid' => $pcid
+            'pcid' => $pcid,
         ]);
 
         $dbPackage = Capsule::table('original_packages')->find($package->id);
@@ -42,8 +41,7 @@ class BelongsToTest extends TestCase
         $this->assertEquals($pcid, $dbPackage->pcid);
         $this->assertInstanceOf(ProductCode::class, $package->productCode);
         $this->assertEquals($pcid, $package->productCode->pcid);
-        
+
         $this->assertEquals($package->productCode, $package->productCode2);
     }
-   
 }

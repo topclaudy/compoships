@@ -11,6 +11,7 @@ abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
 {
     protected function setupDatabase()
     {
+        Model::reguard();
         Carbon::setTestNow('2020-10-29 23:59:59');
 
         $capsuleManager = new Capsule();

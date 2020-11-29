@@ -161,9 +161,8 @@ class HasManyTest extends TestCase
     public function test_Compoships_hasOneOrMany_create__change_relation_columns()
     {
         $allocation = $this->createAllocation();
-        $allocation::unguard(true);
+        $allocation::unguard();
         $package = $allocation->trackingTasks()->create(['booking_id' => 123]);
-        $allocation::unguard(false);
         $package->refresh();
         $this->assertEquals([
             'id'         => (string) 1,
@@ -180,9 +179,8 @@ class HasManyTest extends TestCase
     public function test_Compoships_hasOneOrMany_create__normal()
     {
         $allocation = $this->createAllocation();
-        $allocation::unguard(true);
+        $allocation::unguard();
         $trackingTask = $allocation->trackingTasks()->create(['created_at' => Carbon::now()->addDay()]);
-        $allocation::unguard(false);
         $trackingTask->refresh();
         $this->assertEquals([
             'id'         => (string) 1,
@@ -278,30 +276,28 @@ class HasManyTest extends TestCase
     public function test_Illuminate_hasOneOrMany_create__normal()
     {
         $allocation = $this->createAllocation();
-        $allocation::unguard(true);
+        $allocation::unguard();
         $package = $allocation->originalPackages()->create(['name' => 'some name']);
-        $allocation::unguard(false);
         $package->refresh();
         $this->assertEquals([
             'id'            => (string) 1,
             'allocation_id' => (string) 1,
             'name'          => 'some name',
-            'pcid' => null,
+            'pcid'          => null,
         ], $package->toArray());
     }
 
     public function test_Illuminate_hasOneOrMany_create__change_relation_columns()
     {
         $allocation = $this->createAllocation();
-        $allocation::unguard(true);
+        $allocation::unguard();
         $package = $allocation->originalPackages()->create(['allocation_id' => 123]);
-        $allocation::unguard(false);
         $package->refresh();
         $this->assertEquals([
             'id'            => (string) 1,
             'allocation_id' => (string) 1, // correct, as it was not changed
             'name'          => null,
-            'pcid' => null,
+            'pcid'          => null,
         ], $package->toArray());
     }
 
@@ -314,7 +310,7 @@ class HasManyTest extends TestCase
             'id'            => (string) 1,
             'allocation_id' => (string) 1,
             'name'          => null,
-            'pcid' => null,
+            'pcid'          => null,
         ], $package->toArray());
     }
 
@@ -333,30 +329,29 @@ class HasManyTest extends TestCase
                 'id'            => (string) 1,
                 'allocation_id' => (string) 1,
                 'name'          => 'name 1',
-                'pcid' => null,
+                'pcid'          => null,
             ],
             [
                 'id'            => (string) 2,
                 'allocation_id' => (string) 1,
                 'name'          => 'name 2',
-                'pcid' => null,
+                'pcid'          => null,
             ],
             [
                 'id'            => (string) 3,
                 'allocation_id' => (string) 1,
                 'name'          => 'name 3',
-                'pcid' => null,
+                'pcid'          => null,
             ],
         ];
 
         $allocation = $this->createAllocation(1, 1);
-        $allocation::unguard(true);
+        $allocation::unguard();
         $allocation->originalPackages()->saveMany([
             new OriginalPackage(['name' => 'name 1']),
             new OriginalPackage(['name' => 'name 2']),
             new OriginalPackage(['name' => 'name 3']),
         ]);
-        $allocation::unguard(false);
         $allocation->refresh();
         $this->assertNotNull($allocation->originalPackages);
         $this->assertEquals(count($expectedData), $allocation->originalPackages->count());
