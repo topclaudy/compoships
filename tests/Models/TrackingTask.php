@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int $id
- * @property int $booking_id
- * @property int $vehicle_id
+ * @property int    $id
+ * @property int    $booking_id
+ * @property int    $vehicle_id
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property Carbon $deleted_at

@@ -43,8 +43,8 @@ trait HasOneOrMany
     /**
      * Get the name of the "where in" method for eager loading.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @param  string|array  $key
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param string|array                        $key
      *
      * @return string
      *

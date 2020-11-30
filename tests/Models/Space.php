@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int $id
- * @property int $booking_id
+ * @property int    $id
+ * @property int    $booking_id
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
