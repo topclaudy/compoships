@@ -9,7 +9,7 @@ use Awobaz\Compoships\Tests\Models\Space;
 use Awobaz\Compoships\Tests\Models\TrackingTask;
 use Awobaz\Compoships\Tests\Models\User;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
-use Illuminate\Database\Eloquent\Model as Model;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @covers \Awobaz\Compoships\Compoships
@@ -36,8 +36,6 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($allocation->trackingTasks);
         $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
-
-        Model::reguard();
     }
 
     /**
@@ -56,8 +54,6 @@ class ComposhipsTest extends TestCase
             ->save(new Space());
 
         $this->assertNotNull($allocation->space);
-
-        Model::reguard();
     }
 
     /**
@@ -78,8 +74,6 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($allocation->trackingTasks);
         $this->assertTrue($allocation->trackingTasks->isNotEmpty());
         $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
-
-        Model::reguard();
     }
 
     /**
@@ -100,8 +94,6 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($allocation->trackingTasks);
         $this->assertTrue($allocation->trackingTasks->isEmpty());
         $this->assertNull(TrackingTask::first()->allocation);
-
-        Model::reguard();
     }
 
     /**
@@ -119,8 +111,6 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($user->allocations);
         $this->assertTrue($user->allocations->isEmpty());
-
-        Model::reguard();
     }
 
     /**
@@ -140,8 +130,6 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($allocation->trackingTasks);
         $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
-
-        Model::reguard();
     }
 
     /**
@@ -161,8 +149,6 @@ class ComposhipsTest extends TestCase
 
         $this->assertNotNull($trackingTask);
         $this->assertInstanceOf(Allocation::class, $trackingTask->allocation);
-
-        Model::reguard();
     }
 
     public function testHas()
@@ -220,8 +206,6 @@ class ComposhipsTest extends TestCase
             ]);
 
         $this->assertNotNull($pickupPoint->pickupTimes);
-
-        Model::reguard();
     }
 
     public function testHasForSelfRelation()
@@ -254,7 +238,5 @@ class ComposhipsTest extends TestCase
         $allocation->user()->associate($user);
 
         $this->assertNotNull($allocation->user);
-
-        Model::reguard();
     }
 }
