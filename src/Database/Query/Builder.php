@@ -9,7 +9,6 @@ class Builder extends BaseQueryBuilder
     public function whereIn($column, $values, $boolean = 'and', $not = false)
     {
         //Here we implement custom support for multi-column 'IN'
-        //A multi-column 'IN' is a series of OR/AND clauses
         if (is_array($column)) {
             $this->where(function ($query) use ($column, $values) {
                 foreach ($column as $index => $aColumn) {
