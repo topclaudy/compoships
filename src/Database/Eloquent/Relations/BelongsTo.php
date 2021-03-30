@@ -127,33 +127,36 @@ class BelongsTo extends BaseBelongsTo
      */
     protected function getEagerModelKeys(array $models)
     {
+        if (is_array($this->foreignKey)) {
+            return $this->getEagerModelKeysForArray($models);
+        }
+
+        return parent::getEagerModelKeys($models);
+    }
+
+    /**
+     * Gather the keys from an array of related models that
+     * are using a composite related key.
+     *
+     * @param  array  $models
+     * @return array
+     */
+    protected function getEagerModelKeysForArray(array $models)
+    {
         $keys = [];
 
         // First we need to gather all of the keys from the parent models so we know what
         // to query for via the eager loading query. We will add them to an array then
         // execute a "where in" statement to gather up all of those related records.
         foreach ($models as $model) {
-            if (is_array($this->foreignKey)) { //Check for multi-columns relationship
-                $keys[] = array_map(function ($k) use ($model) {
-                    return $model->{$k};
-                }, $this->foreignKey);
-            } else {
-                if (!is_null($value = $model->{$this->foreignKey})) {
-                    $keys[] = $value;
-                }
-            }
-        }
-
-        // If there are no keys that were not null we will just return an array with either
-        // null or 0 in (depending on if incrementing keys are in use) so the query wont
-        // fail plus returns zero results, which should be what the developer expects.
-        if (count($keys) === 0) {
-            return [$this->relationHasIncrementingId() ? 0 : null];
+            $keys[] = array_map(function ($k) use ($model) {
+                return $model->{$k};
+            }, $this->foreignKey);
         }
 
         sort($keys);
 
-        return array_values(array_unique($keys, SORT_REGULAR));
+        return array_map('unserialize', array_unique(array_map('serialize', $keys)));
     }
 
     /**
