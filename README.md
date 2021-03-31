@@ -42,6 +42,8 @@ $ composer require awobaz/compoships
 
 ### Using the `Awobaz\Compoships\Database\Eloquent\Model` class
 
+####**Important: Model support was dropped in 2.1. For Model support, use 2.0.5 or below**
+
 Simply make your model class derive from the `Awobaz\Compoships\Database\Eloquent\Model` base class. The `Awobaz\Compoships\Database\Eloquent\Model` extends the `Eloquent` base class without changing its core functionality.
 
 ### Using the `Awobaz\Compoships\Compoships` trait
