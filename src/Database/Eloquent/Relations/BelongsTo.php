@@ -139,6 +139,7 @@ class BelongsTo extends BaseBelongsTo
      * are using a composite related key.
      *
      * @param array $models
+     *
      * @return array
      */
     protected function getEagerModelKeysForArray(array $models)
