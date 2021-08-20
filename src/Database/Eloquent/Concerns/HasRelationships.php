@@ -220,7 +220,7 @@ trait HasRelationships
             ->getQueryGrammar();
 
         return $grammar->isExpression($foreignKey)
-            ? DB::raw($instance->getTable().'.'.$foreignKey)
+            ? $foreignKey
             : $instance->getTable().'.'.$foreignKey;
     }
 }
