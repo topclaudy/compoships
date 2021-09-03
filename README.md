@@ -85,7 +85,7 @@ class B extends Model
     
     public function a()
     {
-        return $this->belongsTo('A', ['foreignKey1', 'foreignKey2'], ['localKey1', 'localKey2']);
+        return $this->belongsTo('A', ['foreignKey1', 'foreignKey2'], ['ownerKey1', 'ownerKey2']);
     }
 }
 ```
