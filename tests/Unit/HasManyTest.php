@@ -155,7 +155,7 @@ class HasManyTest extends TestCase
         $this->expectException(\Illuminate\Database\Eloquent\MassAssignmentException::class);
         $this->expectExceptionMessage('Add [created_at] to fillable property to allow mass assignment');
         $allocation = $this->createAllocation();
-        $trackingTask = $allocation->trackingTasks()->create(['created_at' => Carbon::now()]);
+        $allocation->trackingTasks()->create(['created_at' => Carbon::now()]);
     }
 
     public function test_Compoships_hasOneOrMany_create__change_relation_columns()
@@ -208,7 +208,7 @@ class HasManyTest extends TestCase
             'booking_id' => 2,
             'vehicle_id' => 2,
         ]);
-        $trackingTaskId1 = Capsule::table('tracking_tasks')->insertGetId([
+        Capsule::table('tracking_tasks')->insertGetId([
             'booking_id' => 1,
             'vehicle_id' => 1,
             'created_at' => Carbon::now()
@@ -217,7 +217,7 @@ class HasManyTest extends TestCase
                 ->toDateTimeString(),
             'deleted_at' => null,
         ]);
-        $trackingTaskId2 = Capsule::table('tracking_tasks')->insertGetId([
+        Capsule::table('tracking_tasks')->insertGetId([
             'booking_id' => 1,
             'vehicle_id' => 1,
             'created_at' => Carbon::now()
@@ -253,11 +253,11 @@ class HasManyTest extends TestCase
             'booking_id' => 2,
             'vehicle_id' => 2,
         ]);
-        $package1 = Capsule::table('original_packages')->insertGetId([
+        Capsule::table('original_packages')->insertGetId([
             'name'          => 'name 1',
             'allocation_id' => 1,
         ]);
-        $package2 = Capsule::table('original_packages')->insertGetId([
+        Capsule::table('original_packages')->insertGetId([
             'name'          => 'name 2',
             'allocation_id' => 1,
         ]);
@@ -319,7 +319,7 @@ class HasManyTest extends TestCase
         $this->expectException(\Illuminate\Database\Eloquent\MassAssignmentException::class);
         $this->expectExceptionMessage('Add [name] to fillable property to allow mass assignment');
         $allocation = $this->createAllocation();
-        $package = $allocation->originalPackages()->create(['name' => 'some name']);
+        $allocation->originalPackages()->create(['name' => 'some name']);
     }
 
     public function test_Illuminate_hasOneOrMany_saveMany()
