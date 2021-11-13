@@ -266,7 +266,7 @@ trait HasOneOrMany
     /**
      * Add join query constraints for one of many relationships.
      *
-     * @param  \Illuminate\Database\Eloquent\JoinClause  $join
+     * @param  \Illuminate\Database\Eloquent\JoinClause $join
      * @return void
      */
     public function addOneOfManyJoinSubQueryConstraints(JoinClause $join)
