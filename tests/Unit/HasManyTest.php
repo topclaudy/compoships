@@ -106,6 +106,12 @@ class HasManyTest extends TestCase
         $this->assertEquals($expectedData, array_map(function ($item) {
             return (array) $item;
         }, Capsule::table('tracking_tasks')->get()->all()));
+
+        if (getLaravelVersion() >= 8) {
+            $this->assertEquals(1, $allocation->smallerTrackingTask->id);
+            $this->assertEquals(1, $allocation->oldestTrackingTask->id);
+            $this->assertEquals(3, $allocation->latestTrackingTask->id);
+        }
     }
 
     public function test_Compoships_hasOneOrMany_create__empty()
@@ -227,8 +233,8 @@ class HasManyTest extends TestCase
             'deleted_at' => null,
         ]);
 
-        $allocations1 = Allocation::where('id', $allocationId1)->with('trackingTasks')->get()->all();
-        $allocations2 = Allocation::where('id', $allocationId2)->with('trackingTasks')->get()->all();
+        $allocations1 = Allocation::where('id', $allocationId1)->with('trackingTasks', 'smallerTrackingTask', 'latestTrackingTask', 'oldestTrackingTask')->get()->all();
+        $allocations2 = Allocation::where('id', $allocationId2)->with('trackingTasks', 'smallerTrackingTask', 'latestTrackingTask', 'oldestTrackingTask')->get()->all();
 
         $this->assertCount(1, $allocations1);
         $this->assertCount(2, $allocations1[0]->trackingTasks);
@@ -237,6 +243,16 @@ class HasManyTest extends TestCase
 
         $this->assertCount(1, $allocations2);
         $this->assertCount(0, $allocations2[0]->trackingTasks);
+
+        if (getLaravelVersion() >= 8) {
+            $this->assertEquals(1, $allocations1[0]->smallerTrackingTask->id);
+            $this->assertEquals(1, $allocations1[0]->oldestTrackingTask->id);
+            $this->assertEquals(2, $allocations1[0]->latestTrackingTask->id);
+
+            $this->assertEquals(null, $allocations2[0]->smallerTrackingTask);
+            $this->assertEquals(null, $allocations2[0]->oldestTrackingTask);
+            $this->assertEquals(null, $allocations2[0]->latestTrackingTask);
+        }
     }
 
     /**
@@ -271,6 +287,14 @@ class HasManyTest extends TestCase
         $allocations2 = Allocation::where('id', $allocationId2)->with('originalPackages')->get()->all();
         $this->assertCount(1, $allocations2);
         $this->assertCount(0, $allocations2[0]->originalPackages);
+
+        if (getLaravelVersion() >= 8) {
+            $allocations1 = Allocation::where('id', $allocationId1)->with('originalPackagesOneOfMany')->get()->all();
+            $this->assertEquals(2, $allocations1[0]->originalPackagesOneOfMany->id);
+
+            $allocations2 = Allocation::where('id', $allocationId2)->with('originalPackagesOneOfMany')->get()->all();
+            $this->assertEquals(null, $allocations2[0]->originalPackagesOneOfMany);
+        }
     }
 
     public function test_Illuminate_hasOneOrMany_create__normal()

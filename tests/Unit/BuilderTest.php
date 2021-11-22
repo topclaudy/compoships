@@ -24,6 +24,10 @@ class BuilderTest extends TestCase
      */
     public function test_Illuminate_hasOneOrMany__Builder_whereColumn_on_relation_column()
     {
+        if (getLaravelVersion() <= 5.6 && getPHPVersion() >= 7.3) {
+            $this->markTestIncomplete('This test is broken on laravel 5.6 with PHP 7.3 and earlier!');
+        }
+
         $allocationId1 = Capsule::table('allocations')->insertGetId([
             'booking_id' => 1,
             'vehicle_id' => 1,
