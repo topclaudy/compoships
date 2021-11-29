@@ -15,6 +15,10 @@ jobs:
       env: ILLUMINATE_DATABASE=5.6
     - php: 7.1
       env: ILLUMINATE_DATABASE=~5.0
+    - php: 8.0
+      env: ILLUMINATE_DATABASE=~9.0
+    - php: nightly # TODO: fix to 8.1
+      env: ILLUMINATE_DATABASE=~9.0
   exclude:
     - php: 7.2
       env: ILLUMINATE_DATABASE=~8.0
@@ -29,10 +33,10 @@ git:
 dist: xenial
 os: linux
 install:
-  - composer require "illuminate/database:$ILLUMINATE_DATABASE"
-  - composer update
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then wget -O vendor/bin/phpunit https://phar.phpunit.de/phpunit-6.phar; fi
-  - if [ ! -f "vendor/bin/phpunit" ]; then wget -O vendor/bin/phpunit https://phar.phpunit.de/phpunit-8.phar; fi
+  - composer require "illuminate/database:$ILLUMINATE_DATABASE" --no-interaction --no-update
+  - composer update --no-interaction
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then wget --no-check-certificate -O vendor/bin/phpunit https://phar.phpunit.de/phpunit-6.phar; fi
+  - if [ ! -f "vendor/bin/phpunit" ]; then wget --no-check-certificate -O vendor/bin/phpunit https://phar.phpunit.de/phpunit-8.phar; fi
   - chmod +x vendor/bin/phpunit
 before_script:
   - wget -O cc-test-reporter https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
