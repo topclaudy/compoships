@@ -50,6 +50,14 @@ class Allocation extends Model
     /**
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
      */
+    public function originalPackagesOneOfMany()
+    {
+        return $this->hasOne(OriginalPackage::class)->ofMany();
+    }
+
+    /**
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
+     */
     public function space()
     {
         return $this->hasOne(Space::class, 'booking_id', 'booking_id');
@@ -61,5 +69,35 @@ class Allocation extends Model
     public function user()
     {
         return $this->belongsTo(User::class, ['user_id', 'booking_id'], ['id', 'booking_id']);
+    }
+
+    /**
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
+     */
+    public function smallerTrackingTask()
+    {
+        $rel = $this->hasOne(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
+
+        return getLaravelVersion() < 8 ? $rel : $rel->ofMany('id', 'min');
+    }
+
+    /**
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
+     */
+    public function latestTrackingTask()
+    {
+        $rel = $this->hasOne(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
+
+        return getLaravelVersion() < 8 ? $rel : $rel->latestOfMany();
+    }
+
+    /**
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
+     */
+    public function oldestTrackingTask()
+    {
+        $rel = $this->hasOne(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
+
+        return getLaravelVersion() < 8 ? $rel : $rel->oldestOfMany();
     }
 }
