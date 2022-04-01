@@ -178,7 +178,8 @@ To run unit tests you have to obtain manually proper version of PHPUnit
 
 Example
 ```bash
-wget -O phpunit https://phar.phpunit.de/phpunit-8.phar
+curl -L -O https://phar.phpunit.de/phpunit-9.phar
+mv phpunit-9.phar phpunit
 chmod +x phpunit
 ./phpunit
 ```
