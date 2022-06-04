@@ -28,7 +28,7 @@ class BelongsTo extends BaseBelongsTo
     /**
      * Associate the model instance to the given parent.
      *
-     * @param \Illuminate\Database\Eloquent\Model|int|string $model
+     * @param \Illuminate\Database\Eloquent\Model|int|string|null $model
      *
      * @return \Illuminate\Database\Eloquent\Model
      */
