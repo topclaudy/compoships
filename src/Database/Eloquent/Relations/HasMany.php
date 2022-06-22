@@ -5,6 +5,10 @@ namespace Awobaz\Compoships\Database\Eloquent\Relations;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany as BaseHasMany;
 
+/**
+ * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
+ * @extends BaseHasMany<TRelatedModel>
+ */
 class HasMany extends BaseHasMany
 {
     use HasOneOrMany;
