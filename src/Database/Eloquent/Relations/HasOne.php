@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne as BaseHasOne;
 
+/**
+ * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
+ * @extends BaseHasOne<TRelatedModel>
+ */
 class HasOne extends BaseHasOne
 {
     use HasOneOrMany;
