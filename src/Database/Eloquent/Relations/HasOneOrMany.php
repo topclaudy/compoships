@@ -42,6 +42,32 @@ trait HasOneOrMany
     }
 
     /**
+     * Set the constraints for an eager load of the relation.
+     *
+     * @param array $models
+     *
+     * @return void
+     *
+     * >=7.x - no method Illuminate\Database\Eloquent\Relations\Relation::getRelationQuery
+     * 10.x - no support array keys Illuminate\Database\Eloquent\Relations\Relation::whereInEager
+     */
+    public function addEagerConstraints(array $models)
+    {
+        if (is_array($this->localKey)) { //Check for multi-columns relationship
+            $whereIn = $this->whereInMethod($this->parent, $this->localKey);
+            $modelKeys = $this->getKeys($models, $this->localKey);
+
+            ((method_exists($this, 'getRelationQuery') ? $this->getRelationQuery() : null) ?? $this->query)->{$whereIn}($this->foreignKey, $modelKeys);
+
+            if ($modelKeys === []) {
+                $this->eagerKeysWereEmpty = true;
+            }
+        } else {
+            parent::addEagerConstraints($models);
+        }
+    }
+
+    /**
      * Get the name of the "where in" method for eager loading.
      *
      * @param \Illuminate\Database\Eloquent\Model $model
