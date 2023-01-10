@@ -33,6 +33,7 @@ git:
 dist: xenial
 os: linux
 install:
+  - composer config --no-plugins allow-plugins.kylekatarnls/update-helper true
   - composer require "illuminate/database:$ILLUMINATE_DATABASE" --no-interaction --no-update
   - composer update --no-interaction
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then wget --no-check-certificate -O vendor/bin/phpunit https://phar.phpunit.de/phpunit-6.phar; fi
