@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo as BaseBelongsTo;
 
 /**
  * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
- * @extends BaseBelongsTo<TRelatedModel>
+ * @template TChildModel of \Illuminate\Database\Eloquent\Model
+ * @extends BaseBelongsTo<TRelatedModel,TChildModel>
  */
 class BelongsTo extends BaseBelongsTo
 {
