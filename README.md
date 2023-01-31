@@ -170,20 +170,18 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Unit Tests
 
-To run unit tests you have to obtain manually proper version of PHPUnit
+To run unit tests you have to use PHPUnit
 
-* if you have PHP version 7.1 please get [PHPUnit 7](https://phar.phpunit.de/phpunit-7.phar)
-* if you have PHP version 7.2 please get [PHPUnit 8](https://phar.phpunit.de/phpunit-8.phar)
-* if you have PHP version 7.3 and higher please get [PHPUnit 9](https://phar.phpunit.de/phpunit-9.phar)
-
-Example
+Install compoships repository
 ```bash
-curl -L -O https://phar.phpunit.de/phpunit-9.phar
-mv phpunit-9.phar phpunit
-chmod +x phpunit
-./phpunit
+git clone https://github.com/topclaudy/compoships.git
+cd compoships
+composer install
 ```
-
+Run PHPUnit
+```bash
+./vendor/bin/phpunit
+```
 
 ## Authors
 
