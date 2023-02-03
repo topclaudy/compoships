@@ -1,7 +1,7 @@
 <?php
 
 /** @var \Composer\Autoload\ClassLoader $autoloader */
-$autoloader = require_once dirname(__DIR__).'/vendor/autoload.php';
+$autoloader = require dirname(__DIR__).'/vendor/autoload.php';
 
 if (PHP_MAJOR_VERSION === 7 && in_array(PHP_MINOR_VERSION, [0, 1])) {
     $mappedTestCaseFilename = __DIR__.'/TestCase/TestCase6.php';
