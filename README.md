@@ -88,6 +88,13 @@ class B extends Model
 }
 ```
 
+### Factories
+
+Chances are that you may need factories for your Compoships models. If so, you will provably need to use
+Factory methods to create relationship models. For example, by using the ->has() method. Just use the
+``Awobaz\Compoships\Database\Eloquent\Factories\ComposhipsFactory`` trait in your factory classes to be able
+to use relationships correctly.
+
 ### Example
 
 As an example, let's pretend we have a task list with categories, managed by several teams of users where:
