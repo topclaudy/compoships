@@ -3,6 +3,7 @@
 namespace Awobaz\Compoships\Tests;
 
 use Awobaz\Compoships\Tests\Models\Allocation;
+use Awobaz\Compoships\Tests\Models\OriginalPackage;
 use Awobaz\Compoships\Tests\Models\PickupPoint;
 use Awobaz\Compoships\Tests\Models\PickupTime;
 use Awobaz\Compoships\Tests\Models\Space;
@@ -258,5 +259,24 @@ class ComposhipsTest extends TestCase
         $allocation->user()->associate($user);
 
         $this->assertNotNull($allocation->user);
+    }
+
+    public function testHasOneOrManyFactoryRelationship()
+    {
+        $allocation = Allocation::factory()
+            ->has(TrackingTask::factory()->count(2)) // A Compoships relationship
+            ->has(OriginalPackage::factory()->count(3)) // A standard relationship
+            ->create();
+
+        $trackingTasks = TrackingTask::query()
+            ->whereIn('booking_id', $allocation->pluck('booking_id'))
+            ->get();
+
+        $originalPackages = OriginalPackage::query()
+            ->where('allocation_id', $allocation->id)
+            ->get();
+
+        $this->assertCount(2, $trackingTasks);
+        $this->assertCount(3, $originalPackages);
     }
 }
