@@ -263,6 +263,10 @@ class ComposhipsTest extends TestCase
 
     public function testHasOneOrManyFactoryRelationship()
     {
+        if (getLaravelVersion() < 8.0) {
+            $this->markTestIncomplete('This test is broken on laravel 7.x and earlier!');
+        }
+
         $allocation = Allocation::factory()
             ->has(TrackingTask::factory()->count(2)) // A Compoships relationship
             ->has(OriginalPackage::factory()->count(3)) // A standard relationship
