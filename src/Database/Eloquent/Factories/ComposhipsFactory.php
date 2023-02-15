@@ -10,7 +10,8 @@ trait ComposhipsFactory
     {
         return $this->newInstance([
             'has' => $this->has->concat([new Relationship(
-                $factory, $relationship ?? $this->guessRelationship($factory->modelName())
+                $factory,
+                $relationship ?? $this->guessRelationship($factory->modelName())
             )]),
         ]);
     }

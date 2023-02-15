@@ -16,11 +16,12 @@ class Relationship extends EloquentRelationship
 
         if ($relationship instanceof MorphOneOrMany) {
             $this->factory->state([
-                $relationship->getMorphType() => $relationship->getMorphClass(),
+                $relationship->getMorphType()      => $relationship->getMorphClass(),
                 $relationship->getForeignKeyName() => $relationship->getParentKey(),
             ])->create([], $parent);
         } elseif ($relationship instanceof HasOneOrMany) { // This relationship is supported by Compoships. Check for multi-columns relationship.
-            $this->factory->state(is_array($relationship->getForeignKeyName()) ?
+            $this->factory->state(
+                is_array($relationship->getForeignKeyName()) ?
                 array_combine($relationship->getForeignKeyName(), $relationship->getParentKey()) :
                 [$relationship->getForeignKeyName() => $relationship->getParentKey()]
             )->create([], $parent);
