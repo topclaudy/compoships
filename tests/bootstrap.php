@@ -19,15 +19,7 @@ date_default_timezone_set('UTC');
 if (!function_exists('getLaravelVersion')) {
     function getLaravelVersion()
     {
-        exec("composer show 'illuminate/database' | grep 'versions' | grep -o -E '\*\ .+' | cut -d' ' -f2 | cut -d',' -f1;", $output);
-        $output = str_replace('v', '', isset($output[0]) ? $output[0] : '0.0');
-        $version = explode('.', $output);
-
-        if (!is_numeric($version[0])) {
-            return 0.0;
-        }
-
-        return (float) "$version[0].$version[1]";
+        return (float) \Composer\InstalledVersions::getVersion('illuminate/database');
     }
 }
 if (!function_exists('getPHPVersion')) {
