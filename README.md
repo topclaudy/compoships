@@ -187,9 +187,12 @@ Run PHPUnit
 
 * [Claudin J. Daniel](https://github.com/topclaudy) - *Initial work*
 
+## Support This Project
+
+<a href='https://paypal.me/awobaz' target='_blank'><img height='35' style='border:0px;height:46px;' src='https://az743702.vo.msecnd.net/cdn/kofi3.png?v=0' border='0' alt='Buy Me a Coffee via Paypal' />
+
 ## Sponsored by
 
-* [StockTreats](https://stocktreats.com) - Stock Market Insights With Trading Tips And Tricks
 * [Awobaz](https://awobaz.com) - Web/Mobile agency based in Montreal, Canada
 
 ## License
