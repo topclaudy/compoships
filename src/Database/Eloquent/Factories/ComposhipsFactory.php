@@ -15,5 +15,4 @@ trait ComposhipsFactory
             )]),
         ]);
     }
-
 }
