@@ -3,6 +3,8 @@
 namespace Awobaz\Compoships\Tests\Models;
 
 use Awobaz\Compoships\Compoships;
+use Awobaz\Compoships\Tests\Factories\AllocationFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -24,6 +26,7 @@ use Illuminate\Support\Collection;
 class Allocation extends Model
 {
     use Compoships;
+    use HasFactory;
 
     // NOTE: we need this because Laravel 7 uses Carbon's method toJSON() instead of toDateTimeString()
     protected $casts = [
@@ -99,5 +102,10 @@ class Allocation extends Model
         $rel = $this->hasOne(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
 
         return getLaravelVersion() < 8 ? $rel : $rel->oldestOfMany();
+    }
+
+    protected static function newFactory()
+    {
+        return AllocationFactory::new();
     }
 }

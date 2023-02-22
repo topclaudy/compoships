@@ -3,6 +3,8 @@
 namespace Awobaz\Compoships\Tests\Models;
 
 use Awobaz\Compoships\Compoships;
+use Awobaz\Compoships\Tests\Factories\OriginalPackageFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -19,6 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 class OriginalPackage extends Model
 {
     use Compoships;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -44,5 +47,10 @@ class OriginalPackage extends Model
     public function productCode2()
     {
         return $this->belongsTo(ProductCode::class, ['pcid'], ['pcid']);
+    }
+
+    protected static function newFactory()
+    {
+        return OriginalPackageFactory::new();
     }
 }

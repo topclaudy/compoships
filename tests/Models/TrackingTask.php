@@ -3,6 +3,8 @@
 namespace Awobaz\Compoships\Tests\Models;
 
 use Awobaz\Compoships\Compoships;
+use Awobaz\Compoships\Tests\Factories\TrackingTaskFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -23,6 +25,7 @@ class TrackingTask extends Model
 {
     use SoftDeletes;
     use Compoships;
+    use HasFactory;
 
     // NOTE: we need this because Laravel 7 uses Carbon's method toJSON() instead of toDateTimeString()
     protected $casts = [
@@ -38,5 +41,10 @@ class TrackingTask extends Model
     public function subTasks()
     {
         return $this->hasMany(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
+    }
+
+    protected static function newFactory()
+    {
+        return TrackingTaskFactory::new();
     }
 }

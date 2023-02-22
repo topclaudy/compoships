@@ -30,3 +30,7 @@ if (!function_exists('getPHPVersion')) {
         return (float) "$version[0].$version[1]";
     }
 }
+
+if (getLaravelVersion() < 8.0) {
+    class_alias(\Awobaz\Compoships\Tests\Factories\DumbHasFactory::class, '\Illuminate\Database\Eloquent\Factories\HasFactory');
+}
