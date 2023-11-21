@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany as BaseHasMany;
 
 /**
  * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
+ *
  * @extends BaseHasMany<TRelatedModel>
  */
 class HasMany extends BaseHasMany
