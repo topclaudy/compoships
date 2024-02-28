@@ -13,13 +13,13 @@
       "email": "cdaniel@awobaz.com"
     }
   ],
-  "require": {
-    "illuminate/database": ">=5.6 <11.0",
-    "fakerphp/faker": "^1.18"
+ "require": {
+    "illuminate/database": ">=5.6 <12.0"
   },
   "require-dev": {
     "ext-sqlite3": "*",
-    "phpunit/phpunit": "^6.0|^8.0|^9.0"
+    "fakerphp/faker": "^1.18",
+    "phpunit/phpunit": "^6.0|^8.0|^9.0|^10.0"
   },
   "autoload": {
     "psr-4": {
