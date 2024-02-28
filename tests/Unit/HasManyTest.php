@@ -30,7 +30,9 @@ class HasManyTest extends TestCase
      */
     public function broken_Compoships_hasOneOrMany_whereInMethod__missingRelationColumn()
     {
-        $this->markAsRisky();
+        if (method_exists($this, 'markAsRisky')) {
+            $this->markAsRisky();
+        }
         $this->markTestIncomplete('This test is broken, because relation columns are required on selections!');
         $allocation = $this->createAllocation();
         $allocation->trackingTasks()

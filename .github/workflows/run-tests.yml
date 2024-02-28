@@ -8,7 +8,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                laravel: [10.*, 9.*, 8.*]
+                laravel: [11.*, 10.*, 9.*, 8.*]
                 php: ['8.3', '8.2', '8.1', '8.0']
                 include:
                     - laravel: 8.*
@@ -44,6 +44,10 @@ jobs:
                     - laravel: 5.6
                       php: '7.1'
                 exclude:
+                    - laravel: 11.*
+                      php: '8.1'
+                    - laravel: 11.*
+                      php: '8.0'
                     - laravel: 10.*
                       php: '8.0'
                     - laravel: 8.*
@@ -77,4 +81,4 @@ jobs:
                 run: |
                     echo "Laravel ${{  matrix.laravel }}"
                     php -v | head -1
-                    ./vendor/bin/phpunit --coverage-text --coverage-clover build/logs/clover.xml
+                    ./vendor/bin/phpunit
