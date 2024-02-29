@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -257,7 +258,12 @@ trait HasOneOrMany
             //If the foreign key is an array, we know it's a multi-column relationship...
             if (is_array($foreign)) {
                 $dictKeyValues = array_map(function ($k) use ($result) {
-                    return $result->{$k};
+                    // TODO: test
+                    if ($result->{$k} instanceof BackedEnum) {
+                        return $result->{$k}->value;
+                    } else {
+                        return $result->{$k};
+                    }
                 }, $foreign);
                 //... so we join the values to construct the dictionary key
                 $dictionary[implode('-', $dictKeyValues)][] = $result;

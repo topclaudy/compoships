@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -234,7 +235,12 @@ class BelongsTo extends BaseBelongsTo
         foreach ($results as $result) {
             if (is_array($owner)) { //Check for multi-columns relationship
                 $dictKeyValues = array_map(function ($k) use ($result) {
-                    return $result->{$k};
+                    // TODO: test
+                    if ($result->{$k} instanceof BackedEnum) {
+                        return $result->{$k}->value;
+                    } else {
+                        return $result->{$k};
+                    }
                 }, $owner);
 
                 $dictionary[implode('-', $dictKeyValues)] = $result;
@@ -249,7 +255,12 @@ class BelongsTo extends BaseBelongsTo
         foreach ($models as $model) {
             if (is_array($foreign)) { //Check for multi-columns relationship
                 $dictKeyValues = array_map(function ($k) use ($model) {
-                    return $model->{$k};
+                    // TODO: test
+                    if ($model->{$k} instanceof BackedEnum) {
+                        return $model->{$k}->value;
+                    } else {
+                        return $model->{$k};
+                    }
                 }, $foreign);
 
                 $key = implode('-', $dictKeyValues);
