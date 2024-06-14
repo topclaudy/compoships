@@ -46,7 +46,7 @@ Simply make your model class derive from the `Awobaz\Compoships\Database\Eloquen
 
 ### Using the `Awobaz\Compoships\Compoships` trait
 
-If for some reasons you can't derive your models from `Awobaz\Compoships\Database\Eloquent\Model`, you may take advantage of the `Awobaz\Compoships\Compoships` trait. Simply use the trait in your models.
+If for some reason you can't derive your models from `Awobaz\Compoships\Database\Eloquent\Model`, you may take advantage of the `Awobaz\Compoships\Compoships` trait. Simply use the trait in your models.
  
 **Note:** To define a multi-columns relationship from a model *A* to another model *B*, **both models must either extend `Awobaz\Compoships\Database\Eloquent\Model` or use the `Awobaz\Compoships\Compoships` trait**
 
@@ -90,7 +90,7 @@ class B extends Model
 
 ### Factories
 
-Chances are that you may need factories for your Compoships models. If so, you will provably need to use
+Chances are that you may need factories for your Compoships models. If so, you will probably need to use
 Factory methods to create relationship models. For example, by using the ->has() method. Just use the
 ``Awobaz\Compoships\Database\Eloquent\Factories\ComposhipsFactory`` trait in your factory classes to be able
 to use relationships correctly.
