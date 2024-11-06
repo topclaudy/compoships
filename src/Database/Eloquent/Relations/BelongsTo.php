@@ -63,6 +63,21 @@ class BelongsTo extends BaseBelongsTo
     }
 
     /**
+     * @return Model
+     */
+    public function dissociate()
+    {
+        if (!is_array($this->foreignKey)) {
+            return parent::dissociate();
+        }
+
+        foreach ($this->foreignKey as $key) {
+            $this->child->setAttribute($key, null);
+        }
+        return $this->child->setRelation($this->relationName, null);
+    }
+
+    /**
      * Set the base constraints on the relation query.
      *
      * @return void
