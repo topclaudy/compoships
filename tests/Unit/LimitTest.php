@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 class LimitTest extends TestCase
 {
     /**
-     * @covers \Awobaz\Compoships\Database\Grammar
+     * @covers \Awobaz\Compoships\Database\Grammar\MySqlGrammar
      */
     public function test_relation_limit()
     {

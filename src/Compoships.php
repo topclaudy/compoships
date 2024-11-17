@@ -4,6 +4,7 @@ namespace Awobaz\Compoships;
 
 use Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships;
 use Awobaz\Compoships\Database\Grammar\Grammar;
+use Awobaz\Compoships\Database\Grammar\MySqlGrammar;
 use Awobaz\Compoships\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Query\Grammars\Grammar as BaseGrammar;
 use Illuminate\Support\Str;
@@ -46,7 +47,9 @@ trait Compoships
     protected function newBaseQueryBuilder()
     {
         $connection = $this->getConnection();
+        $grammar = new MySqlGrammar();
+        $grammar->setConnection($connection);
 
-        return new QueryBuilder($connection, new Grammar(), $connection->getPostProcessor());
+        return new QueryBuilder($connection, $grammar, $connection->getPostProcessor());
     }
 }
