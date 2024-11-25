@@ -2,12 +2,8 @@
 
 namespace Awobaz\Compoships\Tests\Unit;
 
-use Awobaz\Compoships\Tests\Models\Allocation;
-use Awobaz\Compoships\Tests\Models\OriginalPackage;
-use Awobaz\Compoships\Tests\Models\ProductCode;
 use Awobaz\Compoships\Tests\Models\User;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
-use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Model;
 
 class LimitTest extends TestCase

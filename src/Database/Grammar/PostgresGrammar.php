@@ -3,9 +3,9 @@
 namespace Awobaz\Compoships\Database\Grammar;
 
 use Awobaz\Compoships\Database\Grammar\Concerns\CompileRowNumber;
-use Illuminate\Database\Query\Grammars\MySqlGrammar as BaseMySqlGrammar;
+use Illuminate\Database\Query\Grammars\PostgresGrammar as BasePostgresGrammar;
 
-class MySqlGrammar extends BaseMySqlGrammar
+class PostgresGrammar extends BasePostgresGrammar
 {
     use CompileRowNumber;
 }
