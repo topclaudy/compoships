@@ -116,5 +116,32 @@ class Migration extends BaseMigration
             $table->uuid('pcid')->unique();
             $table->string('code');
         });
+
+        Capsule::schema()->create('user_profiles', function (Blueprint $table) {
+            $table->integer('user_id')
+                ->unsigned();
+            $table->string('user_profile_type');
+            $table->timestamps();
+
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
+
+        Capsule::schema()->create('user_profile_texts', function (Blueprint $table) {
+            $table->integer('user_id')
+                ->unsigned();
+            $table->string('user_profile_type');
+            $table->string('user_profile_text');
+            $table->timestamps();
+
+            $table->foreign(['user_id', 'user_profile_type'])
+                ->references(['user_id', 'user_profile_type'])
+                ->on('user_profiles')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+        });
     }
 }

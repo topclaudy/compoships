@@ -3,6 +3,7 @@
 namespace Awobaz\Compoships\Tests\Models;
 
 use Awobaz\Compoships\Compoships;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -12,6 +13,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Allocation[] $allocations
+ * @property-read Collection<UserProfile> $userProfiles
  *
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
@@ -28,5 +30,10 @@ class User extends Model
     public function allocations()
     {
         return $this->hasMany(Allocation::class, ['user_id', 'booking_id'], ['id', 'booking_id']);
+    }
+
+    public function userProfiles()
+    {
+        return $this->hasMany(UserProfile::class);
     }
 }

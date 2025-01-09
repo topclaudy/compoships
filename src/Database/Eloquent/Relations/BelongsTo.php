@@ -234,7 +234,7 @@ class BelongsTo extends BaseBelongsTo
         foreach ($results as $result) {
             if (is_array($owner)) { //Check for multi-columns relationship
                 $dictKeyValues = array_map(function ($k) use ($result) {
-                    return $result->{$k};
+                    return $result->{$k} instanceof \BackedEnum ? $result->{$k}->value : $result->{$k};
                 }, $owner);
 
                 $dictionary[implode('-', $dictKeyValues)] = $result;
@@ -249,7 +249,7 @@ class BelongsTo extends BaseBelongsTo
         foreach ($models as $model) {
             if (is_array($foreign)) { //Check for multi-columns relationship
                 $dictKeyValues = array_map(function ($k) use ($model) {
-                    return $model->{$k};
+                    return $model->{$k} instanceof \BackedEnum ? $model->{$k}->value : $model->{$k};
                 }, $foreign);
 
                 $key = implode('-', $dictKeyValues);
