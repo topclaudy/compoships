@@ -13,6 +13,10 @@ class LimitTest extends TestCase
      */
     public function test_relation_limit()
     {
+        if (getLaravelVersion() < 11.0) {
+            $this->markTestIncomplete('This test is will not work on laravel 10.x or earlier.');
+        }
+
         Model::unguard();
 
         $user = User::create([
