@@ -51,15 +51,12 @@ trait Compoships
         $connection = $this->getConnection();
 
         $grammar = match ($connection->getDriverName()) {
-            'mysql'  => new MySqlGrammar(),
-            'pgsql'  => new PostgresGrammar(),
-            'sqlite' => new SQLiteGrammar(),
-            'sqlsrv' => new SqlServerGrammar(),
+            'mysql'  => new MySqlGrammar($connection),
+            'pgsql'  => new PostgresGrammar($connection),
+            'sqlite' => new SQLiteGrammar($connection),
+            'sqlsrv' => new SqlServerGrammar($connection),
             default  => throw new RuntimeException('This database is not supported.'),
         };
-
-        $grammar->setConnection($connection);
-        $grammar = $connection->withTablePrefix($grammar);
 
         return new QueryBuilder($connection, $grammar, $connection->getPostProcessor());
     }
