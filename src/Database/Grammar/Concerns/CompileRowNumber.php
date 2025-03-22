@@ -10,7 +10,9 @@ trait CompileRowNumber
             return parent::compileRowNumber($partition, $orders);
         }
 
-        $columns = implode(', ', array_map(fn ($p) => $this->wrap($p), $partition));
+        $columns = implode(', ', array_map(function ($p) {
+            return $this->wrap($p);
+        }, $partition));
 
         $over = trim('partition by '.$columns.' '.$orders);
 

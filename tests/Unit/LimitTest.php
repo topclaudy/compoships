@@ -34,13 +34,17 @@ class LimitTest extends TestCase
 
         $user = $user->fresh();
         $user->load([
-            'allocations' => fn ($query) => $query->limit(4),
+            'allocations' => function($query) {
+                $query->limit(4);
+            },
         ]);
         $this->assertCount(4, $user->allocations);
 
         $user = $user->fresh();
         $user->load([
-            'allocations' => fn ($query) => $query->limit(2),
+            'allocations' => function ($query) {
+                $query->limit(2);
+            },
         ]);
         $this->assertCount(2, $user->allocations);
     }

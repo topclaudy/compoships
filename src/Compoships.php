@@ -50,16 +50,22 @@ trait Compoships
     {
         $connection = $this->getConnection();
 
-        $grammar = match ($connection->getDriverName()) {
-            'mysql'  => new MySqlGrammar(),
-            'pgsql'  => new PostgresGrammar(),
-            'sqlite' => new SQLiteGrammar(),
-            'sqlsrv' => new SqlServerGrammar(),
-            default  => throw new RuntimeException('This database is not supported.'),
-        };
-
-        $grammar->setConnection($connection);
-        $grammar = $connection->withTablePrefix($grammar);
+        switch ($connection->getDriverName()) {
+            case 'mysql':
+                $grammar = new MySqlGrammar($connection);
+                break;
+            case 'pgsql':
+                $grammar = new PostgresGrammar($connection);
+                break;
+            case 'sqlite':
+                $grammar = new SqliteGrammar($connection);
+                break;
+            case 'sqlsrv':
+                $grammar = new SqlServerGrammar($connection);
+                break;
+            default:
+                throw new RuntimeException('This database is not supported.');
+        }
 
         return new QueryBuilder($connection, $grammar, $connection->getPostProcessor());
     }
