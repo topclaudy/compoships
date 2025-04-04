@@ -34,7 +34,7 @@ class LimitTest extends TestCase
 
         $user = $user->fresh();
         $user->load([
-            'allocations' => function($query) {
+            'allocations' => function ($query) {
                 $query->limit(4);
             },
         ]);
