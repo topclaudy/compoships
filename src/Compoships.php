@@ -3,6 +3,7 @@
 namespace Awobaz\Compoships;
 
 use Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships;
+use Awobaz\Compoships\Database\Grammar\MariaDbGrammar;
 use Awobaz\Compoships\Database\Grammar\MySqlGrammar;
 use Awobaz\Compoships\Database\Grammar\PostgresGrammar;
 use Awobaz\Compoships\Database\Grammar\SQLiteGrammar;
@@ -62,6 +63,9 @@ trait Compoships
                 break;
             case 'sqlsrv':
                 $grammar = new SqlServerGrammar($connection);
+                break;
+            case 'mariadb':
+                $grammar = new MariaDbGrammar($connection);
                 break;
             default:
                 throw new RuntimeException('This database is not supported.');
