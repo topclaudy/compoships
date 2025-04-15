@@ -3,8 +3,14 @@
 namespace Awobaz\Compoships;
 
 use Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships;
+use Awobaz\Compoships\Database\Grammar\MariaDbGrammar;
+use Awobaz\Compoships\Database\Grammar\MySqlGrammar;
+use Awobaz\Compoships\Database\Grammar\PostgresGrammar;
+use Awobaz\Compoships\Database\Grammar\SQLiteGrammar;
+use Awobaz\Compoships\Database\Grammar\SqlServerGrammar;
 use Awobaz\Compoships\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 trait Compoships
 {
@@ -45,6 +51,26 @@ trait Compoships
     {
         $connection = $this->getConnection();
 
-        return new QueryBuilder($connection, $connection->getQueryGrammar(), $connection->getPostProcessor());
+        switch ($connection->getDriverName()) {
+            case 'mysql':
+                $grammar = new MySqlGrammar($connection);
+                break;
+            case 'pgsql':
+                $grammar = new PostgresGrammar($connection);
+                break;
+            case 'sqlite':
+                $grammar = new SqliteGrammar($connection);
+                break;
+            case 'sqlsrv':
+                $grammar = new SqlServerGrammar($connection);
+                break;
+            case 'mariadb':
+                $grammar = new MariaDbGrammar($connection);
+                break;
+            default:
+                throw new RuntimeException('This database is not supported.');
+        }
+
+        return new QueryBuilder($connection, $grammar, $connection->getPostProcessor());
     }
 }
