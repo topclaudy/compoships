@@ -19,7 +19,7 @@
   "require-dev": {
     "ext-sqlite3": "*",
     "fakerphp/faker": "^1.18",
-    "phpunit/phpunit": "^6.0|^8.0|^9.0|^10.0|^11.0"
+    "phpunit/phpunit": "^6.0|^8.0|^9.0|^10.0|^11.0||^12.0"
   },
   "autoload": {
     "psr-4": {
