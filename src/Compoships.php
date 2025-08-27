@@ -10,7 +10,6 @@ use Awobaz\Compoships\Database\Grammar\SQLiteGrammar;
 use Awobaz\Compoships\Database\Grammar\SqlServerGrammar;
 use Awobaz\Compoships\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Str;
-use RuntimeException;
 
 trait Compoships
 {
@@ -68,7 +67,15 @@ trait Compoships
                 $grammar = new MariaDbGrammar($connection);
                 break;
             default:
-                throw new RuntimeException('This database is not supported.');
+                $grammar = $connection->getQueryGrammar();
+        }
+
+        if (method_exists($grammar, 'setConnection')) {
+            $grammar->setConnection($connection);
+        }
+
+        if (method_exists($grammar, 'withTablePrefix')) {
+            $grammar = $connection->withTablePrefix($grammar);
         }
 
         return new QueryBuilder($connection, $grammar, $connection->getPostProcessor());
