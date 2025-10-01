@@ -10,10 +10,11 @@ class Builder extends BaseQueryBuilder
     /**
      * Add a "where in" clause to the query.
      *
-     * @param  \Illuminate\Contracts\Database\Query\Expression|string|string[]  $column
-     * @param  mixed  $values
-     * @param  string  $boolean
-     * @param  bool  $not
+     * @param \Illuminate\Contracts\Database\Query\Expression|string|string[] $column
+     * @param mixed                                                           $values
+     * @param string                                                          $boolean
+     * @param bool                                                            $not
+     *
      * @return $this
      */
     public function whereIn($column, $values, $boolean = 'and', $not = false)
@@ -22,7 +23,7 @@ class Builder extends BaseQueryBuilder
         if (is_array($column)) {
             $type = $not ? 'NOT IN' : 'IN';
             $columns = implode(',', $column);
-            $tuplePlaceholders = '(' . implode(', ', array_fill(0, count($column), '?')) . ')';
+            $tuplePlaceholders = '('.implode(', ', array_fill(0, count($column), '?')).')';
             $placeholderList = implode(',', array_fill(0, count($values), $tuplePlaceholders));
             $this->whereRaw("({$columns}) {$type} ({$placeholderList})", Arr::flatten($values), $boolean);
 
