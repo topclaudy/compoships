@@ -22,6 +22,8 @@ class RelationWithEnumTest extends TestCase
             $this->markTestSkipped('This test requires PHP 8.1 or higher');
         }
 
+        parent::setUp();
+
         Model::unguard();
 
         $user = new User();
