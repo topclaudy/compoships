@@ -8,9 +8,13 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                laravel: [12.*, 11.*, 10.*, 9.*, 8.*]
-                php: ['8.4', '8.3', '8.2', '8.1', '8.0']
+                laravel: [12.*, 11.*, 10.*, 9.*]
+                php: ['8.5', '8.4', '8.3', '8.2', '8.1', '8.0']
                 include:
+                    - laravel: 8.*
+                      php: '8.1'
+                    - laravel: 8.*
+                      php: '8.0'
                     - laravel: 8.*
                       php: '7.4'
                     - laravel: 8.*
@@ -54,20 +58,18 @@ jobs:
                       php: '8.0'
                     - laravel: 10.*
                       php: '8.0'
+                    - laravel: 10.*
+                      php: '8.5'
                     - laravel: 9.*
                       php: '8.4'
-                    - laravel: 8.*
-                      php: '8.2'
-                    - laravel: 8.*
-                      php: '8.3'
-                    - laravel: 8.*
-                      php: '8.4'
+                    - laravel: 9.*
+                      php: '8.5'
 
         name: L${{ matrix.laravel }} - PHP${{ matrix.php }}
 
         steps:
             -   name: Checkout code
-                uses: actions/checkout@v4
+                uses: actions/checkout@v5
 
             -   name: Install SQLite 3
                 run: |
