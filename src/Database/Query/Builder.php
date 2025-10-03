@@ -21,11 +21,11 @@ class Builder extends BaseQueryBuilder
     {
         // Here we implement custom support for multi-column 'IN'
         if (is_array($column)) {
-            $type = $not ? 'NOT IN' : 'IN';
+            $inOperator = $not ? 'NOT IN' : 'IN';
             $columns = implode(',', $column);
             $tuplePlaceholders = '('.implode(', ', array_fill(0, count($column), '?')).')';
             $placeholderList = implode(',', array_fill(0, count($values), $tuplePlaceholders));
-            $this->whereRaw("({$columns}) {$type} ({$placeholderList})", Arr::flatten($values), $boolean);
+            $this->whereRaw("({$columns}) {$inOperator} ({$placeholderList})", Arr::flatten($values), $boolean);
 
             return $this;
         }
