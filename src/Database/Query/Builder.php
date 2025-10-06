@@ -23,7 +23,7 @@ class Builder extends BaseQueryBuilder
         if (is_array($column)) {
             $inOperator = $not ? 'NOT IN' : 'IN';
             $columns = collect($column)
-                ->map(function ($column){
+                ->map(function ($column) {
                     return str($column)
                         ->prepend(
                             $this->getConnection()
