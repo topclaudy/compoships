@@ -22,16 +22,13 @@ class Builder extends BaseQueryBuilder
         // Here we implement custom support for multi-column 'IN'
         if (is_array($column)) {
             $inOperator = $not ? 'NOT IN' : 'IN';
-            $columns = collect($column)
-                ->map(function ($column) {
-                    return str($column)
-                        ->prepend(
-                            $this->getConnection()
-                                ->getTablePrefix()
-                        )
-                        ->toString();
-                })
-                ->implode(',');
+            $prefix = $this->getConnection()->getTablePrefix();
+            
+            foreach($column as &$value){
+                $value = $prefix . $value; 
+            }
+
+            $columns = implode(',', $column);
             $tuplePlaceholders = '('.implode(', ', array_fill(0, count($column), '?')).')';
             $placeholderList = implode(',', array_fill(0, count($values), $tuplePlaceholders));
             $this->whereRaw("({$columns}) {$inOperator} ({$placeholderList})", Arr::flatten($values), $boolean);
