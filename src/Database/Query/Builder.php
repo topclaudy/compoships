@@ -24,8 +24,8 @@ class Builder extends BaseQueryBuilder
             $inOperator = $not ? 'NOT IN' : 'IN';
             $prefix = $this->getConnection()->getTablePrefix();
             
-            foreach($column as &$value){
-                $value = $prefix . $value; 
+            foreach ($column as &$value) {               
+                $value = $prefix.$value;
             }
 
             $columns = implode(',', $column);
