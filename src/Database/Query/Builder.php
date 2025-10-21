@@ -2,7 +2,10 @@
 
 namespace Awobaz\Compoships\Database\Query;
 
+use Illuminate\Database\MySqlConnection;
+use Illuminate\Database\PostgresConnection;
 use Illuminate\Database\Query\Builder as BaseQueryBuilder;
+use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Arr;
 
 class Builder extends BaseQueryBuilder
@@ -21,17 +24,39 @@ class Builder extends BaseQueryBuilder
     {
         // Here we implement custom support for multi-column 'IN'
         if (is_array($column)) {
-            $inOperator = $not ? 'NOT IN' : 'IN';
-            $prefix = $this->getConnection()->getTablePrefix();
-            
-            foreach ($column as &$value) {               
-                $value = $prefix.$value;
+            $connection = $this->getConnection();
+            // Check if we can use optimized row value expressions
+            if (
+                ($connection instanceof MySqlConnection ||
+                    $connection instanceof PostgresConnection ||
+                    $connection instanceof SQLiteConnection) &&
+                Arr::every($values, fn ($value) => !in_array(null, $value, true))
+            ) {
+                $inOperator = $not ? 'NOT IN' : 'IN';
+                $prefix = $connection->getTablePrefix();
+
+                foreach ($column as &$value) {
+                    $value = $prefix.$value;
+                }
+
+                $columns = implode(',', $column);
+                $tuplePlaceholders = '('.implode(',', array_fill(0, count($column), '?')).')';
+                $placeholderList = implode(',', array_fill(0, count($values), $tuplePlaceholders));
+                $this->whereRaw("({$columns}) {$inOperator} (VALUES {$placeholderList})", Arr::flatten($values), $boolean);
+
+                return $this;
             }
 
-            $columns = implode(',', $column);
-            $tuplePlaceholders = '('.implode(', ', array_fill(0, count($column), '?')).')';
-            $placeholderList = implode(',', array_fill(0, count($values), $tuplePlaceholders));
-            $this->whereRaw("({$columns}) {$inOperator} ({$placeholderList})", Arr::flatten($values), $boolean);
+            // Otherwise use a series of OR/AND clauses
+            $this->where(function ($query) use ($column, $values) {
+                foreach ($values as $value) {
+                    $query->orWhere(function ($query) use ($column, $value) {
+                        foreach ($column as $index => $aColumn) {
+                            $query->where($aColumn, $value[$index]);
+                        }
+                    });
+                }
+            });
 
             return $this;
         }
