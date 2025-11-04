@@ -411,7 +411,14 @@ class HasManyTest extends TestCase
         $allocation->refresh();
         $this->assertNotNull($allocation->originalPackages);
         $this->assertEquals(count($expectedData), $allocation->originalPackages->count());
-        $this->assertEquals($expectedData, $allocation->originalPackages->toArray());
+        $this->assertEquals($expectedData, $allocation->originalPackages->map(function ($originalPackage) {
+            return [
+                'id'            => $originalPackage->id,
+                'allocation_id' => $originalPackage->allocation_id,
+                'name'          => $originalPackage->name,
+                'pcid'          => $originalPackage->pcid,
+            ];
+        })->all());
         $this->assertEquals($expectedData, array_map(function ($item) {
             return (array) $item;
         }, Capsule::table('original_packages')->get()->all()));
