@@ -238,7 +238,13 @@ trait HasOneOrMany
             }, $key)) : $key;
 
             if (isset($dictionary[$dictKey])) {
-                $model->setRelation($relation, $this->getRelationValue($dictionary, $dictKey, $type));
+                $related = $this->getRelationValue($dictionary, $dictKey, $type);
+                $model->setRelation($relation, $related);
+
+                // Apply the inverse relation if we have one...
+                $type === 'one'
+                    ? $this->applyInverseRelationToModel($related, $model)
+                    : $this->applyInverseRelationToCollection($related, $model);
             }
         }
 
