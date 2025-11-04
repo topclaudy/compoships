@@ -299,6 +299,36 @@ class HasManyTest extends TestCase
         }
     }
 
+    public function test_Illuminate_chaperone()
+    {
+        if (getLaravelVersion() < 11) {
+            $this->markTestSkipped('Only for Laravel versions above 11.');
+        }
+
+        $allocationId1 = Capsule::table('allocations')->insertGetId([
+            'booking_id' => 1,
+            'vehicle_id' => 1,
+        ]);
+
+        Capsule::table('original_packages')->insertGetId([
+            'name'          => 'name 1',
+            'allocation_id' => $allocationId1,
+        ]);
+
+        Capsule::table('original_packages')->insertGetId([
+            'name'          => 'name 2',
+            'allocation_id' => $allocationId1,
+        ]);
+
+        $allocations1 = Allocation::where('id', $allocationId1)->with('originalPackages')->get()->all();
+
+        $this->assertTrue(
+            $allocations1[0]->originalPackages[0]->relationLoaded('allocation')
+        );
+
+        $this->assertEquals($allocationId1, $allocations1[0]->originalPackages[0]->allocation->id);
+    }
+
     public function test_Illuminate_hasOneOrMany_create__normal()
     {
         $allocation = $this->createAllocation();
@@ -381,7 +411,14 @@ class HasManyTest extends TestCase
         $allocation->refresh();
         $this->assertNotNull($allocation->originalPackages);
         $this->assertEquals(count($expectedData), $allocation->originalPackages->count());
-        $this->assertEquals($expectedData, $allocation->originalPackages->toArray());
+        $this->assertEquals($expectedData, $allocation->originalPackages->map(function ($originalPackage) {
+            return [
+                'id'            => $originalPackage->id,
+                'allocation_id' => $originalPackage->allocation_id,
+                'name'          => $originalPackage->name,
+                'pcid'          => $originalPackage->pcid,
+            ];
+        })->all());
         $this->assertEquals($expectedData, array_map(function ($item) {
             return (array) $item;
         }, Capsule::table('original_packages')->get()->all()));
