@@ -242,9 +242,13 @@ trait HasOneOrMany
                 $model->setRelation($relation, $related);
 
                 // Apply the inverse relation if we have one...
-                $type === 'one'
-                    ? $this->applyInverseRelationToModel($related, $model)
-                    : $this->applyInverseRelationToCollection($related, $model);
+                if (method_exists($this, 'applyInverseRelationToModel')) {
+                    if ($type === 'one') {
+                        $this->applyInverseRelationToModel($related, $model);
+                    } else {
+                        $this->applyInverseRelationToCollection($related, $model);
+                    }
+                }
             }
         }
 
