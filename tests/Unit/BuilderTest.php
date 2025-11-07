@@ -20,6 +20,7 @@ class BuilderTest extends TestCase
      * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::sanitizeKey
      * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::addConstraints
      * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::getQualifiedParentKeyName
+     * @covers \Awobaz\Compoships\Database\Query\Builder::whereIn
      * @covers \Awobaz\Compoships\Database\Query\Builder::whereColumn
      */
     public function test_Illuminate_hasOneOrMany__Builder_whereColumn_on_relation_column()
@@ -57,5 +58,30 @@ class BuilderTest extends TestCase
         })->get();
         $this->assertCount(1, $allocations);
         $this->assertCount(2, $allocations[0]->originalPackages);
+    }
+
+    public function test_use_row_value_expressions_for_eager_loading_when_possible()
+    {
+        $allocationId1 = Capsule::table('allocations')->insertGetId([
+            'user_id'    => 1,
+            'booking_id' => 1,
+        ]);
+        $allocationId2 = Capsule::table('allocations')->insertGetId([
+            'user_id'    => 2,
+            'booking_id' => null,
+        ]);
+        $allocation1 = Allocation::find($allocationId1);
+        $allocation2 = Allocation::find($allocationId2);
+
+        $query1 = Allocation::query()->getRelation('user');
+        $query1->addEagerConstraints([$allocation1]);
+        $sql1 = $query1->toRawSql();
+
+        $query2 = Allocation::query()->getRelation('user');
+        $query2->addEagerConstraints([$allocation2]);
+        $sql2 = $query2->toRawSql();
+
+        $this->assertEquals('select * from "users" where (users.id,users.booking_id) IN (VALUES (1,1))', $sql1);
+        $this->assertEquals('select * from "users" where (("users"."id" = 2 and "users"."booking_id" is null))', $sql2);
     }
 }
