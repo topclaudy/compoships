@@ -23,14 +23,26 @@ class Builder extends BaseQueryBuilder
         if (is_array($column)) {
             $inOperator = $not ? 'NOT IN' : 'IN';
             $prefix = $this->getConnection()->getTablePrefix();
-            
-            foreach ($column as &$value) {               
+
+            foreach ($column as &$value) {
                 $value = $prefix.$value;
+            }
+
+            if ($this->getConnection()->getDriverName() === 'sqlsrv') {
+                foreach ($column as $column_number => $column_name) {
+                    $column_values = array_unique(Arr::pluck($values, $column_number));
+                    $values_placeholders = implode(', ', array_fill(0, count($column_values), '?'));
+
+                    $this->whereRaw("{$column_name} {$inOperator} ({$values_placeholders})", Arr::flatten($column_values), $boolean);
+                }
+
+                return $this;
             }
 
             $columns = implode(',', $column);
             $tuplePlaceholders = '('.implode(', ', array_fill(0, count($column), '?')).')';
             $placeholderList = implode(',', array_fill(0, count($values), $tuplePlaceholders));
+
             $this->whereRaw("({$columns}) {$inOperator} ({$placeholderList})", Arr::flatten($values), $boolean);
 
             return $this;
