@@ -74,7 +74,7 @@ trait Compoships
             $grammar->setConnection($connection);
         }
 
-        if (method_exists($grammar, 'withTablePrefix')) {
+        if (method_exists($connection, 'withTablePrefix')) {
             $grammar = $connection->withTablePrefix($grammar);
         }
 
