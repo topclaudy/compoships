@@ -69,7 +69,7 @@ jobs:
 
         steps:
             -   name: Checkout code
-                uses: actions/checkout@v5
+                uses: actions/checkout@v6
 
             -   name: Install SQLite 3
                 run: |
@@ -88,6 +88,7 @@ jobs:
                     composer require "laravel/serializable-closure:>=1.3" --no-interaction --no-update
             -   name: Install dependencies
                 run: |
+                    composer config audit.block-insecure false || true
                     composer config --no-plugins allow-plugins.kylekatarnls/update-helper true
                     composer require "illuminate/database:${{ matrix.laravel }}" --no-interaction --no-update
                     composer update --no-interaction
