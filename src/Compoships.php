@@ -28,13 +28,16 @@ trait Compoships
 
     public function qualifyColumn($column)
     {
-        if (is_array($column)) { //Check for multi-column relationship
+        if (is_array($column)) {
             return array_map(function ($c) {
                 if (Str::contains($c, '.')) {
                     return $c;
                 }
 
-                return $this->getTable().'.'.$c;
+                $connection = $this->getConnection();
+                $prefix = $connection->getTablePrefix();
+
+                return $prefix . $this->getTable() . '.' . $c;
             }, $column);
         }
 
