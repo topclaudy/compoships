@@ -54,8 +54,8 @@ class BelongsTo extends BaseBelongsTo
         $relationName = property_exists($this, 'relationName') ? $this->relationName : $this->relation;
         if ($model instanceof Model) {
             $this->child->setRelation($relationName, $model);
-        // proper unset // https://github.com/illuminate/database/commit/44411c7288fc7b7d4e5680cfcdaa46d348b5c981
         } elseif ($this->child->isDirty($this->foreignKey)) {
+            // proper unset // https://github.com/illuminate/database/commit/44411c7288fc7b7d4e5680cfcdaa46d348b5c981
             $this->child->unsetRelation($relationName);
         }
 
