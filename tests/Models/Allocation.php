@@ -47,7 +47,13 @@ class Allocation extends Model
      */
     public function originalPackages()
     {
-        return $this->hasMany(OriginalPackage::class);
+        $hasMany = $this->hasMany(OriginalPackage::class);
+
+        if (method_exists($hasMany, 'chaperone')) {
+            $hasMany->chaperone('allocation');
+        }
+
+        return $hasMany;
     }
 
     /**

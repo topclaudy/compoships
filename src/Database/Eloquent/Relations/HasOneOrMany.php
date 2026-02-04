@@ -20,6 +20,12 @@ trait HasOneOrMany
             $foreignKey = $this->getForeignKeyName();
             $parentKeyValue = $this->getParentKey();
 
+            $parentKeyValue = is_array($parentKeyValue)
+                ? array_map(function ($v) {
+                    return $v instanceof \BackedEnum ? $v->value : $v;
+                }, $parentKeyValue)
+                : $parentKeyValue;
+
             //If the foreign key is an array (multi-column relationship), we adjust the query.
             if (is_array($this->foreignKey)) {
                 $allParentKeyValuesAreNull = array_unique($parentKeyValue) === [null];
@@ -227,10 +233,22 @@ trait HasOneOrMany
             $key = $model->getAttribute($this->localKey);
             //If the foreign key is an array, we know it's a multi-column relationship
             //And we join the values to construct the dictionary key
-            $dictKey = is_array($key) ? implode('-', $key) : $key;
+            $dictKey = is_array($key) ? implode('-', array_map(function ($v) {
+                return $v instanceof \BackedEnum ? $v->value : $v;
+            }, $key)) : $key;
 
             if (isset($dictionary[$dictKey])) {
-                $model->setRelation($relation, $this->getRelationValue($dictionary, $dictKey, $type));
+                $related = $this->getRelationValue($dictionary, $dictKey, $type);
+                $model->setRelation($relation, $related);
+
+                // Apply the inverse relation if we have one...
+                if (method_exists($this, 'applyInverseRelationToModel')) {
+                    if ($type === 'one') {
+                        $this->applyInverseRelationToModel($related, $model);
+                    } else {
+                        $this->applyInverseRelationToCollection($related, $model);
+                    }
+                }
             }
         }
 
@@ -257,7 +275,7 @@ trait HasOneOrMany
             //If the foreign key is an array, we know it's a multi-column relationship...
             if (is_array($foreign)) {
                 $dictKeyValues = array_map(function ($k) use ($result) {
-                    return $result->{$k};
+                    return $result->{$k} instanceof \BackedEnum ? $result->{$k}->value : $result->{$k};
                 }, $foreign);
                 //... so we join the values to construct the dictionary key
                 $dictionary[implode('-', $dictKeyValues)][] = $result;

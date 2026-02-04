@@ -3,24 +3,47 @@
 namespace Awobaz\Compoships\Database\Query;
 
 use Illuminate\Database\Query\Builder as BaseQueryBuilder;
+use Illuminate\Support\Arr;
 
 class Builder extends BaseQueryBuilder
 {
+    /**
+     * Add a "where in" clause to the query.
+     *
+     * @param \Illuminate\Contracts\Database\Query\Expression|string|string[] $column
+     * @param mixed                                                           $values
+     * @param string                                                          $boolean
+     * @param bool                                                            $not
+     *
+     * @return $this
+     */
     public function whereIn($column, $values, $boolean = 'and', $not = false)
     {
-        //Here we implement custom support for multi-column 'IN'
-        //A multi-column 'IN' is a series of OR/AND clauses
-        //TODO: Optimization
+        // Here we implement custom support for multi-column 'IN'
         if (is_array($column)) {
-            $this->where(function ($query) use ($column, $values) {
-                foreach ($values as $value) {
-                    $query->orWhere(function ($query) use ($column, $value) {
-                        foreach ($column as $index => $aColumn) {
-                            $query->where($aColumn, $value[$index]);
-                        }
-                    });
+            $inOperator = $not ? 'NOT IN' : 'IN';
+            $prefix = $this->getConnection()->getTablePrefix();
+
+            foreach ($column as &$value) {
+                $value = $prefix.$value;
+            }
+
+            if ($this->getConnection()->getDriverName() === 'sqlsrv') {
+                foreach ($column as $column_number => $column_name) {
+                    $column_values = array_unique(Arr::pluck($values, $column_number));
+                    $values_placeholders = implode(', ', array_fill(0, count($column_values), '?'));
+
+                    $this->whereRaw("{$column_name} {$inOperator} ({$values_placeholders})", Arr::flatten($column_values), $boolean);
                 }
-            });
+
+                return $this;
+            }
+
+            $columns = implode(',', $column);
+            $tuplePlaceholders = '('.implode(', ', array_fill(0, count($column), '?')).')';
+            $placeholderList = implode(',', array_fill(0, count($values), $tuplePlaceholders));
+
+            $this->whereRaw("({$columns}) {$inOperator} ({$placeholderList})", Arr::flatten($values), $boolean);
 
             return $this;
         }

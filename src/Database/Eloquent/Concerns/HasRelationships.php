@@ -40,11 +40,13 @@ trait HasRelationships
     /**
      * Define a one-to-one relationship.
      *
-     * @param string            $related
-     * @param string|array|null $foreignKey
-     * @param string|array|null $localKey
+     * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
      *
-     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
+     * @param class-string<TRelatedModel> $related
+     * @param string|array|null           $foreignKey
+     * @param string|array|null           $localKey
+     *
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne<TRelatedModel, $this>
      */
     public function hasOne($related, $foreignKey = null, $localKey = null)
     {
@@ -74,12 +76,15 @@ trait HasRelationships
     /**
      * Instantiate a new HasOne relationship.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param \Illuminate\Database\Eloquent\Model   $parent
-     * @param string|array                          $foreignKey
-     * @param string|array                          $localKey
+     * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
+     * @template TDeclaringModel of \Illuminate\Database\Eloquent\Model
      *
-     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
+     * @param \Illuminate\Database\Eloquent\Builder<TRelatedModel> $query
+     * @param TDeclaringModel                                      $parent
+     * @param string|array                                         $foreignKey
+     * @param string|array                                         $localKey
+     *
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne<TRelatedModel, TDeclaringModel>
      */
     protected function newHasOne(Builder $query, Model $parent, $foreignKey, $localKey)
     {
@@ -104,11 +109,13 @@ trait HasRelationships
     /**
      * Define a one-to-many relationship.
      *
-     * @param string            $related
-     * @param string|array|null $foreignKey
-     * @param string|array|null $localKey
+     * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
      *
-     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
+     * @param class-string<TRelatedModel> $related
+     * @param string|array|null           $foreignKey
+     * @param string|array|null           $localKey
+     *
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany<TRelatedModel, $this>
      */
     public function hasMany($related, $foreignKey = null, $localKey = null)
     {
@@ -138,12 +145,15 @@ trait HasRelationships
     /**
      * Instantiate a new HasMany relationship.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param \Illuminate\Database\Eloquent\Model   $parent
-     * @param string|array                          $foreignKey
-     * @param string|array                          $localKey
+     * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
+     * @template TDeclaringModel of \Illuminate\Database\Eloquent\Model
      *
-     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
+     * @param \Illuminate\Database\Eloquent\Builder<TRelatedModel> $query
+     * @param TDeclaringModel                                      $parent
+     * @param string|array                                         $foreignKey
+     * @param string|array                                         $localKey
+     *
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany<TRelatedModel, TDeclaringModel>
      */
     protected function newHasMany(Builder $query, Model $parent, $foreignKey, $localKey)
     {
@@ -153,12 +163,14 @@ trait HasRelationships
     /**
      * Define an inverse one-to-one or many relationship.
      *
-     * @param string            $related
-     * @param string|array|null $foreignKey
-     * @param string|array|null $ownerKey
-     * @param string            $relation
+     * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
      *
-     * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
+     * @param class-string<TRelatedModel> $related
+     * @param string|array|null           $foreignKey
+     * @param string|array|null           $ownerKey
+     * @param string                      $relation
+     *
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo<TRelatedModel, $this>
      */
     public function belongsTo($related, $foreignKey = null, $ownerKey = null, $relation = null)
     {
@@ -193,13 +205,16 @@ trait HasRelationships
     /**
      * Instantiate a new BelongsTo relationship.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @param \Illuminate\Database\Eloquent\Model   $child
-     * @param string|array                          $foreignKey
-     * @param string|array                          $ownerKey
-     * @param string                                $relation
+     * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
+     * @template TDeclaringModel of \Illuminate\Database\Eloquent\Model
      *
-     * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
+     * @param \Illuminate\Database\Eloquent\Builder<TRelatedModel> $query
+     * @param TDeclaringModel                                      $child
+     * @param string|array                                         $foreignKey
+     * @param string|array                                         $ownerKey
+     * @param string                                               $relation
+     *
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo<TRelatedModel, TDeclaringModel>
      */
     protected function newBelongsTo(Builder $query, Model $child, $foreignKey, $ownerKey, $relation)
     {
