@@ -3,6 +3,7 @@
 namespace Awobaz\Compoships\Tests\Unit;
 
 use Awobaz\Compoships\Tests\Models\Allocation;
+use Awobaz\Compoships\Tests\Models\TrackingTask;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
@@ -57,5 +58,19 @@ class BuilderTest extends TestCase
         })->get();
         $this->assertCount(1, $allocations);
         $this->assertCount(2, $allocations[0]->originalPackages);
+    }
+
+    /** @covers \Awobaz\Compoships\Database\Query\Builder::whereIn */
+    public function testWhereInWrapsColumnNamesForCompositeKeys(): void
+    {
+        $query = TrackingTask::query()->whereIn(
+            ['tracking_tasks.booking_id', 'tracking_tasks.vehicle_id'],
+            [[1, 2], [3, 4]],
+        );
+
+        $this->assertSame(
+            'select * from "tracking_tasks" where ("tracking_tasks"."booking_id","tracking_tasks"."vehicle_id") IN ((?, ?),(?, ?)) and "tracking_tasks"."deleted_at" is null',
+            $query->toSql(),
+        );
     }
 }
