@@ -42,7 +42,7 @@
   "extra": {
     "laravel": {
         "providers": [
-            "Topclaudy\\Compoships\\ComposhipsServiceProvider"
+            "Awobaz\\Compoships\\ComposhipsServiceProvider"
         ]
     }
 }
