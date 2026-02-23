@@ -1,7 +1,6 @@
 <?php
-// src/ComposhipsServiceProvider.php
 
-namespace Topclaudy\Compoships;
+namespace Awobaz\Compoships;
 
 use Illuminate\Support\ServiceProvider;
 
