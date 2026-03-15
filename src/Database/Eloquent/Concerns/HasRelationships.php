@@ -4,6 +4,7 @@ namespace Awobaz\Compoships\Database\Eloquent\Concerns;
 
 use Awobaz\Compoships\Compoships;
 use Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo;
+use Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany;
 use Awobaz\Compoships\Database\Eloquent\Relations\HasMany;
 use Awobaz\Compoships\Database\Eloquent\Relations\HasOne;
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
@@ -219,6 +220,89 @@ trait HasRelationships
     protected function newBelongsTo(Builder $query, Model $child, $foreignKey, $ownerKey, $relation)
     {
         return new BelongsTo($query, $child, $foreignKey, $ownerKey, $relation);
+    }
+
+    /**
+     * Define a many-to-many relationship.
+     *
+     * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param class-string<TRelatedModel> $related
+     * @param string|null                 $table
+     * @param string|array|null           $foreignPivotKey
+     * @param string|array|null           $relatedPivotKey
+     * @param string|array|null           $parentKey
+     * @param string|array|null           $relatedKey
+     * @param string|null                 $relation
+     *
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany<TRelatedModel, $this>
+     */
+    public function belongsToMany(
+        $related,
+        $table = null,
+        $foreignPivotKey = null,
+        $relatedPivotKey = null,
+        $parentKey = null,
+        $relatedKey = null,
+        $relation = null
+    ) {
+        if (is_array($foreignPivotKey)) {
+            $this->validateRelatedModel($related);
+        }
+
+        if (is_null($relation)) {
+            $relation = $this->guessBelongsToManyRelation();
+        }
+
+        $instance = $this->newRelatedInstance($related);
+
+        $foreignPivotKey = $foreignPivotKey ?: $this->getForeignKey();
+        $relatedPivotKey = $relatedPivotKey ?: $instance->getForeignKey();
+
+        if (is_null($table)) {
+            $table = $this->joiningTable($related, $instance);
+        }
+
+        return $this->newBelongsToMany(
+            $instance->newQuery(),
+            $this,
+            $table,
+            $foreignPivotKey,
+            $relatedPivotKey,
+            $parentKey ?: $this->getKeyName(),
+            $relatedKey ?: $instance->getKeyName(),
+            $relation
+        );
+    }
+
+    /**
+     * Instantiate a new BelongsToMany relationship.
+     *
+     * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
+     * @template TDeclaringModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param \Illuminate\Database\Eloquent\Builder<TRelatedModel> $query
+     * @param TDeclaringModel                                      $parent
+     * @param string                                               $table
+     * @param string|array                                         $foreignPivotKey
+     * @param string|array                                         $relatedPivotKey
+     * @param string|array                                         $parentKey
+     * @param string|array                                         $relatedKey
+     * @param string|null                                          $relationName
+     *
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany<TRelatedModel, TDeclaringModel>
+     */
+    protected function newBelongsToMany(
+        Builder $query,
+        Model $parent,
+        $table,
+        $foreignPivotKey,
+        $relatedPivotKey,
+        $parentKey,
+        $relatedKey,
+        $relationName = null
+    ) {
+        return new BelongsToMany($query, $parent, $table, $foreignPivotKey, $relatedPivotKey, $parentKey, $relatedKey, $relationName);
     }
 
     /**
