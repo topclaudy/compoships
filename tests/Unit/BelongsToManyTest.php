@@ -4,6 +4,7 @@ namespace Awobaz\Compoships\Tests\Unit;
 
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Awobaz\Compoships\Tests\Models\Project;
+use Awobaz\Compoships\Tests\Models\ProjectTeamPivot;
 use Awobaz\Compoships\Tests\Models\Team;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
@@ -303,6 +304,174 @@ class BelongsToManyTest extends TestCase
         $projects = $team->projects;
 
         $this->assertCount(0, $projects);
+    }
+
+    public function test_custom_pivot_model_attach()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project = $this->createProject('US', 1, 'Website');
+
+        $team->projectsWithPivotModel()->attach($project);
+
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $pivot = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('US', $pivot['team_region_code']);
+        $this->assertEquals((string) 1, $pivot['team_division_id']);
+        $this->assertEquals('US', $pivot['project_region_code']);
+        $this->assertEquals((string) 1, $pivot['project_division_id']);
+    }
+
+    public function test_custom_pivot_model_detach()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $project2 = $this->createProject('EU', 2, 'API');
+
+        $team->projectsWithPivotModel()->attach([$project1, $project2]);
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $team->projectsWithPivotModel()->detach($project1);
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $remaining = $team->fresh()->projectsWithPivotModel;
+        $this->assertCount(1, $remaining);
+        $this->assertEquals('API', $remaining->first()->name);
+    }
+
+    public function test_custom_pivot_model_detach_all()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $project2 = $this->createProject('EU', 2, 'API');
+
+        $team->projectsWithPivotModel()->attach([$project1, $project2]);
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $team->projectsWithPivotModel()->detach();
+        $this->assertEquals(0, Capsule::table('project_team')->count());
+    }
+
+    public function test_custom_pivot_model_sync()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $project2 = $this->createProject('EU', 2, 'API');
+        $project3 = $this->createProject('AP', 3, 'Mobile');
+
+        $team->projectsWithPivotModel()->attach([$project1, $project2]);
+
+        $changes = $team->projectsWithPivotModel()->sync([$project2, $project3]);
+
+        $this->assertCount(1, $changes['attached']);
+        $this->assertCount(1, $changes['detached']);
+
+        $remaining = $team->fresh()->projectsWithPivotModel;
+        $this->assertCount(2, $remaining);
+        $names = $remaining->pluck('name')->sort()->values()->all();
+        $this->assertEquals(['API', 'Mobile'], $names);
+    }
+
+    public function test_custom_pivot_model_toggle()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $project2 = $this->createProject('EU', 2, 'API');
+
+        $team->projectsWithPivotModel()->attach($project1);
+
+        $changes = $team->projectsWithPivotModel()->toggle([$project1, $project2]);
+
+        $this->assertCount(1, $changes['attached']);
+        $this->assertCount(1, $changes['detached']);
+
+        $remaining = $team->fresh()->projectsWithPivotModel;
+        $this->assertCount(1, $remaining);
+        $this->assertEquals('API', $remaining->first()->name);
+    }
+
+    public function test_custom_pivot_model_loading()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project = $this->createProject('US', 1, 'Website');
+
+        $this->attachPivot($team, $project);
+
+        $loadedProjects = $team->projectsWithPivotModel;
+
+        $this->assertCount(1, $loadedProjects);
+        $this->assertInstanceOf(ProjectTeamPivot::class, $loadedProjects->first()->pivot);
+    }
+
+    public function test_custom_pivot_model_queueable_id()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project = $this->createProject('EU', 2, 'Website');
+
+        $team->projectsWithPivotModel()->attach($project);
+
+        $loadedProjects = $team->projectsWithPivotModel;
+        $pivot = $loadedProjects->first()->pivot;
+
+        $queueableId = $pivot->getQueueableId();
+
+        $this->assertStringContainsString('team_region_code', $queueableId);
+        $this->assertStringContainsString('US', $queueableId);
+        $this->assertStringContainsString('project_region_code', $queueableId);
+        $this->assertStringContainsString('EU', $queueableId);
+    }
+
+    public function test_custom_pivot_model_query_for_restoration()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project = $this->createProject('EU', 2, 'Website');
+
+        $team->projectsWithPivotModel()->attach($project);
+
+        $loadedProjects = $team->projectsWithPivotModel;
+        $pivot = $loadedProjects->first()->pivot;
+
+        $queueableId = $pivot->getQueueableId();
+        $query = $pivot->newQueryForRestoration($queueableId);
+
+        $restored = $query->first();
+        $this->assertNotNull($restored);
+    }
+
+    public function test_custom_pivot_model_collection_restoration()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $project2 = $this->createProject('EU', 2, 'API');
+
+        $team->projectsWithPivotModel()->attach([$project1, $project2]);
+
+        $loadedProjects = $team->projectsWithPivotModel;
+        $ids = $loadedProjects->map(function ($p) {
+            return $p->pivot->getQueueableId();
+        })->all();
+
+        $pivot = $loadedProjects->first()->pivot;
+        $query = $pivot->newQueryForRestoration($ids);
+
+        $restored = $query->get();
+        $this->assertCount(2, $restored);
+    }
+
+    public function test_custom_pivot_model_delete()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project = $this->createProject('US', 1, 'Website');
+
+        $team->projectsWithPivotModel()->attach($project);
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $loadedProjects = $team->projectsWithPivotModel;
+        $pivot = $loadedProjects->first()->pivot;
+
+        $pivot->delete();
+
+        $this->assertEquals(0, Capsule::table('project_team')->count());
     }
 
     public function test_invalid_usage_exception()

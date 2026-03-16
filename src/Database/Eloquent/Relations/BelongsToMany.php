@@ -513,6 +513,31 @@ class BelongsToMany extends BaseBelongsToMany
     }
 
     /**
+     * Create a new pivot model instance.
+     *
+     * @param array $attributes
+     * @param bool  $exists
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\Pivot
+     */
+    public function newPivot(array $attributes = [], $exists = false)
+    {
+        if (!is_array($this->foreignPivotKey)) {
+            return parent::newPivot($attributes, $exists);
+        }
+
+        $attributes = array_merge(array_column($this->pivotValues, 'value', 'column'), $attributes);
+
+        $pivot = $this->using
+            ? $this->using::fromRawAttributes($this->parent, $attributes, $this->table, $exists)
+            : Pivot::fromAttributes($this->parent, $attributes, $this->table, $exists);
+
+        return $pivot
+            ->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey)
+            ->setRelatedModel($this->related);
+    }
+
+    /**
      * Get the pivot models that are currently attached, filtered by related model keys.
      *
      * @param mixed $ids
@@ -534,7 +559,7 @@ class BelongsToMany extends BaseBelongsToMany
             })
             ->get()
             ->map(function ($record) {
-                $class = $this->using ?: \Illuminate\Database\Eloquent\Relations\Pivot::class;
+                $class = $this->using ?: Pivot::class;
 
                 $pivot = $class::fromRawAttributes($this->parent, (array) $record, $this->getTable(), true);
 

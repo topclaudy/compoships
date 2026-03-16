@@ -202,7 +202,7 @@ class User extends Model
 
 Also please note that while **nullable columns are supported by Compoships**, relationships with only null values are not currently possible.
 
-**Note on `belongsToMany`:** Custom pivot models (via `using()`) with composite keys have limited support for direct pivot model updates and deletes. Standard operations (`attach`, `detach`, `sync`, `toggle`) work correctly.
+**Note on `belongsToMany`:** Custom pivot models (via `using()`) with composite keys are supported. Your custom pivot class should extend `Awobaz\Compoships\Database\Eloquent\Relations\Pivot` instead of Laravel's base `Pivot` class to ensure correct behavior for save, delete, and queue operations.
 
 ## Support for nullable columns in 2.x
 

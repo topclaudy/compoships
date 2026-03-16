@@ -22,4 +22,16 @@ class Team extends Model
             ['region_code', 'division_id']
         );
     }
+
+    public function projectsWithPivotModel()
+    {
+        return $this->belongsToMany(
+            Project::class,
+            'project_team',
+            ['team_region_code', 'team_division_id'],
+            ['project_region_code', 'project_division_id'],
+            ['region_code', 'division_id'],
+            ['region_code', 'division_id']
+        )->using(ProjectTeamPivot::class);
+    }
 }
