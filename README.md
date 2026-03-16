@@ -80,13 +80,40 @@ use Illuminate\Database\Eloquent\Model;
 class B extends Model
 {
     use \Awobaz\Compoships\Compoships;
-    
+
     public function a()
     {
         return $this->belongsTo('A', ['foreignKey1', 'foreignKey2'], ['ownerKey1', 'ownerKey2']);
     }
 }
 ```
+
+We can also define many-to-many relationships with composite keys through a pivot table:
+
+```php
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class A extends Model
+{
+    use \Awobaz\Compoships\Compoships;
+
+    public function b()
+    {
+        return $this->belongsToMany(
+            B::class,
+            'a_b',                                  // pivot table
+            ['a_foreignKey1', 'a_foreignKey2'],     // foreign pivot keys for A
+            ['b_foreignKey1', 'b_foreignKey2'],     // foreign pivot keys for B
+            ['localKey1', 'localKey2'],             // local keys on A
+            ['localKey1', 'localKey2']              // local keys on B
+        );
+    }
+}
+```
+
+All standard `belongsToMany` operations work with composite keys: `attach()`, `detach()`, `sync()`, `toggle()`, `withPivot()`, `withTimestamps()`, eager loading, and existence queries (`has()`, `whereHas()`).
 
 ### Factories
 
@@ -132,22 +159,50 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model
 {
     use \Awobaz\Compoships\Compoships;
-    
+
     public function user()
     {
         return $this->belongsTo(User::class, ['team_id', 'category_id'], ['team_id', 'category_id']);
     }
 }
 ```
+
+For a many-to-many scenario, imagine users can be assigned to projects, where both the user and the project are identified by a composite key (`team_id` and `department_id`):
+
+```php
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class User extends Model
+{
+    use \Awobaz\Compoships\Compoships;
+
+    public function projects()
+    {
+        return $this->belongsToMany(
+            Project::class,
+            'project_user',
+            ['user_team_id', 'user_department_id'],
+            ['project_team_id', 'project_department_id'],
+            ['team_id', 'department_id'],
+            ['team_id', 'department_id']
+        );
+    }
+}
+```
 ## Supported relationships
 
-**Compoships** only supports the following Laravel's Eloquent relationships:
+**Compoships** supports the following Laravel Eloquent relationships:
 
 * hasOne
-* HasMany
+* hasMany
 * belongsTo
+* belongsToMany
 
 Also please note that while **nullable columns are supported by Compoships**, relationships with only null values are not currently possible.
+
+**Note on `belongsToMany`:** Custom pivot models (via `using()`) with composite keys have limited support for direct pivot model updates and deletes. Standard operations (`attach`, `detach`, `sync`, `toggle`) work correctly.
 
 ## Support for nullable columns in 2.x
 
