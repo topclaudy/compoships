@@ -85,9 +85,8 @@ class Allocation extends Model
      */
     public function smallerTrackingTask()
     {
-        $rel = $this->hasOne(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
-
-        return getLaravelVersion() < 8 ? $rel : $rel->ofMany('id', 'min');
+        return $this->hasOne(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id'])
+            ->ofMany('id', 'min');
     }
 
     /**
@@ -95,9 +94,8 @@ class Allocation extends Model
      */
     public function latestTrackingTask()
     {
-        $rel = $this->hasOne(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
-
-        return getLaravelVersion() < 8 ? $rel : $rel->latestOfMany();
+        return $this->hasOne(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id'])
+            ->latestOfMany();
     }
 
     /**
@@ -105,9 +103,8 @@ class Allocation extends Model
      */
     public function oldestTrackingTask()
     {
-        $rel = $this->hasOne(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id']);
-
-        return getLaravelVersion() < 8 ? $rel : $rel->oldestOfMany();
+        return $this->hasOne(TrackingTask::class, ['booking_id', 'vehicle_id'], ['booking_id', 'vehicle_id'])
+            ->oldestOfMany();
     }
 
     protected static function newFactory()

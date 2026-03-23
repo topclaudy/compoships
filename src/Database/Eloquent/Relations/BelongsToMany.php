@@ -85,7 +85,7 @@ class BelongsToMany extends BaseBelongsToMany
         $modelKeys = $this->getCompositeKeys($models, $this->parentKey);
         $qualifiedKeys = $this->qualifyPivotColumn($this->foreignPivotKey);
 
-        $query = (method_exists($this, 'getRelationQuery') ? $this->getRelationQuery() : null) ?? $this->query;
+        $query = $this->getRelationQuery() ?? $this->query;
         $query->{$whereIn}($qualifiedKeys, $modelKeys);
 
         if ($modelKeys === []) {
@@ -184,10 +184,8 @@ class BelongsToMany extends BaseBelongsToMany
 
         $dictionary = [];
 
-        $accessor = property_exists($this, 'accessor') ? $this->accessor : 'pivot';
-
         foreach ($results as $result) {
-            $key = $this->buildDictionaryKey($result->{$accessor}, $this->foreignPivotKey);
+            $key = $this->buildDictionaryKey($result->{$this->accessor}, $this->foreignPivotKey);
             $dictionary[$key][] = $result;
         }
 
@@ -322,9 +320,7 @@ class BelongsToMany extends BaseBelongsToMany
             $record = $this->addTimestampsToAttachment($record);
         }
 
-        $pivotValues = property_exists($this, 'pivotValues') ? $this->pivotValues : [];
-
-        foreach ($pivotValues as $value) {
+        foreach ($this->pivotValues as $value) {
             $record[$value['column']] = $value['value'];
         }
 
@@ -350,9 +346,7 @@ class BelongsToMany extends BaseBelongsToMany
         $hasTimestamps = $this->hasPivotColumn($this->createdAt())
             || $this->hasPivotColumn($this->updatedAt());
 
-        $castedAttributes = method_exists($this, 'castAttributes')
-            ? $this->castAttributes($attributes)
-            : $attributes;
+        $castedAttributes = $this->castAttributes($attributes);
 
         foreach ($ids as $value) {
             $records[] = array_merge(
@@ -437,22 +431,16 @@ class BelongsToMany extends BaseBelongsToMany
 
         $query = $this->newPivotStatement();
 
-        if (property_exists($this, 'pivotWheres')) {
-            foreach ($this->pivotWheres as $arguments) {
-                $query->where(...$arguments);
-            }
+        foreach ($this->pivotWheres as $arguments) {
+            $query->where(...$arguments);
         }
 
-        if (property_exists($this, 'pivotWhereIns')) {
-            foreach ($this->pivotWhereIns as $arguments) {
-                $query->whereIn(...$arguments);
-            }
+        foreach ($this->pivotWhereIns as $arguments) {
+            $query->whereIn(...$arguments);
         }
 
-        if (property_exists($this, 'pivotWhereNulls')) {
-            foreach ($this->pivotWhereNulls as $arguments) {
-                $query->whereNull(...$arguments);
-            }
+        foreach ($this->pivotWhereNulls as $arguments) {
+            $query->whereNull(...$arguments);
         }
 
         foreach ($this->foreignPivotKey as $index => $key) {
@@ -498,10 +486,13 @@ class BelongsToMany extends BaseBelongsToMany
             return parent::detach($ids, $touch);
         }
 
-        $using = property_exists($this, 'using') ? $this->using : null;
+        if ($this->using) {
+            $results = 0;
+            $records = $this->getCurrentlyAttachedPivotsForIds($ids);
 
-        if ($using && method_exists($this, 'detachUsingCustomClass')) {
-            $results = $this->detachUsingCustomClass($ids);
+            foreach ($records as $record) {
+                $results += $record->delete();
+            }
         } else {
             $query = $this->newPivotQuery();
 
@@ -542,22 +533,15 @@ class BelongsToMany extends BaseBelongsToMany
             return parent::newPivot($attributes, $exists);
         }
 
-        $pivotValues = property_exists($this, 'pivotValues') ? $this->pivotValues : [];
-        $attributes = array_merge(array_column($pivotValues, 'value', 'column'), $attributes);
+        $attributes = array_merge(array_column($this->pivotValues, 'value', 'column'), $attributes);
 
-        $using = property_exists($this, 'using') ? $this->using : null;
-
-        $pivot = $using
-            ? $using::fromRawAttributes($this->parent, $attributes, $this->table, $exists)
+        $pivot = $this->using
+            ? $this->using::fromRawAttributes($this->parent, $attributes, $this->table, $exists)
             : Pivot::fromAttributes($this->parent, $attributes, $this->table, $exists);
 
-        $pivot->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey);
-
-        if (method_exists($pivot, 'setRelatedModel')) {
-            $pivot->setRelatedModel($this->related);
-        }
-
-        return $pivot;
+        return $pivot
+            ->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey)
+            ->setRelatedModel($this->related);
     }
 
     /**
@@ -582,18 +566,13 @@ class BelongsToMany extends BaseBelongsToMany
             })
             ->get()
             ->map(function ($record) {
-                $using = property_exists($this, 'using') ? $this->using : null;
-                $class = $using ?: Pivot::class;
+                $class = $this->using ?: Pivot::class;
 
                 $pivot = $class::fromRawAttributes($this->parent, (array) $record, $this->getTable(), true);
 
-                $pivot->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey);
-
-                if (method_exists($pivot, 'setRelatedModel')) {
-                    $pivot->setRelatedModel($this->related);
-                }
-
-                return $pivot;
+                return $pivot
+                    ->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey)
+                    ->setRelatedModel($this->related);
             });
     }
 
@@ -771,10 +750,15 @@ class BelongsToMany extends BaseBelongsToMany
             return;
         }
 
-        $using = property_exists($this, 'using') ? $this->using : null;
+        if ($this->using) {
+            $records = $this->formatAttachRecords(
+                $this->parseIds($ids),
+                $attributes
+            );
 
-        if ($using && method_exists($this, 'attachUsingCustomClass')) {
-            $this->attachUsingCustomClass($ids, $attributes);
+            foreach ($records as $record) {
+                $this->newPivot($record, false)->save();
+            }
         } else {
             $this->newPivotStatement()->insert($this->formatAttachRecords(
                 $this->parseIds($ids),
