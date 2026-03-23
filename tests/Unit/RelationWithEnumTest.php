@@ -18,10 +18,6 @@ class RelationWithEnumTest extends TestCase
 
     public function setUp(): void
     {
-        if (getPHPVersion() < 8.1) {
-            $this->markTestSkipped('This test requires PHP 8.1 or higher');
-        }
-
         parent::setUp();
 
         Model::unguard();

@@ -8,68 +8,11 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                laravel: [13.*, 12.*, 11.*, 10.*, 9.*]
-                php: ['8.5', '8.4', '8.3', '8.2', '8.1', '8.0']
-                include:
-                    - laravel: 8.*
-                      php: '8.1'
-                    - laravel: 8.*
-                      php: '8.0'
-                    - laravel: 8.*
-                      php: '7.4'
-                    - laravel: 8.*
-                      php: '7.3'
-                    - laravel: 7.*
-                      php: '8.0'
-                    - laravel: 7.*
-                      php: '7.4'
-                    - laravel: 7.*
-                      php: '7.3'
-                    - laravel: 7.*
-                      php: '7.2'
-                    - laravel: 6.*
-                      php: '8.0'
-                    - laravel: 6.*
-                      php: '7.4'
-                    - laravel: 6.*
-                      php: '7.3'
-                    - laravel: 6.*
-                      php: '7.2'
-                    - laravel: 5.8
-                      php: '7.2'
-                    - laravel: 5.8
-                      php: '7.1'
-                    - laravel: 5.7
-                      php: '7.2'
-                    - laravel: 5.7
-                      php: '7.1'
-                    - laravel: 5.6
-                      php: '7.2'
-                    - laravel: 5.6
-                      php: '7.1'
+                laravel: [13.*, 12.*]
+                php: ['8.5', '8.4', '8.3', '8.2']
                 exclude:
                     - laravel: 13.*
                       php: '8.2'
-                    - laravel: 13.*
-                      php: '8.1'
-                    - laravel: 13.*
-                      php: '8.0'
-                    - laravel: 12.*
-                      php: '8.1'
-                    - laravel: 12.*
-                      php: '8.0'
-                    - laravel: 11.*
-                      php: '8.1'
-                    - laravel: 11.*
-                      php: '8.0'
-                    - laravel: 10.*
-                      php: '8.0'
-                    - laravel: 10.*
-                      php: '8.5'
-                    - laravel: 9.*
-                      php: '8.4'
-                    - laravel: 9.*
-                      php: '8.5'
 
         name: L${{ matrix.laravel }} - PHP${{ matrix.php }}
 
@@ -88,14 +31,8 @@ jobs:
                     extensions: mbstring, pdo, sqlite, pdo_sqlite, iconv
                     coverage: none
 
-            -   name: Fix dependencies
-                if: ${{ startsWith(matrix.laravel, '11') || startsWith(matrix.laravel, '12') || startsWith(matrix.laravel, '13') }}
-                run: |
-                    composer require "laravel/serializable-closure:>=1.3" --no-interaction --no-update
             -   name: Install dependencies
                 run: |
-                    composer config audit.block-insecure false || true
-                    composer config --no-plugins allow-plugins.kylekatarnls/update-helper true
                     composer require "illuminate/database:${{ matrix.laravel }}" --no-interaction --no-update
                     composer update --no-interaction
             -   name: Execute tests
