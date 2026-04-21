@@ -38,5 +38,12 @@
     "awobaz/eloquent-auto-append": "Automatically append accessors to model serialization",
     "awobaz/blade-active": "Blade directives for the Laravel 'Active' package",
     "awobaz/syntactic": "Syntactic sugar for named and indexed parameters call."
-  }
+  },
+  "extra": {
+    "laravel": {
+        "providers": [
+            "Awobaz\\Compoships\\ComposhipsServiceProvider"
+        ]
+    }
+}
 }

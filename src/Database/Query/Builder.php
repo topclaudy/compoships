@@ -28,7 +28,9 @@ class Builder extends BaseQueryBuilder
                 $value = $prefix.$value;
             }
 
-            if ($this->getConnection()->getDriverName() === 'sqlsrv') {
+            $driver = $this->getConnection()->getDriverName();
+            $nonTupleDrivers = config('compoships.non_tuple_drivers', ['sqlsrv']);
+            if (in_array($driver, $nonTupleDrivers)) {
                 foreach ($column as $column_number => $column_name) {
                     $column_values = array_unique(Arr::pluck($values, $column_number));
                     $values_placeholders = implode(', ', array_fill(0, count($column_values), '?'));
