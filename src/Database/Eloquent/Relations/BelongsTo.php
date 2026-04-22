@@ -50,8 +50,7 @@ class BelongsTo extends BaseBelongsTo
             $value = $ownerKey[$i];
             $this->child->setAttribute($foreignKey, $value);
         }
-        // BC break in 5.8 : https://github.com/illuminate/database/commit/87b9833019f48b88d98a6afc46f38ce37f08237d
-        $relationName = property_exists($this, 'relationName') ? $this->relationName : $this->relation;
+        $relationName = $this->relationName;
         if ($model instanceof Model) {
             $this->child->setRelation($relationName, $model);
         // proper unset // https://github.com/illuminate/database/commit/44411c7288fc7b7d4e5680cfcdaa46d348b5c981
@@ -115,9 +114,6 @@ class BelongsTo extends BaseBelongsTo
                 $keys[] = $this->related->getTable().'.'.$key;
             }
 
-            // method \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::whereInMethod
-            // 5.6 - does not exist
-            // 5.7 - added in 5.7.17 / https://github.com/illuminate/database/commit/9af300d1c50c9ec526823c1e6548daa3949bf9a9
             $this->query->whereIn($keys, $this->getEagerModelKeys($models));
         } else {
             parent::addEagerConstraints($models);

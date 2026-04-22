@@ -130,6 +130,32 @@ class Migration extends BaseMigration
                 ->onDelete('cascade');
         });
 
+        Capsule::schema()->create('teams', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('region_code')->nullable();
+            $table->integer('division_id')->unsigned()->nullable();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        Capsule::schema()->create('projects', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('region_code');
+            $table->integer('division_id')->unsigned();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        Capsule::schema()->create('project_team', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('team_region_code');
+            $table->integer('team_division_id')->unsigned();
+            $table->string('project_region_code');
+            $table->integer('project_division_id')->unsigned();
+            $table->string('role')->nullable();
+            $table->timestamps();
+        });
+
         Capsule::schema()->create('user_profile_texts', function (Blueprint $table) {
             $table->integer('user_id')
                 ->unsigned();
