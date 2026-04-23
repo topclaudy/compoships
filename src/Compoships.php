@@ -37,7 +37,7 @@ trait Compoships
                 $connection = $this->getConnection();
                 $prefix = $connection->getTablePrefix();
 
-                return $prefix . $this->getTable() . '.' . $c;
+                return $prefix.$this->getTable().'.'.$c;
             }, $column);
         }
 
