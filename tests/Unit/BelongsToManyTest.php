@@ -650,6 +650,159 @@ class BelongsToManyTest extends TestCase
         $this->assertEquals('US', $rows[1]->project_region_code);
     }
 
+    public function test_attach_with_support_collection_of_id_attrs_map()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('EU', 2, 'API');
+        $this->createProject('AP', 3, 'Mobile');
+
+        // Mirrors the user-reported pattern: collect()->mapWithKeys() produces a
+        // Support\Collection where keys are scalar ids and values are per-row attrs.
+        $programData = [
+            ['program_id' => 'EU', 'role' => 'lead'],
+            ['program_id' => 'AP', 'role' => 'reviewer'],
+        ];
+
+        $collection = collect($programData)->mapWithKeys(
+            fn ($d) => [$d['program_id'] => ['role' => $d['role']]]
+        );
+
+        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $collection);
+
+        $team->projects()->attach($collection, ['project_division_id' => 2]);
+
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $rowEU = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'EU')
+            ->first();
+        $this->assertEquals('lead', $rowEU['role']);
+
+        $rowAP = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'AP')
+            ->first();
+        $this->assertEquals('reviewer', $rowAP['role']);
+    }
+
+    // -------------------------------------------------------------------------
+    // Wrapper × shape matrix coverage for parseIds dispatch.
+    //
+    // The composite-key parseIds path dispatches on (input-wrapper-type, item-shape).
+    // We've been bitten before by adding a wrapper case without re-checking every
+    // item shape it can carry. The tests below explicitly exercise each cell of
+    // the matrix so future modifications to the dispatch logic catch regressions.
+    //
+    // Wrapper types:  plain array, Support\Collection, Eloquent\Collection
+    // Item shapes:    Models, composite tuples, [json_encode($tuple) => $attrs],
+    //                 [$scalarId => $attrs]
+    // -------------------------------------------------------------------------
+
+    public function test_attach_with_support_collection_of_tuples()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 2, 'API');
+
+        $collection = collect([['US', 1], ['EU', 2]]);
+        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $collection);
+
+        $team->projects()->attach($collection);
+
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+    }
+
+    public function test_attach_with_support_collection_of_json_encoded_attrs_map()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 2, 'API');
+
+        $collection = collect([
+            json_encode(['US', 1]) => ['role' => 'lead'],
+            json_encode(['EU', 2]) => ['role' => 'reviewer'],
+        ]);
+        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $collection);
+
+        $team->projects()->attach($collection);
+
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $rowUS = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'US')
+            ->first();
+        $this->assertEquals('lead', $rowUS['role']);
+
+        $rowEU = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'EU')
+            ->first();
+        $this->assertEquals('reviewer', $rowEU['role']);
+    }
+
+    public function test_attach_with_eloquent_collection_of_id_attrs_map()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('EU', 2, 'API');
+        $this->createProject('AP', 3, 'Mobile');
+
+        // Eloquent\Collection wraps an [id => attrs] map (extends Support\Collection,
+        // so the same parseIds branch must handle it without assuming items are Models).
+        $eloquentCollection = new \Illuminate\Database\Eloquent\Collection([
+            'EU' => ['role' => 'lead'],
+            'AP' => ['role' => 'reviewer'],
+        ]);
+
+        $team->projects()->attach($eloquentCollection, ['project_division_id' => 2]);
+
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $rowEU = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'EU')
+            ->first();
+        $this->assertEquals('lead', $rowEU['role']);
+    }
+
+    public function test_attach_with_eloquent_collection_of_json_encoded_attrs_map()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 2, 'API');
+
+        $eloquentCollection = new \Illuminate\Database\Eloquent\Collection([
+            json_encode(['US', 1]) => ['role' => 'lead'],
+            json_encode(['EU', 2]) => ['role' => 'reviewer'],
+        ]);
+
+        $team->projects()->attach($eloquentCollection);
+
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $rowUS = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'US')
+            ->first();
+        $this->assertEquals('lead', $rowUS['role']);
+    }
+
+    public function test_sync_with_support_collection_of_id_attrs_map()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 2, 'API');
+
+        $team->projects()->attach($project1);
+
+        $collection = collect([
+            'EU' => ['role' => 'reviewer'],
+        ]);
+
+        $changes = $team->projects()->sync($collection->merge([
+            'project_division_id_marker' => null, // sanity: collection survives merge
+        ])->forget('project_division_id_marker'), true);
+
+        // sync should detach project1 (US,1) and attach the EU,2 row from the collection.
+        $this->assertCount(1, $changes['attached']);
+        $this->assertCount(1, $changes['detached']);
+    }
+
     public function test_sync_with_support_collection_of_models()
     {
         $team = $this->createTeam('US', 1, 'Alpha');

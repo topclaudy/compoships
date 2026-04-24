@@ -509,11 +509,16 @@ class BelongsToMany extends BaseBelongsToMany
             return [$this->extractCompositeKey($value)];
         }
 
-        // Note: SupportCollection is the supertype; this also matches Eloquent\Collection.
-        // Using the narrower Eloquent\Collection check would silently fall through to the
-        // (array) cast below and leak Laravel's protected $items property as a key.
+        // Normalize any Support\Collection (or its Eloquent\Collection subclass) to a plain
+        // array, then fall through to the array branch below. The array branch already
+        // dispatches by first-element shape and handles the three input shapes uniformly:
+        //   [Model, Model, ...]   → extractCompositeKey on each
+        //   [tuple, tuple, ...]   → pass through
+        //   [$id => $attrs, ...]  → preserve keys + values
+        // The earlier eager extractCompositeKey mapping incorrectly assumed every item
+        // was a Model and failed with TypeError on Collections of [id => attrs] maps.
         if ($value instanceof SupportCollection) {
-            return $value->map(fn ($model) => $this->extractCompositeKey($model))->all();
+            $value = $value->all();
         }
 
         if (is_array($value)) {
