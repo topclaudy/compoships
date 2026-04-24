@@ -18,9 +18,7 @@ trait Compoships
     public function getAttribute($key)
     {
         if (is_array($key)) { //Check for multi-columns relationship
-            return array_map(function ($k) {
-                return parent::getAttribute($k);
-            }, $key);
+            return array_map(fn ($k) => parent::getAttribute($k), $key);
         }
 
         return parent::getAttribute($key);
@@ -37,7 +35,7 @@ trait Compoships
                 $connection = $this->getConnection();
                 $prefix = $connection->getTablePrefix();
 
-                return $prefix . $this->getTable() . '.' . $c;
+                return $prefix.$this->getTable().'.'.$c;
             }, $column);
         }
 
@@ -53,25 +51,14 @@ trait Compoships
     {
         $connection = $this->getConnection();
 
-        switch ($connection->getDriverName()) {
-            case 'mysql':
-                $grammar = new MySqlGrammar($connection);
-                break;
-            case 'pgsql':
-                $grammar = new PostgresGrammar($connection);
-                break;
-            case 'sqlite':
-                $grammar = new SqliteGrammar($connection);
-                break;
-            case 'sqlsrv':
-                $grammar = new SqlServerGrammar($connection);
-                break;
-            case 'mariadb':
-                $grammar = new MariaDbGrammar($connection);
-                break;
-            default:
-                $grammar = $connection->getQueryGrammar();
-        }
+        $grammar = match ($connection->getDriverName()) {
+            'mysql'   => new MySqlGrammar($connection),
+            'pgsql'   => new PostgresGrammar($connection),
+            'sqlite'  => new SQLiteGrammar($connection),
+            'sqlsrv'  => new SqlServerGrammar($connection),
+            'mariadb' => new MariaDbGrammar($connection),
+            default   => $connection->getQueryGrammar(),
+        };
 
         if (method_exists($grammar, 'setConnection')) {
             $grammar->setConnection($connection);

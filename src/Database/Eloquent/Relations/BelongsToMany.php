@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use Awobaz\Compoships\Concerns\ResolvesBackedEnumValues;
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany as BaseBelongsToMany;
  */
 class BelongsToMany extends BaseBelongsToMany
 {
+    use ResolvesBackedEnumValues;
+
     /**
      * Set the join clause for the relation query.
      *
@@ -108,10 +111,8 @@ class BelongsToMany extends BaseBelongsToMany
             return parent::whereInMethod($model, $key);
         }
 
-        $where = collect($key)->filter(function ($key) use ($model) {
-            return $model->getKeyName() === last(explode('.', $key))
-                && in_array($model->getKeyType(), ['int', 'integer']);
-        });
+        $where = collect($key)->filter(fn ($key) => $model->getKeyName() === last(explode('.', $key))
+            && in_array($model->getKeyType(), ['int', 'integer']));
 
         return $where->count() === count($key) ? 'whereIntegerInRaw' : 'whereIn';
     }
@@ -129,9 +130,7 @@ class BelongsToMany extends BaseBelongsToMany
         $result = [];
 
         foreach ($models as $model) {
-            $result[] = array_map(function ($k) use ($model) {
-                return $this->resolveBackedEnumValue($model->{$k});
-            }, $keys);
+            $result[] = array_map(fn ($k) => $this->resolveBackedEnumValue($model->{$k}), $keys);
         }
 
         sort($result);
@@ -223,9 +222,7 @@ class BelongsToMany extends BaseBelongsToMany
     public function qualifyPivotColumn($column)
     {
         if (is_array($column)) {
-            return array_map(function ($col) {
-                return parent::qualifyPivotColumn($col);
-            }, $column);
+            return array_map(fn ($col) => parent::qualifyPivotColumn($col), $column);
         }
 
         return parent::qualifyPivotColumn($column);
@@ -249,9 +246,7 @@ class BelongsToMany extends BaseBelongsToMany
         $columns = array_merge($foreignKeys, $relatedKeys, $this->pivotColumns);
 
         return collect($columns)
-            ->map(function ($column) {
-                return $this->qualifyPivotColumn($column).' as pivot_'.$column;
-            })
+            ->map(fn ($column) => $this->qualifyPivotColumn($column).' as pivot_'.$column)
             ->unique()
             ->all();
     }
@@ -264,9 +259,7 @@ class BelongsToMany extends BaseBelongsToMany
     public function getQualifiedParentKeyName()
     {
         if (is_array($this->parentKey)) {
-            return array_map(function ($k) {
-                return $this->parent->qualifyColumn($k);
-            }, $this->parentKey);
+            return array_map(fn ($k) => $this->parent->qualifyColumn($k), $this->parentKey);
         }
 
         return parent::getQualifiedParentKeyName();
@@ -280,9 +273,7 @@ class BelongsToMany extends BaseBelongsToMany
     public function getQualifiedRelatedKeyName()
     {
         if (is_array($this->relatedKey)) {
-            return array_map(function ($k) {
-                return $this->related->qualifyColumn($k);
-            }, $this->relatedKey);
+            return array_map(fn ($k) => $this->related->qualifyColumn($k), $this->relatedKey);
         }
 
         return parent::getQualifiedRelatedKeyName();
@@ -469,20 +460,17 @@ class BelongsToMany extends BaseBelongsToMany
         }
 
         if ($value instanceof Collection) {
-            return $value->map(function ($model) {
-                return $this->extractCompositeKey($model);
-            })->all();
+            return $value->map(fn ($model) => $this->extractCompositeKey($model))->all();
         }
 
         if (is_array($value)) {
             $first = reset($value);
 
             if ($first instanceof Model || is_array($first)) {
-                return array_map(function ($item) {
-                    return $item instanceof Model
-                        ? $this->extractCompositeKey($item)
-                        : $item;
-                }, $value);
+                return array_map(
+                    fn ($item) => $item instanceof Model ? $this->extractCompositeKey($item) : $item,
+                    $value
+                );
             }
 
             return [$value];
@@ -873,13 +861,9 @@ class BelongsToMany extends BaseBelongsToMany
             $this->qualifyPivotColumn($this->relatedPivotKey)
         );
 
-        return $pivots->map(function ($record) {
-            $values = array_map(function ($k) use ($record) {
-                return $record->{$k};
-            }, $this->relatedPivotKey);
-
-            return json_encode($values);
-        })->all();
+        return $pivots->map(fn ($record) => json_encode(
+            array_map(fn ($k) => $record->{$k}, $this->relatedPivotKey)
+        ))->all();
     }
 
     /**
@@ -895,11 +879,7 @@ class BelongsToMany extends BaseBelongsToMany
 
         return $this->newPivotQuery()
             ->get($this->relatedPivotKey)
-            ->map(function ($record) {
-                return array_map(function ($k) use ($record) {
-                    return $record->{$k};
-                }, $this->relatedPivotKey);
-            });
+            ->map(fn ($record) => array_map(fn ($k) => $record->{$k}, $this->relatedPivotKey));
     }
 
     /**
@@ -979,9 +959,7 @@ class BelongsToMany extends BaseBelongsToMany
      */
     protected function extractCompositeKey(Model $model): array
     {
-        return array_map(function ($k) use ($model) {
-            return $model->{$k};
-        }, $this->relatedKey);
+        return array_map(fn ($k) => $model->{$k}, $this->relatedKey);
     }
 
     /**
@@ -994,23 +972,9 @@ class BelongsToMany extends BaseBelongsToMany
      */
     protected function buildDictionaryKey($source, array $keys): string
     {
-        $values = array_map(function ($k) use ($source) {
-            return $this->resolveBackedEnumValue($source->{$k});
-        }, $keys);
+        $values = array_map(fn ($k) => $this->resolveBackedEnumValue($source->{$k}), $keys);
 
         return implode('-', $values);
-    }
-
-    /**
-     * Resolve a BackedEnum to its scalar value, or return the value as-is.
-     *
-     * @param mixed $value
-     *
-     * @return mixed
-     */
-    protected function resolveBackedEnumValue($value)
-    {
-        return $value instanceof \BackedEnum ? $value->value : $value;
     }
 
     /**
@@ -1022,8 +986,6 @@ class BelongsToMany extends BaseBelongsToMany
      */
     protected function decodeJsonKeys(array $keys): array
     {
-        return array_map(function ($key) {
-            return json_decode($key, true);
-        }, $keys);
+        return array_map(fn ($key) => json_decode($key, true), $keys);
     }
 }
