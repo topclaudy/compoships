@@ -115,6 +115,30 @@ class A extends Model
 
 All standard `belongsToMany` operations work with composite keys: `attach()`, `detach()`, `sync()`, `toggle()`, `withPivot()`, `withTimestamps()`, eager loading, and existence queries (`has()`, `whereHas()`).
 
+#### Composite-key input shapes for `attach()` and `sync()`
+
+Two input shapes are supported for `attach()`, `sync()`, `syncWithoutDetaching()`, and `toggle()` on composite-key relations.
+
+A list of composite tuples (each tuple is an array aligned with the related-pivot-key columns):
+
+```php
+$team->projects()->attach([
+    ['EU', 2],
+    ['US', 1],
+]);
+```
+
+A map of `json_encode($tuple) => $perRowAttributes`, equivalent to Laravel's single-key `[id => attributes]` shape. The key must be the JSON encoding of the composite tuple, produced via `json_encode([...])`. Per-row attributes override any shared bulk attributes on key conflict, and any per-row attribute keys colliding with the foreign-pivot-key columns are silently dropped to prevent overriding the parent linkage.
+
+```php
+$team->projects()->attach([
+    json_encode(['EU', 2]) => ['role' => 'reviewer'],
+    json_encode(['US', 1]) => ['role' => 'lead'],
+], ['note' => 'bulk applied to all']);
+```
+
+Passing an associative array key that is not a JSON-encoded tuple of the correct arity throws `Awobaz\Compoships\Exceptions\InvalidUsageException`.
+
 ### Factories
 
 Chances are that you may need factories for your Compoships models. If so, you will probably need to use

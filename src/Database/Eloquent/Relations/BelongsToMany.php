@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -330,6 +331,14 @@ class BelongsToMany extends BaseBelongsToMany
     /**
      * Create an array of records to insert into the pivot table.
      *
+     * Accepts the following input shapes for `$ids` on composite-key relations:
+     *   - List of composite tuples: `[[1, 'FA'], [2, 'FA']]`
+     *   - Map of `json_encode($tuple) => $perRowAttributes`: `['[1,"FA"]' => ['type' => 1]]`
+     *   - Mixed within the same call.
+     *
+     * Per-row attributes override `$attributes` on key conflict.
+     * Per-row attribute keys colliding with `foreignPivotKey` columns are dropped.
+     *
      * @param array $ids
      * @param array $attributes
      *
@@ -346,16 +355,98 @@ class BelongsToMany extends BaseBelongsToMany
         $hasTimestamps = $this->hasPivotColumn($this->createdAt())
             || $this->hasPivotColumn($this->updatedAt());
 
-        $castedAttributes = $this->castAttributes($attributes);
+        $castedBulkAttributes = $this->castAttributes($attributes);
 
-        foreach ($ids as $value) {
+        foreach ($ids as $key => $value) {
+            [$tuple, $perRowAttributes] = $this->resolveCompositeAttachEntry($key, $value);
+
+            $mergedAttributes = $perRowAttributes === []
+                ? $castedBulkAttributes
+                : array_merge($castedBulkAttributes, $this->castAttributes($perRowAttributes));
+
             $records[] = array_merge(
-                $this->baseAttachRecord($value, $hasTimestamps),
-                $castedAttributes
+                $this->baseAttachRecord($tuple, $hasTimestamps),
+                $mergedAttributes
             );
         }
 
         return $records;
+    }
+
+    /**
+     * Resolve a single `$ids` entry into a [composite tuple, per-row attributes] pair.
+     *
+     * Integer keys signal the tuple-list shape: `$value` is the composite tuple.
+     * String keys signal the per-row-attributes shape: `$key` is `json_encode($tuple)`
+     * and `$value` is the per-row attributes array.
+     *
+     * @param int|string $key
+     * @param mixed      $value
+     *
+     * @return array{0: array, 1: array}
+     *
+     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     */
+    protected function resolveCompositeAttachEntry($key, $value): array
+    {
+        if (is_int($key)) {
+            return [$value, []];
+        }
+
+        $tuple = $this->decodeCompositeKey($key);
+
+        if ($tuple === null) {
+            throw new InvalidUsageException(sprintf(
+                'Invalid composite-key array key %s passed to belongsToMany attach/sync. '.
+                'Expected json_encode([...]) of arity %d (matching relatedPivotKey columns).',
+                var_export($key, true),
+                count($this->relatedPivotKey)
+            ));
+        }
+
+        $perRowAttributes = is_array($value)
+            ? $this->filterForeignPivotKeyAttributes($value)
+            : [];
+
+        return [$tuple, $perRowAttributes];
+    }
+
+    /**
+     * Decode a JSON-encoded composite-key string into its tuple form.
+     *
+     * Returns null when `$key` is not a string, is not valid JSON, does not
+     * decode to an array, or has the wrong arity for `relatedPivotKey`.
+     *
+     * @param mixed $key
+     *
+     * @return array|null
+     */
+    protected function decodeCompositeKey($key): ?array
+    {
+        if (!is_string($key)) {
+            return null;
+        }
+
+        $decoded = json_decode($key, true);
+
+        if (!is_array($decoded) || count($decoded) !== count($this->relatedPivotKey)) {
+            return null;
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * Strip per-row attribute entries whose keys collide with `foreignPivotKey`
+     * columns to prevent silent override of the parent-derived foreign keys.
+     *
+     * @param array $attributes
+     *
+     * @return array
+     */
+    protected function filterForeignPivotKeyAttributes(array $attributes): array
+    {
+        return array_diff_key($attributes, array_flip($this->foreignPivotKey));
     }
 
     /**

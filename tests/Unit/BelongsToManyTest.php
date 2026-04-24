@@ -3,9 +3,12 @@
 namespace Awobaz\Compoships\Tests\Unit;
 
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
+use Awobaz\Compoships\Tests\Enums\PivotRole;
+use Awobaz\Compoships\Tests\Models\Group;
 use Awobaz\Compoships\Tests\Models\Project;
 use Awobaz\Compoships\Tests\Models\ProjectTeamPivot;
 use Awobaz\Compoships\Tests\Models\Team;
+use Awobaz\Compoships\Tests\Models\User;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
@@ -488,6 +491,272 @@ class BelongsToManyTest extends TestCase
             ['region_code', 'division_id'],
             ['region_code', 'division_id']
         )->getResults();
+    }
+
+    public function test_attach_with_per_row_attributes_map()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 2, 'API');
+
+        $team->projects()->attach([
+            json_encode(['US', 1]) => ['role' => 'lead'],
+            json_encode(['EU', 2]) => ['role' => 'reviewer'],
+        ]);
+
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $rows = Capsule::table('project_team')->orderBy('project_region_code')->get()->all();
+
+        $this->assertEquals('EU', $rows[0]->project_region_code);
+        $this->assertEquals((string) 2, $rows[0]->project_division_id);
+        $this->assertEquals('reviewer', $rows[0]->role);
+
+        $this->assertEquals('US', $rows[1]->project_region_code);
+        $this->assertEquals((string) 1, $rows[1]->project_division_id);
+        $this->assertEquals('lead', $rows[1]->role);
+    }
+
+    public function test_attach_with_per_row_attributes_and_bulk_attributes()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+
+        $team->projects()->attach(
+            [json_encode(['US', 1]) => ['role' => 'lead']],
+            ['role' => 'fallback']
+        );
+
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $pivot = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('lead', $pivot['role']);
+    }
+
+    public function test_attach_supports_both_shapes_in_separate_calls()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 2, 'API');
+
+        $team->projects()->attach([['US', 1]]);
+        $team->projects()->attach([json_encode(['EU', 2]) => ['role' => 'reviewer']]);
+
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $rowWithoutRole = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'US')
+            ->first();
+        $this->assertNull($rowWithoutRole['role']);
+
+        $rowWithRole = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'EU')
+            ->first();
+        $this->assertEquals('reviewer', $rowWithRole['role']);
+    }
+
+    public function test_attach_filters_foreign_pivot_key_attributes()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+
+        $team->projects()->attach([
+            json_encode(['US', 1]) => [
+                'team_region_code' => 'HACK',
+                'team_division_id' => 99,
+                'role'             => 'lead',
+            ],
+        ]);
+
+        $pivot = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('US', $pivot['team_region_code']);
+        $this->assertEquals((string) 1, $pivot['team_division_id']);
+        $this->assertEquals('lead', $pivot['role']);
+    }
+
+    public function test_attach_rejects_bare_string_key()
+    {
+        $this->expectException(InvalidUsageException::class);
+
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+
+        $team->projects()->attach(['not-json' => ['role' => 'lead']]);
+    }
+
+    public function test_attach_rejects_wrong_arity_json_key()
+    {
+        $this->expectException(InvalidUsageException::class);
+
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+
+        $team->projects()->attach([json_encode(['US']) => ['role' => 'lead']]);
+    }
+
+    public function test_attach_with_per_row_attributes_using_pivot_model()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+
+        $team->projectsWithPivotModel()->attach([
+            json_encode(['US', 1]) => ['role' => 'lead'],
+        ]);
+
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $pivot = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('US', $pivot['project_region_code']);
+        $this->assertEquals((string) 1, $pivot['project_division_id']);
+        $this->assertEquals('lead', $pivot['role']);
+    }
+
+    public function test_sync_with_per_row_attributes_map()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $project2 = $this->createProject('EU', 2, 'API');
+        $this->createProject('AP', 3, 'Mobile');
+
+        $team->projects()->attach([$project1, $project2]);
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $changes = $team->projects()->sync([
+            json_encode(['EU', 2]) => ['role' => 'reviewer'],
+            json_encode(['AP', 3]) => ['role' => 'lead'],
+        ]);
+
+        $this->assertCount(1, $changes['attached']);
+        $this->assertCount(1, $changes['detached']);
+
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $rowEU = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'EU')
+            ->first();
+        $this->assertEquals('reviewer', $rowEU['role']);
+
+        $rowAP = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'AP')
+            ->first();
+        $this->assertEquals('lead', $rowAP['role']);
+    }
+
+    public function test_sync_without_detaching_with_per_row_attributes()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 2, 'API');
+
+        $team->projects()->attach($project1);
+
+        $changes = $team->projects()->syncWithoutDetaching([
+            json_encode(['EU', 2]) => ['role' => 'reviewer'],
+        ]);
+
+        $this->assertCount(1, $changes['attached']);
+        $this->assertCount(0, $changes['detached']);
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $rowEU = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'EU')
+            ->first();
+        $this->assertEquals('reviewer', $rowEU['role']);
+    }
+
+    public function test_toggle_with_per_row_attributes()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 2, 'API');
+
+        $team->projects()->attach($project1);
+
+        $changes = $team->projects()->toggle([
+            json_encode(['US', 1]) => [],
+            json_encode(['EU', 2]) => ['role' => 'reviewer'],
+        ]);
+
+        $this->assertCount(1, $changes['attached']);
+        $this->assertCount(1, $changes['detached']);
+
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $row = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('EU', $row['project_region_code']);
+        $this->assertEquals('reviewer', $row['role']);
+    }
+
+    public function test_single_key_attach_with_attrs_map_is_delegated_to_parent()
+    {
+        $user = new User();
+        $user->save();
+
+        $group1 = new Group();
+        $group1->name = 'Admins';
+        $group1->save();
+
+        $group2 = new Group();
+        $group2->name = 'Editors';
+        $group2->save();
+
+        $relation = $user->belongsToMany(Group::class, 'group_user', 'user_id', 'group_id')
+            ->withPivot('role');
+
+        $relation->attach([
+            $group1->id => ['role' => 'lead'],
+            $group2->id => ['role' => 'member'],
+        ]);
+
+        $this->assertEquals(2, Capsule::table('group_user')->count());
+
+        $rowLead = (array) Capsule::table('group_user')
+            ->where('group_id', $group1->id)
+            ->first();
+        $this->assertEquals('lead', $rowLead['role']);
+
+        $rowMember = (array) Capsule::table('group_user')
+            ->where('group_id', $group2->id)
+            ->first();
+        $this->assertEquals('member', $rowMember['role']);
+    }
+
+    public function test_attach_with_per_row_backed_enum_attribute_via_using_pivot_casts()
+    {
+        if (PHP_VERSION_ID < 80100) {
+            $this->markTestSkipped('BackedEnum requires PHP 8.1+.');
+        }
+
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+
+        $team->projectsWithEnumPivot()->attach([
+            json_encode(['US', 1]) => ['role' => PivotRole::Lead],
+        ]);
+
+        $pivot = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('lead', $pivot['role']);
+    }
+
+    public function test_sync_with_per_row_attributes_using_pivot_model()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 2, 'API');
+
+        $team->projectsWithPivotModel()->attach($project1);
+
+        $changes = $team->projectsWithPivotModel()->sync([
+            json_encode(['EU', 2]) => ['role' => 'reviewer'],
+        ]);
+
+        $this->assertCount(1, $changes['attached']);
+        $this->assertCount(1, $changes['detached']);
+
+        $rowEU = (array) Capsule::table('project_team')
+            ->where('project_region_code', 'EU')
+            ->first();
+        $this->assertEquals('reviewer', $rowEU['role']);
     }
 
     protected function createTeam(string $regionCode, int $divisionId, string $name): Team

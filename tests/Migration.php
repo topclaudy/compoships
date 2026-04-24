@@ -156,6 +156,20 @@ class Migration extends BaseMigration
             $table->timestamps();
         });
 
+        Capsule::schema()->create('groups', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        Capsule::schema()->create('group_user', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('user_id')->unsigned();
+            $table->integer('group_id')->unsigned();
+            $table->string('role')->nullable();
+            $table->timestamps();
+        });
+
         Capsule::schema()->create('user_profile_texts', function (Blueprint $table) {
             $table->integer('user_id')
                 ->unsigned();
