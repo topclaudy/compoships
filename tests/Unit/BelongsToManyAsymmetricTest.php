@@ -101,7 +101,37 @@ class BelongsToManyAsymmetricTest extends TestCase
         $this->assertEquals(2, Capsule::table('project_user')->count());
     }
 
-    public function test_scalar_foreign_composite_related_relation_loading()
+    public function test_scalar_foreign_composite_related_attach_flat_scalar_list_with_bulk_attr()
+    {
+        // For asymmetric (scalar foreign + composite related) relations, a flat
+        // list of scalar ids must be interpreted as "N rows, one per id" rather
+        // than "one composite tuple". The remaining composite column comes from
+        // the bulk attributes; baseAttachRecord's scalar-id branch fills only
+        // relatedPivotKey[0] and lets the merge supply the rest.
+        $user = $this->createUser();
+        $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 1, 'Mobile');
+        $this->createProject('AP', 1, 'API');
+
+        $user->projects()->attach(['US', 'EU', 'AP'], ['project_division_id' => 1]);
+
+        $this->assertEquals(3, Capsule::table('project_user')->count());
+
+        $regions = Capsule::table('project_user')
+            ->orderBy('project_region_code')
+            ->pluck('project_region_code')
+            ->all();
+        $this->assertEquals(['AP', 'EU', 'US'], $regions);
+
+        $divisions = Capsule::table('project_user')
+            ->pluck('project_division_id')
+            ->unique()
+            ->values()
+            ->all();
+        $this->assertEquals(['1'], $divisions);
+    }
+
+public function test_scalar_foreign_composite_related_relation_loading()
     {
         $user = $this->createUser();
         $project1 = $this->createProject('US', 1, 'Website');

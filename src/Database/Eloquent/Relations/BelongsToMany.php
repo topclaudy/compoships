@@ -427,18 +427,21 @@ class BelongsToMany extends BaseBelongsToMany
     protected function resolveCompositeAttachEntry($key, $value): array
     {
         if (is_int($key)) {
-            // Int key with list-shaped value → value is the full composite tuple.
+            // Int key with list-shaped array value → value is the full composite tuple.
             if (is_array($value) && $this->isList($value)) {
                 return [$value, []];
             }
 
-            // Int key with associative or scalar value → key is the scalar id,
-            // value (when array) carries per-row pivot attributes.
-            $perRowAttributes = is_array($value)
-                ? $this->filterForeignPivotKeyAttributes($value)
-                : [];
+            // Int key with associative array value → key is the scalar id,
+            // value carries per-row pivot attributes (e.g. `[5 => ['attr' => 'val']]`).
+            if (is_array($value)) {
+                return [$key, $this->filterForeignPivotKeyAttributes($value)];
+            }
 
-            return [$key, $perRowAttributes];
+            // Int key with scalar value → key is just an array index, value is the
+            // scalar id. Covers `attach(['US', 'EU', 'AP'])` on asymmetric relations
+            // where parseIds returns a flat list of scalar ids, one per row.
+            return [$value, []];
         }
 
         // String key: try to decode as a JSON-encoded composite tuple first.
@@ -564,6 +567,18 @@ class BelongsToMany extends BaseBelongsToMany
                     fn ($item) => $item instanceof Model ? $this->extractCompositeKey($item) : $item,
                     $value
                 );
+            }
+
+            // Flat list of scalars. Discriminate by foreignPivotKey shape:
+            //  * Scalar foreignPivotKey (asymmetric mixed relation): each element
+            //    is a separate scalar id, one row per id. Remaining composite
+            //    columns on the related side come from $attributes via
+            //    formatAttachRecords / baseAttachRecord's scalar-id branch.
+            //  * Composite foreignPivotKey (both-composite relation): the flat
+            //    list is the legacy "single composite tuple" shape.
+            //    `attach(['EU', 2])` keeps meaning "attach one tuple".
+            if (!is_array($this->foreignPivotKey)) {
+                return $value;
             }
 
             return [$value];
@@ -861,7 +876,11 @@ class BelongsToMany extends BaseBelongsToMany
 
         if (count($attach) > 0) {
             foreach ($attach as $serializedId => $attributes) {
-                $this->attach(json_decode($serializedId, true), $attributes, false);
+                // Wrap the decoded tuple in an outer array so parseIds lands in the
+                // list-of-tuples branch. Without the wrapper, `attach(['EU', 2])` on a
+                // (scalar foreign + composite related) relation would be re-interpreted
+                // by parseIds as two separate scalar ids instead of one composite tuple.
+                $this->attach([json_decode($serializedId, true)], $attributes, false);
             }
 
             $changes['attached'] = $this->decodeJsonKeys(array_keys($attach));
@@ -893,7 +912,11 @@ class BelongsToMany extends BaseBelongsToMany
 
         foreach ($records as $id => $attributes) {
             if (!in_array($id, $current)) {
-                $this->attach(json_decode($id, true), $attributes, $touch);
+                // Wrap the decoded tuple in an outer array so parseIds lands in the
+                // list-of-tuples branch. Without the wrapper, `attach(['EU', 2])` on a
+                // (scalar foreign + composite related) relation would be re-interpreted
+                // by parseIds as two separate scalar ids instead of one composite tuple.
+                $this->attach([json_decode($id, true)], $attributes, $touch);
 
                 $changes['attached'][] = json_decode($id, true);
             } elseif (count($attributes) > 0 &&

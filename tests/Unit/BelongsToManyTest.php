@@ -140,6 +140,25 @@ class BelongsToManyTest extends TestCase
         $this->assertEquals((string) 2, $pivot['project_division_id']);
     }
 
+    public function test_both_composite_attach_flat_scalar_tuple_legacy_shape()
+    {
+        // Backward-compat: for relations where BOTH sides are composite, a flat
+        // scalar list `attach(['EU', 2])` is the legacy "single composite tuple"
+        // shape and must continue to insert exactly one row. parseIds discriminates
+        // by `foreignPivotKey` shape — composite foreign means flat-list-as-tuple,
+        // scalar foreign means flat-list-as-many-ids.
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('EU', 2, 'API');
+
+        $team->projects()->attach(['EU', 2]);
+
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $pivot = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('EU', $pivot['project_region_code']);
+        $this->assertEquals((string) 2, $pivot['project_division_id']);
+    }
+
     public function test_attach_multiple_models()
     {
         $team = $this->createTeam('US', 1, 'Alpha');
@@ -791,16 +810,21 @@ class BelongsToManyTest extends TestCase
         $team->projects()->attach($project1);
 
         $collection = collect([
-            'EU' => ['role' => 'reviewer'],
+            json_encode(['EU', 2]) => ['role' => 'reviewer'],
         ]);
 
         $changes = $team->projects()->sync($collection->merge([
-            'project_division_id_marker' => null, // sanity: collection survives merge
+            'project_division_id_marker' => null,
         ])->forget('project_division_id_marker'), true);
 
-        // sync should detach project1 (US,1) and attach the EU,2 row from the collection.
         $this->assertCount(1, $changes['attached']);
         $this->assertCount(1, $changes['detached']);
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $row = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('EU', $row['project_region_code']);
+        $this->assertEquals('2', (string) $row['project_division_id']);
+        $this->assertEquals('reviewer', $row['role']);
     }
 
     public function test_sync_with_support_collection_of_models()
