@@ -140,17 +140,16 @@ class BelongsToManyTest extends TestCase
         $this->assertEquals((string) 2, $pivot['project_division_id']);
     }
 
-    public function test_both_composite_attach_flat_scalar_tuple_legacy_shape()
+    public function test_both_composite_attach_single_tuple_must_be_explicitly_wrapped()
     {
-        // Backward-compat: for relations where BOTH sides are composite, a flat
-        // scalar list `attach(['EU', 2])` is the legacy "single composite tuple"
-        // shape and must continue to insert exactly one row. parseIds discriminates
-        // by `foreignPivotKey` shape — composite foreign means flat-list-as-tuple,
-        // scalar foreign means flat-list-as-many-ids.
+        // For composite-key relations, parseIds treats a flat list of scalars as
+        // N independent ids (one row per element), not as a single composite
+        // tuple. Callers passing a single tuple must wrap it explicitly:
+        // `attach([['EU', 2]])` instead of `attach(['EU', 2])`.
         $team = $this->createTeam('US', 1, 'Alpha');
         $this->createProject('EU', 2, 'API');
 
-        $team->projects()->attach(['EU', 2]);
+        $team->projects()->attach([['EU', 2]]);
 
         $this->assertEquals(1, Capsule::table('project_team')->count());
 

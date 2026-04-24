@@ -393,10 +393,31 @@ class BelongsToMany extends BaseBelongsToMany
                 ? $castedBulkAttributes
                 : array_merge($castedBulkAttributes, $this->castAttributes($perRowAttributes));
 
-            $records[] = array_merge(
+            $record = array_merge(
                 $this->baseAttachRecord($tuple, $hasTimestamps),
                 $mergedAttributes
             );
+
+            // Guard against scalar ids on composite-related relations leaving
+            // `relatedPivotKey[1..N]` columns unset. Without this check, the
+            // missing columns silently become NULL at INSERT time and surface
+            // as opaque database NOT NULL constraint failures. Naming the
+            // missing column up-front turns "why is the DB rejecting my
+            // insert?" into "I see, I need to provide that column".
+            $missing = array_diff($this->relatedPivotKey, array_keys($record));
+
+            if (!empty($missing)) {
+                throw new InvalidUsageException(sprintf(
+                    'Composite-key column(s) [%s] missing from belongsToMany attach record for scalar id %s. '.
+                    'When passing a scalar id (or a flat scalar list interpreted as multiple ids) on a '.
+                    'composite-related relation, supply the remaining columns via per-row or bulk pivot '.
+                    'attributes, or pass the full tuple wrapped explicitly: `attach([[v1, v2, ...]])`.',
+                    implode(', ', $missing),
+                    var_export($tuple, true)
+                ));
+            }
+
+            $records[] = $record;
         }
 
         return $records;
@@ -427,21 +448,21 @@ class BelongsToMany extends BaseBelongsToMany
     protected function resolveCompositeAttachEntry($key, $value): array
     {
         if (is_int($key)) {
-            // Int key with list-shaped array value → value is the full composite tuple.
+            // Int key with list-shaped value → value is the full composite tuple.
             if (is_array($value) && $this->isList($value)) {
                 return [$value, []];
             }
 
-            // Int key with associative array value → key is the scalar id,
-            // value carries per-row pivot attributes (e.g. `[5 => ['attr' => 'val']]`).
-            if (is_array($value)) {
-                return [$key, $this->filterForeignPivotKeyAttributes($value)];
+            // Int key with scalar value → flat-list element. Value is the scalar
+            // id; remaining composite columns must come from parent values or
+            // per-row/bulk pivot attributes.
+            if (!is_array($value)) {
+                return [$value, []];
             }
 
-            // Int key with scalar value → key is just an array index, value is the
-            // scalar id. Covers `attach(['US', 'EU', 'AP'])` on asymmetric relations
-            // where parseIds returns a flat list of scalar ids, one per row.
-            return [$value, []];
+            // Int key with associative value → key is the scalar id, value
+            // carries per-row pivot attributes.
+            return [$key, $this->filterForeignPivotKeyAttributes($value)];
         }
 
         // String key: try to decode as a JSON-encoded composite tuple first.
@@ -529,6 +550,105 @@ class BelongsToMany extends BaseBelongsToMany
     }
 
     /**
+     * Normalize a sync/toggle records map so all entries are keyed by the
+     * canonical JSON-encoded composite tuple matching `relatedPivotKey`.
+     *
+     * Accepts entries whose key is either:
+     *   - already a JSON-encoded tuple of matching arity (passed through), or
+     *   - a scalar id (UUID, string, int) that fills `relatedPivotKey[0]`. The
+     *     remaining composite columns are looked up first in the per-row attrs,
+     *     then in the parent's matching `parentKey` column (for shared columns
+     *     like `sem_id` that span both pivot sides).
+     *
+     * Without this normalization, `array_diff` against the JSON-encoded result
+     * of `getCurrentPivotKeys()` would never match scalar-keyed entries, so
+     * sync would mistakenly detach every existing pivot row.
+     *
+     * @param array $records
+     *
+     * @return array
+     */
+    protected function normalizeRecordKeys(array $records): array
+    {
+        if (!is_array($this->relatedPivotKey)) {
+            return $records;
+        }
+
+        $normalized = [];
+
+        foreach ($records as $key => $attrs) {
+            $attributes = is_array($attrs) ? $attrs : [];
+
+            if (is_string($key) && $this->decodeCompositeKey($key) !== null) {
+                $normalized[$key] = $attributes;
+                continue;
+            }
+
+            $tuple = $this->buildCompositeTupleFromScalar($key, $attributes);
+
+            $normalized[json_encode($tuple)] = $attributes;
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Build a composite-key tuple by combining a scalar id with per-row attrs
+     * and (as a fallback) parent-side `parentKey` values for shared columns.
+     *
+     * Throws `InvalidUsageException` when a composite-key column cannot be
+     * resolved from either source. The previous null-fallback turned malformed
+     * input into an opaque database NOT NULL constraint failure several layers
+     * deeper in the stack; the explicit exception names the unresolved column
+     * and shows the caller exactly how to fix the input.
+     *
+     * @param mixed $scalarId
+     * @param array $attributes
+     *
+     * @return array
+     *
+     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     */
+    protected function buildCompositeTupleFromScalar($scalarId, array $attributes): array
+    {
+        $tuple = [$scalarId];
+
+        $parentKey = (array) $this->parentKey;
+        $foreignKey = (array) $this->foreignPivotKey;
+
+        foreach ($this->relatedPivotKey as $idx => $col) {
+            if ($idx === 0) {
+                continue;
+            }
+
+            if (array_key_exists($col, $attributes)) {
+                $tuple[] = $attributes[$col];
+                continue;
+            }
+
+            $foreignIdx = array_search($col, $foreignKey, true);
+
+            if ($foreignIdx !== false && isset($parentKey[$foreignIdx])) {
+                $tuple[] = $this->parent->{$parentKey[$foreignIdx]};
+                continue;
+            }
+
+            throw new InvalidUsageException(sprintf(
+                'Cannot resolve composite-key column "%s" for scalar id %s passed to belongsToMany sync/toggle. '.
+                'It is not present in per-row attributes and is not a shared column on the parent. '.
+                'Either supply it via per-row attributes (e.g. [%s => ["%s" => $value]]) '.
+                'or use json_encode($tuple) as the array key for the full composite tuple.',
+                $col,
+                var_export($scalarId, true),
+                var_export($scalarId, true),
+                $col
+            ));
+        }
+
+        return $tuple;
+    }
+
+    /**
      * Get all of the IDs from the given mixed value.
      *
      * Each returned ID is a composite key tuple (array of values).
@@ -569,19 +689,13 @@ class BelongsToMany extends BaseBelongsToMany
                 );
             }
 
-            // Flat list of scalars. Discriminate by foreignPivotKey shape:
-            //  * Scalar foreignPivotKey (asymmetric mixed relation): each element
-            //    is a separate scalar id, one row per id. Remaining composite
-            //    columns on the related side come from $attributes via
-            //    formatAttachRecords / baseAttachRecord's scalar-id branch.
-            //  * Composite foreignPivotKey (both-composite relation): the flat
-            //    list is the legacy "single composite tuple" shape.
-            //    `attach(['EU', 2])` keeps meaning "attach one tuple".
-            if (!is_array($this->foreignPivotKey)) {
-                return $value;
-            }
-
-            return [$value];
+            // Flat list of scalar ids: each scalar is an independent id (one
+            // row per element). The remaining composite-key columns get filled
+            // by parent values (foreign side) or per-row/bulk pivot attributes
+            // (related side). Callers wanting to pass a single composite tuple
+            // must wrap explicitly: `[[id1, id2]]` or use `json_encode($tuple)`
+            // as an array key.
+            return $value;
         }
 
         return (array) $value;
@@ -655,8 +769,40 @@ class BelongsToMany extends BaseBelongsToMany
 
         return $this->newPivotQuery()->whereIn(
             $this->qualifyPivotColumn($this->relatedPivotKey),
-            $this->parseIds($id)
+            $this->wrapAsTupleList($id)
         );
+    }
+
+    /**
+     * Normalize an `$id` argument to a list of composite tuples suitable for
+     * a `whereIn(<column tuple>, ...)` clause. Used by `newPivotStatementForId`
+     * (single-tuple call sites) and `detach` (batch call sites).
+     *
+     * Accepts:
+     *   - Empty array:    `[]`                 (returned as `[]` — no-op)
+     *   - List of tuples: `[[a, b], [c, d]]`   (passed through)
+     *   - Single tuple:   `[a, b]`             (wrapped as `[[a, b]]`)
+     *   - Single scalar:  `s`                  (wrapped as `[[s]]`)
+     *
+     * @param mixed $id
+     *
+     * @return array<int, array>
+     */
+    protected function wrapAsTupleList($id): array
+    {
+        if (!is_array($id)) {
+            return [[$id]];
+        }
+
+        if (empty($id)) {
+            return [];
+        }
+
+        if (is_array(reset($id))) {
+            return $id;
+        }
+
+        return [$id];
     }
 
     /**
@@ -684,7 +830,10 @@ class BelongsToMany extends BaseBelongsToMany
             $query = $this->newPivotQuery();
 
             if (!is_null($ids)) {
-                $ids = $this->parseIds($ids);
+                // parseIds first to extract composite tuples from Model/Collection
+                // inputs, then wrapAsTupleList to ensure the result is a list of
+                // tuples for the `whereIn(<column tuple>, [[...], ...])` clause.
+                $ids = $this->wrapAsTupleList($this->parseIds($ids));
 
                 if (empty($ids)) {
                     return 0;
@@ -809,7 +958,9 @@ class BelongsToMany extends BaseBelongsToMany
             'attached' => [], 'detached' => [], 'updated' => [],
         ];
 
-        $records = $this->formatRecordsList($this->parseIds($ids));
+        $records = $this->normalizeRecordKeys(
+            $this->formatRecordsList($this->parseIds($ids))
+        );
 
         if (empty($records) && !$detaching) {
             return $changes;
@@ -861,7 +1012,9 @@ class BelongsToMany extends BaseBelongsToMany
             'attached' => [], 'detached' => [],
         ];
 
-        $records = $this->formatRecordsList($this->parseIds($ids));
+        $records = $this->normalizeRecordKeys(
+            $this->formatRecordsList($this->parseIds($ids))
+        );
         $current = $this->getCurrentPivotKeys();
 
         $detach = array_values(array_intersect($current, array_keys($records)));
@@ -876,10 +1029,6 @@ class BelongsToMany extends BaseBelongsToMany
 
         if (count($attach) > 0) {
             foreach ($attach as $serializedId => $attributes) {
-                // Wrap the decoded tuple in an outer array so parseIds lands in the
-                // list-of-tuples branch. Without the wrapper, `attach(['EU', 2])` on a
-                // (scalar foreign + composite related) relation would be re-interpreted
-                // by parseIds as two separate scalar ids instead of one composite tuple.
                 $this->attach([json_decode($serializedId, true)], $attributes, false);
             }
 
@@ -911,17 +1060,15 @@ class BelongsToMany extends BaseBelongsToMany
         $changes = ['attached' => [], 'updated' => []];
 
         foreach ($records as $id => $attributes) {
-            if (!in_array($id, $current)) {
-                // Wrap the decoded tuple in an outer array so parseIds lands in the
-                // list-of-tuples branch. Without the wrapper, `attach(['EU', 2])` on a
-                // (scalar foreign + composite related) relation would be re-interpreted
-                // by parseIds as two separate scalar ids instead of one composite tuple.
-                $this->attach([json_decode($id, true)], $attributes, $touch);
+            $tuple = json_decode($id, true);
 
-                $changes['attached'][] = json_decode($id, true);
+            if (!in_array($id, $current)) {
+                $this->attach([$tuple], $attributes, $touch);
+
+                $changes['attached'][] = $tuple;
             } elseif (count($attributes) > 0 &&
-                $this->updateExistingPivot(json_decode($id, true), $attributes, $touch)) {
-                $changes['updated'][] = json_decode($id, true);
+                $this->updateExistingPivot($tuple, $attributes, $touch)) {
+                $changes['updated'][] = $tuple;
             }
         }
 

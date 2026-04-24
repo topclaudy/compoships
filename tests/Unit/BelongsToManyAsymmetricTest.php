@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Tests\Unit;
 
+use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Awobaz\Compoships\Tests\Models\Project;
 use Awobaz\Compoships\Tests\Models\User;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
@@ -360,6 +361,50 @@ public function test_scalar_foreign_composite_related_relation_loading()
         $this->assertCount(1, $changes['attached']);
         $this->assertCount(1, $changes['detached']);
         $this->assertEquals(1, Capsule::table('project_user')->count());
+    }
+
+    // -----------------------------------------------------------------
+    // Regression: failure-mode contracts (clear errors, not silent NULLs)
+    // -----------------------------------------------------------------
+
+    public function test_attach_scalar_id_without_remaining_columns_throws_clear_exception()
+    {
+        $user = $this->createUser();
+        $this->createProject('US', 1, 'Website');
+
+        $this->expectException(InvalidUsageException::class);
+        $this->expectExceptionMessageMatches('/Composite-key column.*missing/');
+
+        $user->projects()->attach('US');
+    }
+
+    public function test_attach_scalar_id_with_remaining_columns_via_attrs_succeeds()
+    {
+        $user = $this->createUser();
+        $this->createProject('US', 1, 'Website');
+
+        $user->projects()->attach('US', ['project_division_id' => 1]);
+
+        $this->assertEquals(1, Capsule::table('project_user')->count());
+
+        $row = (array) Capsule::table('project_user')->first();
+        $this->assertEquals('US', $row['project_region_code']);
+        $this->assertEquals('1', (string) $row['project_division_id']);
+    }
+
+    public function test_detach_with_empty_array_is_no_op()
+    {
+        $user = $this->createUser();
+        $project1 = $this->createProject('US', 1, 'Website');
+        $project2 = $this->createProject('EU', 2, 'API');
+
+        $user->projects()->attach([$project1, $project2]);
+        $this->assertEquals(2, Capsule::table('project_user')->count());
+
+        $deleted = $user->projects()->detach([]);
+
+        $this->assertEquals(0, $deleted);
+        $this->assertEquals(2, Capsule::table('project_user')->count());
     }
 
     // -----------------------------------------------------------------
