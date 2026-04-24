@@ -22,6 +22,24 @@ class BelongsToMany extends BaseBelongsToMany
     use ResolvesBackedEnumValues;
 
     /**
+     * Whether this relation is composite on EITHER side. Methods that touch both
+     * sides of the pivot record (e.g. `baseAttachRecord`) must not delegate to
+     * Laravel's stock implementation when only one side is composite, otherwise
+     * the stock code chokes on the array side it doesn't expect.
+     *
+     * Used as the delegation guard everywhere a method's body needs to handle
+     * one of the four (scalar/composite) x (foreign/related) quadrants:
+     *   (scalar, scalar)     -> safe to delegate to parent
+     *   (composite, scalar)  -> custom handling required (composite foreign side)
+     *   (scalar, composite)  -> custom handling required (composite related side)
+     *   (composite, composite) -> custom handling required (both)
+     */
+    protected function isComposite(): bool
+    {
+        return is_array($this->relatedPivotKey) || is_array($this->foreignPivotKey);
+    }
+
+    /**
      * Set the join clause for the relation query.
      *
      * @param \Illuminate\Database\Eloquent\Builder|null $query
@@ -290,29 +308,42 @@ class BelongsToMany extends BaseBelongsToMany
      */
     protected function baseAttachRecord($id, $timed)
     {
-        if (!is_array($this->foreignPivotKey)) {
+        // Delegate to the stock implementation only when BOTH sides are scalar.
+        // The previous "delegate when foreign is scalar" guard mishandled the
+        // (scalar foreign, composite related) quadrant: parent::baseAttachRecord
+        // would do `$record[$this->relatedPivotKey] = $id` with relatedPivotKey
+        // as an array, throwing "Cannot access offset of type array on array".
+        if (!$this->isComposite()) {
             return parent::baseAttachRecord($id, $timed);
         }
 
         $record = [];
 
+        // Related side. Two shapes per side give four combos.
         if (is_array($this->relatedPivotKey)) {
             if (is_array($id)) {
                 foreach ($this->relatedPivotKey as $index => $key) {
                     $record[$key] = $this->resolveBackedEnumValue($id[$index]);
                 }
             } else {
-                // Scalar id: assign to the first composite column only. Remaining
-                // composite columns are expected to be supplied via per-row or bulk
-                // attributes that get merged on top of this record.
+                // Scalar id with composite related: assign to the first composite
+                // column only. Remaining columns must be supplied via per-row or
+                // bulk attributes that get merged on top of this record.
                 $record[$this->relatedPivotKey[0]] = $this->resolveBackedEnumValue($id);
             }
         } else {
-            $record[$this->relatedPivotKey] = $id;
+            $record[$this->relatedPivotKey] = $this->resolveBackedEnumValue($id);
         }
 
-        foreach ($this->foreignPivotKey as $index => $key) {
-            $record[$key] = $this->resolveBackedEnumValue($this->parent->{$this->parentKey[$index]});
+        // Foreign side. Pulled from the parent's parentKey value(s).
+        if (is_array($this->foreignPivotKey)) {
+            foreach ($this->foreignPivotKey as $index => $key) {
+                $record[$key] = $this->resolveBackedEnumValue($this->parent->{$this->parentKey[$index]});
+            }
+        } else {
+            $record[$this->foreignPivotKey] = $this->resolveBackedEnumValue(
+                $this->parent->{$this->parentKey}
+            );
         }
 
         if ($timed) {
@@ -487,7 +518,11 @@ class BelongsToMany extends BaseBelongsToMany
      */
     protected function filterForeignPivotKeyAttributes(array $attributes): array
     {
-        return array_diff_key($attributes, array_flip($this->foreignPivotKey));
+        $foreignKeys = is_array($this->foreignPivotKey)
+            ? $this->foreignPivotKey
+            : [$this->foreignPivotKey];
+
+        return array_diff_key($attributes, array_flip($foreignKeys));
     }
 
     /**

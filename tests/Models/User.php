@@ -36,4 +36,20 @@ class User extends Model
     {
         return $this->hasMany(UserProfile::class);
     }
+
+    /**
+     * Asymmetric: scalar foreign-pivot-key (`user_id`) + composite related-pivot-key
+     * (`['project_region_code', 'project_division_id']`).
+     */
+    public function projects()
+    {
+        return $this->belongsToMany(
+            Project::class,
+            'project_user',
+            'user_id',
+            ['project_region_code', 'project_division_id'],
+            'id',
+            ['region_code', 'division_id']
+        );
+    }
 }

@@ -22,4 +22,21 @@ class Project extends Model
             ['region_code', 'division_id']
         );
     }
+
+    /**
+     * Asymmetric mirror of User::projects(): composite foreign-pivot-key
+     * (`['project_region_code', 'project_division_id']`) + scalar related-pivot-key
+     * (`user_id`).
+     */
+    public function users()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'project_user',
+            ['project_region_code', 'project_division_id'],
+            'user_id',
+            ['region_code', 'division_id'],
+            'id'
+        );
+    }
 }

@@ -156,6 +156,19 @@ class Migration extends BaseMigration
             $table->timestamps();
         });
 
+        // Pivot table for asymmetric belongsToMany tests:
+        //   User (scalar PK 'id')  <->  Project (composite key 'region_code, division_id')
+        // Used by both User::projects() and Project::users() to verify both
+        // (scalar-foreign, composite-related) and (composite-foreign, scalar-related) paths.
+        Capsule::schema()->create('project_user', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('user_id')->unsigned();
+            $table->string('project_region_code');
+            $table->integer('project_division_id')->unsigned();
+            $table->string('role')->nullable();
+            $table->timestamps();
+        });
+
         Capsule::schema()->create('groups', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
