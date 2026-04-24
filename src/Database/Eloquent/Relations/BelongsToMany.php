@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany as BaseBelongsToMany;
+use Illuminate\Support\Collection as SupportCollection;
 
 /**
  * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
@@ -296,9 +297,15 @@ class BelongsToMany extends BaseBelongsToMany
         $record = [];
 
         if (is_array($this->relatedPivotKey)) {
-            foreach ($this->relatedPivotKey as $index => $key) {
-                $value = is_array($id) ? $id[$index] : $id;
-                $record[$key] = $this->resolveBackedEnumValue($value);
+            if (is_array($id)) {
+                foreach ($this->relatedPivotKey as $index => $key) {
+                    $record[$key] = $this->resolveBackedEnumValue($id[$index]);
+                }
+            } else {
+                // Scalar id: assign to the first composite column only. Remaining
+                // composite columns are expected to be supplied via per-row or bulk
+                // attributes that get merged on top of this record.
+                $record[$this->relatedPivotKey[0]] = $this->resolveBackedEnumValue($id);
             }
         } else {
             $record[$this->relatedPivotKey] = $id;
@@ -365,28 +372,58 @@ class BelongsToMany extends BaseBelongsToMany
     }
 
     /**
-     * Resolve a single `$ids` entry into a [composite tuple, per-row attributes] pair.
+     * Resolve a single `$ids` entry into a [composite tuple or scalar id, per-row attributes] pair.
      *
-     * Integer keys signal the tuple-list shape: `$value` is the composite tuple.
-     * String keys signal the per-row-attributes shape: `$key` is `json_encode($tuple)`
-     * and `$value` is the per-row attributes array.
+     * Accepted shapes:
+     *   - Int key + list-shaped value: `$value` is the full composite tuple.
+     *   - Int key + associative or scalar value: `$key` is the scalar id (assigned
+     *     to `relatedPivotKey[0]`), `$value` is the per-row attributes array.
+     *   - String key that is `json_encode($tuple)` of matching arity: decoded tuple
+     *     plus `$value` as per-row attributes.
+     *   - String key that is a non-JSON scalar (e.g. UUID, slug): treated as the
+     *     scalar id for `relatedPivotKey[0]`. Remaining composite columns must be
+     *     supplied via per-row or bulk attributes.
+     *   - String key that *attempts* JSON encoding (starts with `[` or `{`) but is
+     *     malformed or has wrong arity: throws `InvalidUsageException`.
      *
      * @param int|string $key
      * @param mixed      $value
      *
-     * @return array{0: array, 1: array}
+     * @return array{0: array|int|string, 1: array}
      *
      * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
      */
     protected function resolveCompositeAttachEntry($key, $value): array
     {
         if (is_int($key)) {
-            return [$value, []];
+            // Int key with list-shaped value → value is the full composite tuple.
+            if (is_array($value) && $this->isList($value)) {
+                return [$value, []];
+            }
+
+            // Int key with associative or scalar value → key is the scalar id,
+            // value (when array) carries per-row pivot attributes.
+            $perRowAttributes = is_array($value)
+                ? $this->filterForeignPivotKeyAttributes($value)
+                : [];
+
+            return [$key, $perRowAttributes];
         }
 
+        // String key: try to decode as a JSON-encoded composite tuple first.
         $tuple = $this->decodeCompositeKey($key);
 
-        if ($tuple === null) {
+        if ($tuple !== null) {
+            $perRowAttributes = is_array($value)
+                ? $this->filterForeignPivotKeyAttributes($value)
+                : [];
+
+            return [$tuple, $perRowAttributes];
+        }
+
+        // String key that *attempts* JSON encoding (starts with `[` or `{`) but is
+        // either malformed or has the wrong arity for `relatedPivotKey`.
+        if (str_starts_with($key, '[') || str_starts_with($key, '{')) {
             throw new InvalidUsageException(sprintf(
                 'Invalid composite-key array key %s passed to belongsToMany attach/sync. '.
                 'Expected json_encode([...]) of arity %d (matching relatedPivotKey columns).',
@@ -395,11 +432,24 @@ class BelongsToMany extends BaseBelongsToMany
             ));
         }
 
+        // Bare scalar string key (e.g. UUID, slug) → treat as the scalar id for
+        // `relatedPivotKey[0]`. Remaining composite columns must be supplied via
+        // per-row or bulk attributes (handled by the array_merge in
+        // `formatAttachRecords` after `baseAttachRecord` runs).
         $perRowAttributes = is_array($value)
             ? $this->filterForeignPivotKeyAttributes($value)
             : [];
 
-        return [$tuple, $perRowAttributes];
+        return [$key, $perRowAttributes];
+    }
+
+    /**
+     * Determine whether the given array is list-shaped (sequential integer keys
+     * starting at 0). Internal helper for shape detection.
+     */
+    protected function isList(array $value): bool
+    {
+        return $value === [] || array_is_list($value);
     }
 
     /**
@@ -459,7 +509,10 @@ class BelongsToMany extends BaseBelongsToMany
             return [$this->extractCompositeKey($value)];
         }
 
-        if ($value instanceof Collection) {
+        // Note: SupportCollection is the supertype; this also matches Eloquent\Collection.
+        // Using the narrower Eloquent\Collection check would silently fall through to the
+        // (array) cast below and leak Laravel's protected $items property as a key.
+        if ($value instanceof SupportCollection) {
             return $value->map(fn ($model) => $this->extractCompositeKey($model))->all();
         }
 

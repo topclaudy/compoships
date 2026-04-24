@@ -574,14 +574,41 @@ class BelongsToManyTest extends TestCase
         $this->assertEquals('lead', $pivot['role']);
     }
 
-    public function test_attach_rejects_bare_string_key()
+    public function test_attach_with_bare_string_key_completes_composite_via_bulk_attr()
     {
-        $this->expectException(InvalidUsageException::class);
-
         $team = $this->createTeam('US', 1, 'Alpha');
-        $this->createProject('US', 1, 'Website');
+        $this->createProject('EU', 2, 'API');
 
-        $team->projects()->attach(['not-json' => ['role' => 'lead']]);
+        $team->projects()->attach(
+            ['EU' => ['role' => 'lead']],
+            ['project_division_id' => 2]
+        );
+
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $pivot = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('EU', $pivot['project_region_code']);
+        $this->assertEquals((string) 2, $pivot['project_division_id']);
+        $this->assertEquals('lead', $pivot['role']);
+        $this->assertEquals('US', $pivot['team_region_code']);
+        $this->assertEquals((string) 1, $pivot['team_division_id']);
+    }
+
+    public function test_attach_with_bare_string_key_completes_composite_via_per_row_attr()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('EU', 2, 'API');
+
+        $team->projects()->attach([
+            'EU' => ['project_division_id' => 2, 'role' => 'lead'],
+        ]);
+
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $pivot = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('EU', $pivot['project_region_code']);
+        $this->assertEquals((string) 2, $pivot['project_division_id']);
+        $this->assertEquals('lead', $pivot['role']);
     }
 
     public function test_attach_rejects_wrong_arity_json_key()
@@ -592,6 +619,53 @@ class BelongsToManyTest extends TestCase
         $this->createProject('US', 1, 'Website');
 
         $team->projects()->attach([json_encode(['US']) => ['role' => 'lead']]);
+    }
+
+    public function test_attach_rejects_malformed_json_array_key()
+    {
+        $this->expectException(InvalidUsageException::class);
+
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $this->createProject('US', 1, 'Website');
+
+        // Looks like an attempted JSON-encoded tuple (starts with `[`) but is invalid.
+        $team->projects()->attach(['[broken' => ['role' => 'lead']]);
+    }
+
+    public function test_attach_with_support_collection_of_models()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $project2 = $this->createProject('EU', 2, 'API');
+
+        $supportCollection = collect([$project1, $project2]);
+        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $supportCollection);
+
+        $team->projects()->attach($supportCollection);
+
+        $this->assertEquals(2, Capsule::table('project_team')->count());
+
+        $rows = Capsule::table('project_team')->orderBy('project_region_code')->get();
+        $this->assertEquals('EU', $rows[0]->project_region_code);
+        $this->assertEquals('US', $rows[1]->project_region_code);
+    }
+
+    public function test_sync_with_support_collection_of_models()
+    {
+        $team = $this->createTeam('US', 1, 'Alpha');
+        $project1 = $this->createProject('US', 1, 'Website');
+        $project2 = $this->createProject('EU', 2, 'API');
+
+        $team->projects()->attach($project1);
+
+        $changes = $team->projects()->sync(collect([$project2]));
+
+        $this->assertCount(1, $changes['attached']);
+        $this->assertCount(1, $changes['detached']);
+        $this->assertEquals(1, Capsule::table('project_team')->count());
+
+        $pivot = (array) Capsule::table('project_team')->first();
+        $this->assertEquals('EU', $pivot['project_region_code']);
     }
 
     public function test_attach_with_per_row_attributes_using_pivot_model()
