@@ -8,3 +8,5 @@
 /.phpunit.result.cache
 /.php_cs.cache
 /phpunit
+/.claude
+/openspec
