@@ -269,6 +269,23 @@ Run PHPUnit
 ./vendor/bin/phpunit
 ```
 
+### Running the full CI matrix locally
+
+The package is tested against multiple Laravel and PHP versions in CI. To reproduce that matrix on your machine without setting up each PHP version manually, use the bundled Docker runner:
+
+```bash
+./run-matrix-tests.sh
+```
+
+The script mirrors `.github/workflows/run-tests.yml` exactly. It iterates over every Laravel and PHP combination, installs the requested Laravel version with Composer inside an ephemeral Docker container, runs PHPUnit, and prints a pass/fail summary at the end. Docker is the only prerequisite.
+
+You can narrow the run to a subset by passing a filter argument that matches against the matrix label (`L<laravel> PHP<php>`):
+
+```bash
+./run-matrix-tests.sh "12.*"     # only Laravel 12 combinations
+./run-matrix-tests.sh "PHP8.4"   # only PHP 8.4 combinations
+```
+
 ## Authors
 
 * [Claudin J. Daniel](https://github.com/topclaudy) - *Initial work*
