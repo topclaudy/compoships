@@ -605,9 +605,9 @@ class BelongsToMany extends BaseBelongsToMany
      * @param mixed $scalarId
      * @param array $attributes
      *
-     * @return array
-     *
      * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     *
+     * @return array
      */
     protected function buildCompositeTupleFromScalar($scalarId, array $attributes): array
     {
