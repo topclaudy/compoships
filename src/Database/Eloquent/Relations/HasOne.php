@@ -58,7 +58,7 @@ class HasOne extends BaseHasOne
         }
 
         if (is_callable($this->withDefault)) {
-            return call_user_func($this->withDefault, $instance) ?: $instance;
+            return ($this->withDefault)($instance) ?: $instance;
         }
 
         if (is_array($this->withDefault)) {

@@ -115,6 +115,30 @@ class A extends Model
 
 All standard `belongsToMany` operations work with composite keys: `attach()`, `detach()`, `sync()`, `toggle()`, `withPivot()`, `withTimestamps()`, eager loading, and existence queries (`has()`, `whereHas()`).
 
+#### Composite-key input shapes for `attach()` and `sync()`
+
+Two input shapes are supported for `attach()`, `sync()`, `syncWithoutDetaching()`, and `toggle()` on composite-key relations.
+
+A list of composite tuples (each tuple is an array aligned with the related-pivot-key columns):
+
+```php
+$team->projects()->attach([
+    ['EU', 2],
+    ['US', 1],
+]);
+```
+
+A map of `json_encode($tuple) => $perRowAttributes`, equivalent to Laravel's single-key `[id => attributes]` shape. The key must be the JSON encoding of the composite tuple, produced via `json_encode([...])`. Per-row attributes override any shared bulk attributes on key conflict, and any per-row attribute keys colliding with the foreign-pivot-key columns are silently dropped to prevent overriding the parent linkage.
+
+```php
+$team->projects()->attach([
+    json_encode(['EU', 2]) => ['role' => 'reviewer'],
+    json_encode(['US', 1]) => ['role' => 'lead'],
+], ['note' => 'bulk applied to all']);
+```
+
+Passing an associative array key that is not a JSON-encoded tuple of the correct arity throws `Awobaz\Compoships\Exceptions\InvalidUsageException`.
+
 ### Factories
 
 Chances are that you may need factories for your Compoships models. If so, you will probably need to use
@@ -243,6 +267,23 @@ composer install
 Run PHPUnit
 ```bash
 ./vendor/bin/phpunit
+```
+
+### Running the full CI matrix locally
+
+The package is tested against multiple Laravel and PHP versions in CI. To reproduce that matrix on your machine without setting up each PHP version manually, use the bundled Docker runner:
+
+```bash
+./run-matrix-tests.sh
+```
+
+The script mirrors `.github/workflows/run-tests.yml` exactly. It iterates over every Laravel and PHP combination, installs the requested Laravel version with Composer inside an ephemeral Docker container, runs PHPUnit, and prints a pass/fail summary at the end. Docker is the only prerequisite.
+
+You can narrow the run to a subset by passing a filter argument that matches against the matrix label (`L<laravel> PHP<php>`):
+
+```bash
+./run-matrix-tests.sh "12.*"     # only Laravel 12 combinations
+./run-matrix-tests.sh "PHP8.4"   # only PHP 8.4 combinations
 ```
 
 ## Authors

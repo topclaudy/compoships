@@ -79,7 +79,7 @@ class Pivot extends BasePivot
             return $this->newQueryForCollectionRestoration($ids);
         }
 
-        if (strpos($ids, ':') === false) {
+        if (!str_contains($ids, ':')) {
             return parent::newQueryForRestoration($ids);
         }
 
@@ -104,7 +104,7 @@ class Pivot extends BasePivot
     {
         $ids = array_values($ids);
 
-        if (strpos($ids[0], ':') === false) {
+        if (!str_contains($ids[0], ':')) {
             return parent::newQueryForRestoration($ids);
         }
 
