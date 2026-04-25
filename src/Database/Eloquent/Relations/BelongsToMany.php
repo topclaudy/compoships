@@ -441,9 +441,9 @@ class BelongsToMany extends BaseBelongsToMany
      * @param int|string $key
      * @param mixed      $value
      *
-     * @return array{0: array|int|string, 1: array}
-     *
      * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     *
+     * @return array{0: array|int|string, 1: array}
      */
     protected function resolveCompositeAttachEntry($key, $value): array
     {

@@ -132,7 +132,7 @@ class BelongsToManyAsymmetricTest extends TestCase
         $this->assertEquals(['1'], $divisions);
     }
 
-public function test_scalar_foreign_composite_related_relation_loading()
+    public function test_scalar_foreign_composite_related_relation_loading()
     {
         $user = $this->createUser();
         $project1 = $this->createProject('US', 1, 'Website');
