@@ -196,5 +196,22 @@ class Migration extends BaseMigration
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
         });
+
+        Capsule::schema()->create('nodes', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('region_code');
+            $table->integer('division_id')->unsigned();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        Capsule::schema()->create('node_links', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('left_region_code');
+            $table->integer('left_division_id')->unsigned();
+            $table->string('right_region_code');
+            $table->integer('right_division_id')->unsigned();
+            $table->timestamps();
+        });
     }
 }

@@ -39,7 +39,11 @@ class BelongsToManyTest extends TestCase
 
         $this->attachPivot($team, $project);
 
-        $loadedTeams = $project->teams;
+        // Refresh because Project declares `$touches = ['teams']`. Laravel's
+        // touchOwners() eager-loads the touched relation during save(), so the
+        // initial $project->teams cache was set to an empty collection before
+        // attachPivot() inserted the pivot row directly via raw SQL.
+        $loadedTeams = $project->fresh()->teams;
 
         $this->assertCount(1, $loadedTeams);
         $this->assertEquals($team->id, $loadedTeams->first()->id);

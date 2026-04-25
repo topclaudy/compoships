@@ -23,6 +23,20 @@ class Team extends Model
         );
     }
 
+    public function projectsWithMeta()
+    {
+        return $this->belongsToMany(
+            Project::class,
+            'project_team',
+            ['team_region_code', 'team_division_id'],
+            ['project_region_code', 'project_division_id'],
+            ['region_code', 'division_id'],
+            ['region_code', 'division_id']
+        )
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
     public function projectsWithPivotModel()
     {
         return $this->belongsToMany(

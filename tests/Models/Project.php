@@ -11,6 +11,16 @@ class Project extends Model
 
     protected $guarded = [];
 
+    /**
+     * Touch propagation: when a Team::projects (or Team::projectsWithMeta)
+     * pivot mutation occurs, Laravel's `touchIfTouching()` calls
+     * `Project::touches('teams')` (the inverse relation name guessed from the
+     * parent Team class basename). Returning true here causes the parent Team
+     * to receive a `touch()` on attach/detach/sync. Required for the
+     * BelongsToManyIntegrationTest touch propagation tests.
+     */
+    protected $touches = ['teams'];
+
     public function teams()
     {
         return $this->belongsToMany(
