@@ -22,13 +22,14 @@ class Builder extends BaseQueryBuilder
         // Here we implement custom support for multi-column 'IN'
         if (is_array($column)) {
             $inOperator = $not ? 'NOT IN' : 'IN';
-            $prefix = $this->getConnection()->getTablePrefix();
-
-            foreach ($column as &$value) {
-                $value = $prefix.$value;
-            }
 
             if ($this->getConnection()->getDriverName() === 'sqlsrv') {
+                $prefix = $this->getConnection()->getTablePrefix();
+
+                foreach ($column as &$value) {
+                    $value = $prefix.$value;
+                }
+
                 foreach ($column as $column_number => $column_name) {
                     $column_values = array_unique(Arr::pluck($values, $column_number));
                     $values_placeholders = implode(', ', array_fill(0, count($column_values), '?'));
@@ -39,7 +40,7 @@ class Builder extends BaseQueryBuilder
                 return $this;
             }
 
-            $columns = implode(',', $column);
+            $columns = implode(',', array_map(fn ($c) => $this->grammar->wrap($c), $column));
             $tuplePlaceholders = '('.implode(', ', array_fill(0, count($column), '?')).')';
             $placeholderList = implode(',', array_fill(0, count($values), $tuplePlaceholders));
 
