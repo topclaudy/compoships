@@ -10,3 +10,4 @@
 /phpunit
 /.claude
 /openspec
+/.phpunit.cache
