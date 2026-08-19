@@ -54,4 +54,29 @@ class BuilderTest extends TestCase
         $this->assertCount(1, $allocations);
         $this->assertCount(2, $allocations[0]->originalPackages);
     }
+
+    public function test_wherein_uses_fallback_when_null_values()
+    {
+        $allocationId1 = Capsule::table('allocations')->insertGetId([
+            'user_id'    => 1,
+            'booking_id' => 1,
+        ]);
+        $allocationId2 = Capsule::table('allocations')->insertGetId([
+            'user_id'    => 2,
+            'booking_id' => null,
+        ]);
+        $allocation1 = Allocation::find($allocationId1);
+        $allocation2 = Allocation::find($allocationId2);
+
+        $query1 = Allocation::query()->getRelation('user');
+        $query1->addEagerConstraints([$allocation1]);
+        $sql1 = $query1->toRawSql();
+
+        $query2 = Allocation::query()->getRelation('user');
+        $query2->addEagerConstraints([$allocation2]);
+        $sql2 = $query2->toRawSql();
+
+        $this->assertEquals('select * from "users" where ("users"."id", "users"."booking_id") IN ((1, 1))', $sql1);
+        $this->assertEquals('select * from "users" where (("users"."id" = 2 and "users"."booking_id" is null))', $sql2);
+    }
 }

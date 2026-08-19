@@ -44,9 +44,9 @@ class Builder extends BaseQueryBuilder
                 }
             }
 
-            $inOperator = $not ? 'NOT IN' : 'IN';
-            $prefix = $this->getConnection()->getTablePrefix();
-            $grammar = $this->getConnection()->getQueryGrammar();
+            $connection = $this->getConnection();
+            $prefix = $connection->getTablePrefix();
+            $grammar = $connection->getQueryGrammar();
 
             foreach ($column as &$value) {
                 if (!$grammar->isExpression($value) && !Str::contains($value, '.')) {
@@ -54,17 +54,23 @@ class Builder extends BaseQueryBuilder
                 }
             }
 
-            if ($this->getConnection()->getDriverName() === 'sqlsrv') {
-                foreach ($column as $column_number => $column_name) {
-                    $column_values = array_unique(Arr::pluck($values, $column_number));
-                    $values_placeholders = implode(', ', array_fill(0, count($column_values), '?'));
-
-                    $this->whereRaw("{$column_name} {$inOperator} ({$values_placeholders})", Arr::flatten($column_values), $boolean);
-                }
-
-                return $this;
+            if (
+                !in_array($connection->getDriverName(), ['sqlite', 'mysql', 'mariadb', 'pgsql']) ||
+                    Arr::some($values, fn ($value) => in_array(null, $value, true))
+            ) {
+                // use a series of OR/AND clauses when optimized row value expressions can't be used
+                return $this->where(function ($query) use ($column, $values) {
+                    foreach ($values as $value) {
+                        $query->orWhere(function ($query) use ($column, $value) {
+                            foreach ($column as $index => $aColumn) {
+                                $query->where($aColumn, $value[$index]);
+                            }
+                        });
+                    }
+                }, null, null, $boolean.($not ? ' not' : ''));
             }
 
+            $inOperator = $not ? 'NOT IN' : 'IN';
             $columns = implode(', ', array_map(
                 fn ($v) => $grammar->isExpression($v) ? $v->getValue($grammar) : $grammar->wrap($v),
                 $column
@@ -72,9 +78,7 @@ class Builder extends BaseQueryBuilder
             $tuplePlaceholders = '('.implode(', ', array_fill(0, count($column), '?')).')';
             $placeholderList = implode(', ', array_fill(0, count($values), $tuplePlaceholders));
 
-            $this->whereRaw("({$columns}) {$inOperator} ({$placeholderList})", Arr::flatten($values), $boolean);
-
-            return $this;
+            return $this->whereRaw("({$columns}) {$inOperator} ({$placeholderList})", Arr::flatten($values), $boolean);
         }
 
         return parent::whereIn($column, $values, $boolean, $not);
