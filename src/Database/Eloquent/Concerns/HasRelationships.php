@@ -26,16 +26,10 @@ trait HasRelationships
         $keyName = $this->getKeyName();
 
         if (is_array($keyName)) { //Check for multi-columns relationship
-            $keys = [];
-
-            foreach ($keyName as $key) {
-                $keys[] = $this->getTable().$key;
-            }
-
-            return $keys;
+            return array_map(fn ($key) => $this->qualifyColumn($key), $keyName);
         }
 
-        return $this->getTable().'.'.$keyName;
+        return parent::getQualifiedKeyName();
     }
 
     /**
@@ -70,6 +64,8 @@ trait HasRelationships
         }
 
         $localKey = $localKey ?: $this->getKeyName();
+
+        $this->validateCompositeKeyPair('hasOne', 'foreign key', $foreignKeys ?: $foreignKey, 'local key', $localKey);
 
         return $this->newHasOne($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
     }
@@ -108,6 +104,43 @@ trait HasRelationships
     }
 
     /**
+     * When either side of a key pair is an array, both must be arrays of the
+     * same length; anything else silently binds nulls or emits PHP warnings.
+     *
+     * @param string       $relationType
+     * @param string       $firstName
+     * @param array|string $first
+     * @param string       $secondName
+     * @param array|string $second
+     *
+     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     */
+    private function validateCompositeKeyPair($relationType, $firstName, $first, $secondName, $second): void
+    {
+        if (!is_array($first) && !is_array($second)) {
+            return;
+        }
+
+        if (is_array($first) && is_array($second) && count($first) === count($second)) {
+            return;
+        }
+
+        $describe = static fn ($keys) => is_array($keys)
+            ? '['.implode(', ', array_map(static fn ($k) => is_string($k) ? $k : get_debug_type($k), $keys)).']'
+            : var_export($keys, true);
+
+        throw new InvalidUsageException(sprintf(
+            'Composite %s() on %s requires the %s and the %s to be arrays of the same length, got %s and %s.',
+            $relationType,
+            static::class,
+            $firstName,
+            $secondName,
+            $describe($first),
+            $describe($second)
+        ));
+    }
+
+    /**
      * Define a one-to-many relationship.
      *
      * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
@@ -139,6 +172,8 @@ trait HasRelationships
         }
 
         $localKey = $localKey ?: $this->getKeyName();
+
+        $this->validateCompositeKeyPair('hasMany', 'foreign key', $foreignKeys ?: $foreignKey, 'local key', $localKey);
 
         return $this->newHasMany($instance->newQuery(), $this, $foreignKeys ?: $foreignKey, $localKey);
     }
@@ -200,6 +235,8 @@ trait HasRelationships
         // actually be responsible for retrieving and hydrating every relations.
         $ownerKey = $ownerKey ?: $instance->getKeyName();
 
+        $this->validateCompositeKeyPair('belongsTo', 'foreign key', $foreignKey, 'owner key', $ownerKey);
+
         return $this->newBelongsTo($instance->newQuery(), $this, $foreignKey, $ownerKey, $relation);
     }
 
@@ -246,7 +283,7 @@ trait HasRelationships
         $relatedKey = null,
         $relation = null
     ) {
-        if (is_array($foreignPivotKey)) {
+        if (is_array($foreignPivotKey) || is_array($relatedPivotKey)) {
             $this->validateRelatedModel($related);
         }
 

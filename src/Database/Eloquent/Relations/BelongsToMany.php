@@ -22,6 +22,53 @@ class BelongsToMany extends BaseBelongsToMany
     use ResolvesBackedEnumValues;
 
     /**
+     * Create a new belongs to many relationship instance.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Model   $parent
+     * @param string                                $table
+     * @param array|string                          $foreignPivotKey
+     * @param array|string                          $relatedPivotKey
+     * @param array|string                          $parentKey
+     * @param array|string                          $relatedKey
+     * @param string|null                           $relationName
+     *
+     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     */
+    public function __construct(Builder $query, Model $parent, $table, $foreignPivotKey, $relatedPivotKey, $parentKey, $relatedKey, $relationName = null)
+    {
+        $this->validateKeyArity($relationName, 'parentKey', $parentKey, 'foreignPivotKey', $foreignPivotKey);
+        $this->validateKeyArity($relationName, 'relatedKey', $relatedKey, 'relatedPivotKey', $relatedPivotKey);
+
+        parent::__construct($query, $parent, $table, $foreignPivotKey, $relatedPivotKey, $parentKey, $relatedKey, $relationName);
+    }
+
+    /**
+     * @param string|null  $relationName
+     * @param string       $firstName
+     * @param array|string $first
+     * @param string       $secondName
+     * @param array|string $second
+     *
+     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     */
+    protected function validateKeyArity($relationName, $firstName, $first, $secondName, $second): void
+    {
+        if (count((array) $first) === count((array) $second)) {
+            return;
+        }
+
+        throw new InvalidUsageException(sprintf(
+            'Composite belongsToMany relation %s: %s has %d column(s) but %s has %d; both sides must have the same arity.',
+            $relationName ?? '{relation}',
+            $firstName,
+            count((array) $first),
+            $secondName,
+            count((array) $second)
+        ));
+    }
+
+    /**
      * Whether this relation is composite on EITHER side. Methods that touch both
      * sides of the pivot record (e.g. `baseAttachRecord`) must not delegate to
      * Laravel's stock implementation when only one side is composite, otherwise
