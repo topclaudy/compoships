@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $label
  * @property-read CodeNote[] $notes
  * @property-read CodeNote|null $latestNote
+ * @property-read CodeNote|null $firstNote
+ * @property-read CodeNote $firstNoteOrDefault
  *
  * @mixin \Illuminate\Database\Eloquent\Builder
  */
@@ -34,5 +36,17 @@ class Code extends Model
     public function latestNote()
     {
         return $this->notes()->one()->latestOfMany();
+    }
+
+    public function firstNote()
+    {
+        return $this->hasOne(CodeNote::class, ['group_code', 'item_code'], ['group_code', 'item_code']);
+    }
+
+    public function firstNoteOrDefault()
+    {
+        return $this->firstNote()->withDefault(function (CodeNote $note, Code $code) {
+            $note->body = 'default for '.$code->label;
+        });
     }
 }

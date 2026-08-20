@@ -33,42 +33,6 @@ class HasOne extends BaseHasOne
     }
 
     /**
-     * Get the default value for this relation.
-     *
-     * @param \Illuminate\Database\Eloquent\Model $model
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
-    protected function getDefaultFor(Model $model)
-    {
-        if (!$this->withDefault) {
-            return;
-        }
-
-        $instance = $this->related->newInstance();
-
-        $foreignKey = $this->getForeignKeyName();
-
-        if (is_array($foreignKey)) { //Check for multi-columns relationship
-            foreach ($foreignKey as $index => $key) {
-                $instance->setAttribute($key, $model->getAttribute($this->localKey[$index]));
-            }
-        } else {
-            $instance->setAttribute($foreignKey, $model->getAttribute($this->localKey));
-        }
-
-        if (is_callable($this->withDefault)) {
-            return ($this->withDefault)($instance) ?: $instance;
-        }
-
-        if (is_array($this->withDefault)) {
-            $instance->forceFill($this->withDefault);
-        }
-
-        return $instance;
-    }
-
-    /**
      * Initialize the relation on a set of models.
      *
      * @param array  $models
@@ -108,16 +72,17 @@ class HasOne extends BaseHasOne
      */
     public function newRelatedInstanceFor(Model $parent)
     {
-        $newInstance = $this->related->newInstance();
-
-        if (is_array($this->localKey)) { //Check for multi-columns relationship
-            $foreignKey = $this->getForeignKeyName();
-
-            foreach ($this->localKey as $index => $key) {
-                $newInstance->setAttribute($foreignKey[$index], $parent->{$key});
-            }
-        } else {
-            return $newInstance->setAttribute($this->getForeignKeyName(), $parent->{$this->localKey});
+        if (!is_array($this->localKey)) {
+            return parent::newRelatedInstanceFor($parent);
         }
+
+        $newInstance = $this->related->newInstance();
+        $foreignKey = $this->getForeignKeyName();
+
+        foreach ($this->localKey as $index => $key) {
+            $newInstance->setAttribute($foreignKey[$index], $parent->getAttribute($key));
+        }
+
+        return $newInstance;
     }
 }

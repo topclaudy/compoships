@@ -31,6 +31,12 @@ trait BuildsCompositeEagerConstraints
             return false;
         }
 
+        if ($withNulls === []) {
+            $query->whereIn($columns, $nullFree);
+
+            return true;
+        }
+
         $query->where(function ($nested) use ($columns, $nullFree, $withNulls) {
             if ($nullFree !== []) {
                 $nested->whereIn($columns, $nullFree);

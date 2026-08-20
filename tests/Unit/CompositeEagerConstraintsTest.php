@@ -39,7 +39,7 @@ class CompositeEagerConstraintsTest extends TestCase
 
         $this->assertTrue($added);
         $this->assertSame(
-            'select * from "allocations" where (("allocations"."booking_id", "allocations"."vehicle_id") IN ((?, ?), (?, ?)))',
+            'select * from "allocations" where ("allocations"."booking_id", "allocations"."vehicle_id") IN ((?, ?), (?, ?))',
             $query->toSql()
         );
         $this->assertSame([1, 2, 3, 4], $query->getBindings());

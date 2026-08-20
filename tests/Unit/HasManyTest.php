@@ -3,6 +3,7 @@
 namespace Awobaz\Compoships\Tests\Unit;
 
 use Awobaz\Compoships\Database\Eloquent\Relations\HasMany;
+use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Awobaz\Compoships\Tests\Models\Allocation;
 use Awobaz\Compoships\Tests\Models\OriginalPackage;
 use Awobaz\Compoships\Tests\Models\TrackingTask;
@@ -312,13 +313,9 @@ class HasManyTest extends TestCase
         $this->assertEquals(null, $allocations2[0]->latestTrackingTask);
     }
 
-    public function test_Compoships_eagerLoading_using_expression()
+    public function test_Compoships_lazyLoading_using_expression()
     {
-        $allocationId1 = Capsule::table('allocations')->insertGetId([
-            'booking_id' => 2,
-            'vehicle_id' => 2,
-        ]);
-        $allocationId2 = Capsule::table('allocations')->insertGetId([
+        $allocationId = Capsule::table('allocations')->insertGetId([
             'booking_id' => 1,
             'vehicle_id' => 1,
         ]);
@@ -332,27 +329,39 @@ class HasManyTest extends TestCase
             'deleted_at' => null,
         ]);
 
-        Capsule::connection()->enableQueryLog();
-        $allocations1 = Allocation::where('id', $allocationId1)->with('trackingTasksWithRaw')->get()->all();
-        $allocations2 = Allocation::where('id', $allocationId2)->with('trackingTasksWithRaw')->get()->all();
-        $queries = Capsule::connection()->getQueryLog();
-        Capsule::connection()->disableQueryLog();
+        $allocation = Allocation::find($allocationId);
 
-        $this->assertSame(
-            'select * from "tracking_tasks" where ("tracking_tasks"."booking_id", ("tracking_tasks" . "vehicle_id" /*test*/)) IN ((?, ?)) and "tracking_tasks"."deleted_at" is null',
-            last($queries)['query'],
-        );
         $this->assertSame(
             'select * from "tracking_tasks" where "tracking_tasks"."booking_id" = ? and ("tracking_tasks" . "vehicle_id" /*test*/) = ? and "tracking_tasks"."deleted_at" is null',
-            $allocations2[0]->trackingTasksWithRaw()->toSql(),
+            $allocation->trackingTasksWithRaw()->toSql(),
         );
+        $this->assertCount(1, $allocation->trackingTasksWithRaw);
+        $this->assertEquals(1, $allocation->trackingTasksWithRaw[0]->id);
+    }
 
-        $this->assertCount(1, $allocations2);
-        $this->assertCount(1, $allocations2[0]->trackingTasks);
-        $this->assertEquals(1, $allocations2[0]->trackingTasks[0]->id);
+    public function test_Compoships_eagerLoading_using_expression_is_rejected()
+    {
+        Capsule::table('allocations')->insertGetId([
+            'booking_id' => 1,
+            'vehicle_id' => 1,
+        ]);
 
-        $this->assertCount(1, $allocations1);
-        $this->assertCount(0, $allocations1[0]->trackingTasks);
+        $this->expectException(InvalidUsageException::class);
+        $this->expectExceptionMessage('expression');
+
+        Allocation::with('trackingTasksWithRaw')->get();
+    }
+
+    public function test_Compoships_create_using_expression_is_rejected()
+    {
+        $allocationId = Capsule::table('allocations')->insertGetId([
+            'booking_id' => 1,
+            'vehicle_id' => 1,
+        ]);
+
+        $this->expectException(InvalidUsageException::class);
+
+        Allocation::find($allocationId)->trackingTasksWithRaw()->create([]);
     }
 
     public function test_Compoships_eagerLoading_using_prefixed_field()
@@ -472,7 +481,7 @@ class HasManyTest extends TestCase
             'allocation_id' => (string) 1,
             'name'          => 'some name',
             'pcid'          => null,
-        ], $package->toArray());
+        ], $package->attributesToArray());
     }
 
     public function test_Illuminate_hasOneOrMany_create__change_relation_columns()
@@ -486,7 +495,7 @@ class HasManyTest extends TestCase
             'allocation_id' => (string) 1, // correct, as it was not changed
             'name'          => null,
             'pcid'          => null,
-        ], $package->toArray());
+        ], $package->attributesToArray());
     }
 
     public function test_Illuminate_hasOneOrMany_create__empty()
@@ -499,7 +508,7 @@ class HasManyTest extends TestCase
             'allocation_id' => (string) 1,
             'name'          => null,
             'pcid'          => null,
-        ], $package->toArray());
+        ], $package->attributesToArray());
     }
 
     public function test_Illuminate_hasOneOrMany_create__fail_set_unguarded()
