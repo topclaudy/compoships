@@ -3,6 +3,7 @@
 namespace Awobaz\Compoships\Tests\Unit;
 
 use Awobaz\Compoships\Tests\Models\Allocation;
+use Awobaz\Compoships\Tests\Models\Code;
 use Awobaz\Compoships\Tests\Models\TrackingTask;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Model;
@@ -46,6 +47,16 @@ class TablePrefixTest extends TestCase
             $table->integer('vehicle_id')->unsigned()->nullable();
             $table->timestamps();
             $table->softDeletes();
+        });
+
+        Capsule::schema()->create('codes', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('group_code')->nullable();
+            $table->string('item_code')->nullable();
+            $table->string('parent_group_code')->nullable();
+            $table->string('parent_item_code')->nullable();
+            $table->string('label')->nullable();
+            $table->timestamps();
         });
     }
 
@@ -146,5 +157,27 @@ class TablePrefixTest extends TestCase
         $this->assertNotNull($trackingTask->allocation);
         $this->assertEquals(1, $trackingTask->allocation->booking_id);
         $this->assertEquals(10, $trackingTask->allocation->vehicle_id);
+    }
+
+    public function test_qualify_column_with_an_array_applies_the_prefix_once()
+    {
+        $grammar = (new Allocation())->getConnection()->getQueryGrammar();
+
+        $qualified = (new Allocation())->qualifyColumn(['booking_id', 'allocations.vehicle_id']);
+
+        $this->assertSame(['allocations.booking_id', 'allocations.vehicle_id'], $qualified);
+        $this->assertSame('"test_prefix_allocations"."booking_id"', $grammar->wrap($qualified[0]));
+    }
+
+    public function test_self_relation_existence_query_is_prefixed_once()
+    {
+        Model::unguard();
+        Code::create(['group_code' => 'G', 'item_code' => 'root']);
+        Code::create(['group_code' => 'G', 'item_code' => 'child', 'parent_group_code' => 'G', 'parent_item_code' => 'root']);
+
+        $query = Code::has('parentCode');
+
+        $this->assertStringNotContainsString('test_prefix_test_prefix_', $query->toSql());
+        $this->assertSame(['child'], $query->pluck('item_code')->all());
     }
 }

@@ -10,7 +10,6 @@ use Awobaz\Compoships\Database\Grammar\SQLiteGrammar;
 use Awobaz\Compoships\Database\Grammar\SqlServerGrammar;
 use Awobaz\Compoships\Database\Query\Builder as QueryBuilder;
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
-use Illuminate\Support\Str;
 
 trait Compoships
 {
@@ -28,16 +27,7 @@ trait Compoships
     public function qualifyColumn($column)
     {
         if (is_array($column)) {
-            return array_map(function ($c) {
-                if (Str::contains($c, '.')) {
-                    return $c;
-                }
-
-                $connection = $this->getConnection();
-                $prefix = $connection->getTablePrefix();
-
-                return $prefix.$this->getTable().'.'.$c;
-            }, $column);
+            return array_map(fn ($c) => parent::qualifyColumn($c), $column);
         }
 
         return parent::qualifyColumn($column);

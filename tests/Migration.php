@@ -282,6 +282,8 @@ class Migration extends BaseMigration
             $table->increments('id');
             $table->string('group_code')->nullable();
             $table->string('item_code')->nullable();
+            $table->string('parent_group_code')->nullable();
+            $table->string('parent_item_code')->nullable();
             $table->string('label')->nullable();
             $table->timestamps();
         });

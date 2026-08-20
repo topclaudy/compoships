@@ -2,11 +2,14 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use Awobaz\Compoships\Concerns\BuildsCompositeEagerConstraints;
 use Awobaz\Compoships\Concerns\ResolvesBackedEnumValues;
+use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo as BaseBelongsTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 /**
  * @template TRelatedModel of \Illuminate\Database\Eloquent\Model
@@ -16,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo as BaseBelongsTo;
  */
 class BelongsTo extends BaseBelongsTo
 {
+    use BuildsCompositeEagerConstraints;
     use ResolvesBackedEnumValues;
 
     /**
@@ -26,9 +30,11 @@ class BelongsTo extends BaseBelongsTo
     public function getResults()
     {
         if (!is_array($this->foreignKey)) {
-            if (is_null($this->child->{$this->foreignKey})) {
-                return $this->getDefaultFor($this->parent);
-            }
+            return parent::getResults();
+        }
+
+        if ($this->childForeignKeyValuesAreUnusable()) {
+            return $this->getDefaultFor($this->parent);
         }
 
         return $this->query->first() ?: $this->getDefaultFor($this->parent);
@@ -47,21 +53,131 @@ class BelongsTo extends BaseBelongsTo
             return parent::associate($model);
         }
 
-        $ownerKey = $model instanceof Model ? $model->getAttribute($this->ownerKey) : $model;
-        for ($i = 0; $i < count($this->foreignKey); $i++) {
-            $foreignKey = $this->foreignKey[$i];
-            $value = $ownerKey[$i];
-            $this->child->setAttribute($foreignKey, $value);
+        if ($model === null) {
+            return $this->dissociate();
         }
-        $relationName = $this->relationName;
+
+        $ownerKey = $model instanceof Model ? $model->getAttribute($this->ownerKey) : $model;
+
+        if (!is_array($ownerKey) || count($ownerKey) !== count($this->foreignKey)) {
+            throw new InvalidUsageException(sprintf(
+                'associate() on the composite relation %s::%s() expects a model or an array of %d key values, got %s.',
+                get_class($this->child),
+                $this->relationName,
+                count($this->foreignKey),
+                get_debug_type($ownerKey)
+            ));
+        }
+
+        foreach ($this->foreignKey as $index => $foreignKey) {
+            $this->child->setAttribute($foreignKey, $ownerKey[$index]);
+        }
+
         if ($model instanceof Model) {
-            $this->child->setRelation($relationName, $model);
+            $this->child->setRelation($this->relationName, $model);
         } elseif ($this->child->isDirty($this->foreignKey)) {
             // proper unset // https://github.com/illuminate/database/commit/44411c7288fc7b7d4e5680cfcdaa46d348b5c981
-            $this->child->unsetRelation($relationName);
+            $this->child->unsetRelation($this->relationName);
         }
 
         return $this->child;
+    }
+
+    /**
+     * Dissociate previously associated model from the given parent.
+     *
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function dissociate()
+    {
+        if (!is_array($this->foreignKey)) {
+            return parent::dissociate();
+        }
+
+        foreach ($this->foreignKey as $foreignKey) {
+            $this->child->setAttribute($foreignKey, null);
+        }
+
+        return $this->child->setRelation($this->relationName, null);
+    }
+
+    /**
+     * Get the value of the model's foreign key (every column for composite keys).
+     *
+     * @param \Illuminate\Database\Eloquent\Model $model
+     *
+     * @return mixed
+     */
+    protected function getForeignKeyFrom(Model $model)
+    {
+        if (!is_array($this->foreignKey)) {
+            return parent::getForeignKeyFrom($model);
+        }
+
+        return array_map(fn ($key) => $this->resolveBackedEnumValue($model->getAttribute($key)), $this->foreignKey);
+    }
+
+    /**
+     * Get the value of the related model's owner key (every column for composite keys).
+     *
+     * @param \Illuminate\Database\Eloquent\Model $model
+     *
+     * @return mixed
+     */
+    protected function getRelatedKeyFrom(Model $model)
+    {
+        if (!is_array($this->ownerKey)) {
+            return parent::getRelatedKeyFrom($model);
+        }
+
+        return array_map(fn ($key) => $this->resolveBackedEnumValue($model->getAttribute($key)), $this->ownerKey);
+    }
+
+    /**
+     * Compare the parent key with the related key, element-wise for composite
+     * keys. Components compare by value (1 equals '1'); null matches only null;
+     * all-null keys never match, mirroring the scalar "empty key" rule.
+     *
+     * @param mixed $parentKey
+     * @param mixed $relatedKey
+     *
+     * @return bool
+     */
+    protected function compareKeys($parentKey, $relatedKey)
+    {
+        if (!is_array($parentKey) || !is_array($relatedKey)) {
+            return parent::compareKeys($parentKey, $relatedKey);
+        }
+
+        if (count($parentKey) !== count($relatedKey)) {
+            return false;
+        }
+
+        if (array_filter($parentKey, fn ($value) => $value !== null) === []) {
+            return false;
+        }
+
+        return $this->compositeDictionaryKey($parentKey) === $this->compositeDictionaryKey($relatedKey);
+    }
+
+    /**
+     * Touch all of the related models for the relationship.
+     *
+     * @return void
+     */
+    public function touch()
+    {
+        if (!is_array($this->foreignKey)) {
+            parent::touch();
+
+            return;
+        }
+
+        if ($this->childForeignKeyValuesAreUnusable()) {
+            return;
+        }
+
+        Relation::touch();
     }
 
     /**
@@ -78,20 +194,15 @@ class BelongsTo extends BaseBelongsTo
             $table = $this->related->getTable();
 
             if (is_array($this->ownerKey)) { //Check for multi-columns relationship
-                $childAttributes = $this->child->getAttributes();
-
-                $allOwnerKeyValuesAreNull = array_unique(array_values(
-                    array_intersect_key($childAttributes, array_flip($this->ownerKey))
-                )) === [null];
+                $foreignKeyValues = $this->childForeignKeyValues();
+                $allForeignKeyValuesAreNull = array_filter($foreignKeyValues, fn ($value) => $value !== null) === [];
 
                 foreach ($this->ownerKey as $index => $key) {
                     $fullKey = $table.'.'.$key;
 
-                    if (array_key_exists($this->foreignKey[$index], $childAttributes)) {
-                        $this->query->where($fullKey, '=', $this->child->{$this->foreignKey[$index]});
-                    }
+                    $this->query->where($fullKey, '=', $foreignKeyValues[$index]);
 
-                    if ($allOwnerKeyValuesAreNull) {
+                    if ($allForeignKeyValuesAreNull) {
                         $this->query->whereNotNull($fullKey);
                     }
                 }
@@ -117,7 +228,15 @@ class BelongsTo extends BaseBelongsTo
                 $keys[] = $this->related->getTable().'.'.$key;
             }
 
-            $this->query->whereIn($keys, $this->getEagerModelKeys($models));
+            $added = $this->addCompositeKeyConstraints(
+                $this->getRelationQuery(),
+                $keys,
+                $this->getEagerModelKeysForArray($models)
+            );
+
+            if (!$added) {
+                $this->eagerKeysWereEmpty = true;
+            }
         } else {
             parent::addEagerConstraints($models);
         }
@@ -178,6 +297,34 @@ class BelongsTo extends BaseBelongsTo
     }
 
     /**
+     * Add the constraints for a relationship query on the same table.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Builder $parentQuery
+     * @param array|mixed                           $columns
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function getRelationExistenceQueryForSelfRelation(Builder $query, Builder $parentQuery, $columns = ['*'])
+    {
+        if (!is_array($this->ownerKey)) {
+            return parent::getRelationExistenceQueryForSelfRelation($query, $parentQuery, $columns);
+        }
+
+        $query->select($columns)->from(
+            $query->getModel()->getTable().' as '.$hash = $this->getRelationCountHash()
+        );
+
+        $query->getModel()->setTable($hash);
+
+        return $query->whereColumn(
+            array_map(fn ($k) => $hash.'.'.$k, $this->ownerKey),
+            '=',
+            $this->getQualifiedForeignKeyName()
+        );
+    }
+
+    /**
      * Add the constraints for a relationship query.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
@@ -227,9 +374,7 @@ class BelongsTo extends BaseBelongsTo
 
         foreach ($results as $result) {
             if (is_array($owner)) { //Check for multi-columns relationship
-                $dictKeyValues = array_map(fn ($k) => $this->resolveBackedEnumValue($result->{$k}), $owner);
-
-                $dictionary[implode('-', $dictKeyValues)] = $result;
+                $dictionary[$this->compositeDictionaryKey(array_map(fn ($k) => $result->{$k}, $owner))] = $result;
             } else {
                 $dictionary[$result->getAttribute($owner) ?? ''] = $result;
             }
@@ -240,9 +385,7 @@ class BelongsTo extends BaseBelongsTo
         // the primary key of the children to map them onto the correct instances.
         foreach ($models as $model) {
             if (is_array($foreign)) { //Check for multi-columns relationship
-                $dictKeyValues = array_map(fn ($k) => $this->resolveBackedEnumValue($model->{$k}), $foreign);
-
-                $key = implode('-', $dictKeyValues);
+                $key = $this->compositeDictionaryKey(array_map(fn ($k) => $model->{$k}, $foreign));
             } else {
                 $key = $model->{$foreign} ?? '';
             }
@@ -253,5 +396,35 @@ class BelongsTo extends BaseBelongsTo
         }
 
         return $models;
+    }
+
+    /**
+     * The child's foreign key values, enum-resolved, in foreign key order.
+     *
+     * @return array<int, mixed>
+     */
+    protected function childForeignKeyValues(): array
+    {
+        return array_map(
+            fn ($key) => $this->resolveBackedEnumValue($this->child->getAttribute($key)),
+            $this->foreignKey
+        );
+    }
+
+    /**
+     * Whether the child cannot identify a parent: a foreign key attribute is
+     * absent (for example a partial select) or every value is null.
+     */
+    protected function childForeignKeyValuesAreUnusable(): bool
+    {
+        $attributes = $this->child->getAttributes();
+
+        foreach ($this->foreignKey as $key) {
+            if (!array_key_exists($key, $attributes)) {
+                return true;
+            }
+        }
+
+        return array_filter($this->childForeignKeyValues(), fn ($value) => $value !== null) === [];
     }
 }
