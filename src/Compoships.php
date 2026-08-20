@@ -3,11 +3,7 @@
 namespace Awobaz\Compoships;
 
 use Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships;
-use Awobaz\Compoships\Database\Grammar\MariaDbGrammar;
-use Awobaz\Compoships\Database\Grammar\MySqlGrammar;
-use Awobaz\Compoships\Database\Grammar\PostgresGrammar;
-use Awobaz\Compoships\Database\Grammar\SQLiteGrammar;
-use Awobaz\Compoships\Database\Grammar\SqlServerGrammar;
+use Awobaz\Compoships\Database\Grammar\GrammarResolver;
 use Awobaz\Compoships\Database\Query\Builder as QueryBuilder;
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
 
@@ -218,31 +214,14 @@ trait Compoships
     }
 
     /**
-     * Configure Eloquent to use Compoships Query Builder.
+     * Get a new query builder instance for the connection.
      *
-     * @return \Awobaz\Compoships\Database\Query\Builder|static
+     * @return \Awobaz\Compoships\Database\Query\Builder
      */
     protected function newBaseQueryBuilder()
     {
         $connection = $this->getConnection();
 
-        $grammar = match ($connection->getDriverName()) {
-            'mysql'   => new MySqlGrammar($connection),
-            'pgsql'   => new PostgresGrammar($connection),
-            'sqlite'  => new SQLiteGrammar($connection),
-            'sqlsrv'  => new SqlServerGrammar($connection),
-            'mariadb' => new MariaDbGrammar($connection),
-            default   => $connection->getQueryGrammar(),
-        };
-
-        if (method_exists($grammar, 'setConnection')) {
-            $grammar->setConnection($connection);
-        }
-
-        if (method_exists($connection, 'withTablePrefix')) {
-            $grammar = $connection->withTablePrefix($grammar);
-        }
-
-        return new QueryBuilder($connection, $grammar, $connection->getPostProcessor());
+        return new QueryBuilder($connection, GrammarResolver::forConnection($connection), $connection->getPostProcessor());
     }
 }
