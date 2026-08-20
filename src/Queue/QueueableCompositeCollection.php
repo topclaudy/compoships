@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Queue;
 
+use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use LogicException;
 
@@ -46,7 +47,7 @@ class QueueableCompositeCollection
      * @param \Illuminate\Database\Eloquent\Collection<int, \Illuminate\Database\Eloquent\Model> $models
      *
      * @throws \LogicException                                     When the collection contains models of more than one class.
-     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException When any model's $compositeKey omits the scalar primary key.
+     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException When the models do not use the trait or declare no $compositeKey, or when a $compositeKey omits the scalar primary key.
      *
      * @return self
      */
@@ -71,10 +72,26 @@ class QueueableCompositeCollection
             }
         });
 
+        if (!method_exists($first, 'getCompositeKeyValues')) {
+            throw new InvalidUsageException(sprintf(
+                'QueueableCompositeCollection requires models using the Compoships trait with a $compositeKey; %s does not use the trait.',
+                $class
+            ));
+        }
+
+        $tuples = $models->values()->map(fn ($model) => $model->getCompositeKeyValues())->all();
+
+        if ($tuples[0] === null) {
+            throw new InvalidUsageException(sprintf(
+                'QueueableCompositeCollection requires models declaring a $compositeKey; %s declares none.',
+                $class
+            ));
+        }
+
         $bag->modelClass = $class;
         $bag->relations = $first->getQueueableRelations();
         $bag->connectionName = $first->getConnectionName();
-        $bag->tuples = $models->map(fn ($model) => $model->getCompositeKeyValues())->all();
+        $bag->tuples = $tuples;
 
         return $bag;
     }
@@ -89,7 +106,9 @@ class QueueableCompositeCollection
     public function restore()
     {
         if (empty($this->tuples) || $this->modelClass === null) {
-            return new EloquentCollection();
+            return $this->modelClass === null
+                ? new EloquentCollection()
+                : (new $this->modelClass())->newCollection();
         }
 
         $class = $this->modelClass;
@@ -100,7 +119,10 @@ class QueueableCompositeCollection
             $instance->setConnection($this->connectionName);
         }
 
-        $query = $instance->newQuery()->where(function ($outer) {
+        // Match SerializesModels::restoreCollection(): no global scopes (so a
+        // member soft-deleted after queueing is still restored) and the write
+        // connection (so a member created just before queueing is visible).
+        $query = $instance->newQueryWithoutScopes()->useWritePdo()->where(function ($outer) {
             foreach ($this->tuples as $tuple) {
                 $outer->orWhere(function ($inner) use ($tuple) {
                     foreach ($tuple as $column => $value) {
@@ -143,7 +165,7 @@ class QueueableCompositeCollection
             $keyed[$this->canonicalKey($modelTuple)] = $model;
         }
 
-        $ordered = new EloquentCollection();
+        $ordered = (new $this->modelClass())->newCollection();
 
         foreach ($this->tuples as $tuple) {
             $key = $this->canonicalKey($tuple);
