@@ -275,5 +275,23 @@ class Migration extends BaseMigration
             $table->string('tenant_id');
             $table->string('note');
         });
+
+        // String-only composite pair with nullable key columns, for dictionary
+        // collision and null-component eager-loading tests.
+        Capsule::schema()->create('codes', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('group_code')->nullable();
+            $table->string('item_code')->nullable();
+            $table->string('label')->nullable();
+            $table->timestamps();
+        });
+
+        Capsule::schema()->create('code_notes', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('group_code')->nullable();
+            $table->string('item_code')->nullable();
+            $table->string('body')->nullable();
+            $table->timestamps();
+        });
     }
 }

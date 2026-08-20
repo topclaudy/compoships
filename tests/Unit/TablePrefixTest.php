@@ -9,10 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \Awobaz\Compoships\Compoships::newBaseQueryBuilder
- */
+#[CoversClass(\Awobaz\Compoships\Compoships::class)]
 class TablePrefixTest extends TestCase
 {
     private const TABLE_PREFIX = 'test_prefix_';

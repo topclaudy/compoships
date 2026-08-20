@@ -12,10 +12,9 @@ use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use LogicException;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \Awobaz\Compoships\Queue\QueueableCompositeCollection
- */
+#[CoversClass(\Awobaz\Compoships\Queue\QueueableCompositeCollection::class)]
 class QueueableCompositeCollectionTest extends TestCase
 {
     public function test_basic_roundtrip_preserves_models_and_order()

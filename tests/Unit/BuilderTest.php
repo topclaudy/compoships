@@ -5,23 +5,15 @@ namespace Awobaz\Compoships\Tests\Unit;
 use Awobaz\Compoships\Tests\Models\Allocation;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \Awobaz\Compoships\Compoships::getAttribute
- * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasMany::getResults
- * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::getForeignKeyName
- */
+#[CoversClass(\Awobaz\Compoships\Compoships::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\HasMany::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Query\Builder::class)]
 class BuilderTest extends TestCase
 {
-    /**
-     * @covers \Awobaz\Compoships\Compoships::newBaseQueryBuilder
-     * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::hasMany
-     * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::newHasMany
-     * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::sanitizeKey
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::addConstraints
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::getQualifiedParentKeyName
-     * @covers \Awobaz\Compoships\Database\Query\Builder::whereColumn
-     */
     public function test_Illuminate_hasOneOrMany__Builder_whereColumn_on_relation_column()
     {
         $allocationId1 = Capsule::table('allocations')->insertGetId([

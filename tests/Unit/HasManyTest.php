@@ -9,25 +9,21 @@ use Awobaz\Compoships\Tests\Models\TrackingTask;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Support\Carbon;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
- * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany
- * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
- * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::hasMany
- * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::newHasMany
- * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::validateRelatedModel
- * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::sanitizeKey
  * Generic:
- * @covers \Awobaz\Compoships\Compoships::getAttribute
- * @covers \Awobaz\Compoships\Compoships::newBaseQueryBuilder
- * @covers \Awobaz\Compoships\Compoships::qualifyColumn
- * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::getQualifiedKeyName
  */
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\HasMany::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::class)]
+#[CoversClass(\Awobaz\Compoships\Compoships::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Query\Builder::class)]
 class HasManyTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function broken_Compoships_hasOneOrMany_whereInMethod__missingRelationColumn()
     {
         if (method_exists($this, 'markAsRisky')) {
@@ -55,12 +51,6 @@ class HasManyTest extends TestCase
         $this->assertCount(1, $trackingTasks); // TODO: must be error or 3 items?
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::belongsTo
-     * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::newBelongsTo
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo::addConstraints
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo::getResults
-     */
     public function test_Compoships_hasOneOrMany_saveMany()
     {
         $expectedData = [
@@ -273,9 +263,6 @@ class HasManyTest extends TestCase
         $this->assertEquals('package', $package['name']);
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Query\Builder::whereIn
-     */
     public function test_Compoships_eagerLoading()
     {
         $allocationId1 = Capsule::table('allocations')->insertGetId([
@@ -325,9 +312,6 @@ class HasManyTest extends TestCase
         $this->assertEquals(null, $allocations2[0]->latestTrackingTask);
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Query\Builder::whereIn
-     */
     public function test_Compoships_eagerLoading_using_expression()
     {
         $allocationId1 = Capsule::table('allocations')->insertGetId([
@@ -371,9 +355,6 @@ class HasManyTest extends TestCase
         $this->assertCount(0, $allocations1[0]->trackingTasks);
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Query\Builder::whereIn
-     */
     public function test_Compoships_eagerLoading_using_prefixed_field()
     {
         $allocationId1 = Capsule::table('allocations')->insertGetId([
@@ -417,9 +398,6 @@ class HasManyTest extends TestCase
         $this->assertCount(0, $allocations1[0]->trackingTasks);
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Query\Builder::whereIn
-     */
     public function test_Illuminate_eagerLoading()
     {
         $allocationId1 = Capsule::table('allocations')->insertGetId([

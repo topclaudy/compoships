@@ -14,12 +14,9 @@ use Awobaz\Compoships\Tests\Models\TenantUser;
 use Awobaz\Compoships\Tests\Models\ThreeColUser;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \Awobaz\Compoships\Compoships::getAdditionalKeyNames
- * @covers \Awobaz\Compoships\Compoships::setKeysForSaveQuery
- * @covers \Awobaz\Compoships\Compoships::setKeysForSelectQuery
- */
+#[CoversClass(\Awobaz\Compoships\Compoships::class)]
 class CompositeKeyWriteTest extends TestCase
 {
     public function test_update_includes_composite_key_in_where()

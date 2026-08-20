@@ -8,6 +8,7 @@ use Awobaz\Compoships\Tests\Models\Team;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Carbon\Carbon;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Integration coverage for composite-key belongsToMany relations against the
@@ -21,8 +22,8 @@ use Illuminate\Database\Capsule\Manager as Capsule;
  * `->withPivot('role')->withTimestamps()` on top of the existing composite
  * `Team::projects()` definition.
  *
- * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany
  */
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany::class)]
 class BelongsToManyIntegrationTest extends TestCase
 {
     // -----------------------------------------------------------------

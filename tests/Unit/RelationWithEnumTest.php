@@ -8,7 +8,10 @@ use Awobaz\Compoships\Tests\Models\UserProfile;
 use Awobaz\Compoships\Tests\Models\UserProfileText;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Eloquent\Model;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo::class)]
 class RelationWithEnumTest extends TestCase
 {
     /**
@@ -40,9 +43,6 @@ class RelationWithEnumTest extends TestCase
         $this->user = User::first();
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany
-     */
     public function test_lazy_load_has_many_relation_with_enum()
     {
         $this->assertNotEmpty($this->user->userProfiles);
@@ -52,9 +52,6 @@ class RelationWithEnumTest extends TestCase
         });
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany
-     */
     public function test_eager_load_has_many_relation_with_enum()
     {
         $this->user->load('userProfiles');
@@ -66,9 +63,6 @@ class RelationWithEnumTest extends TestCase
         });
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
-     */
     public function test_lazy_load_belongs_to_relation_with_enum()
     {
         $userProfiles = UserProfile::all();
@@ -80,9 +74,6 @@ class RelationWithEnumTest extends TestCase
         });
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
-     */
     public function test_eager_load_belongs_to_relation_with_enum()
     {
         $userProfiles = UserProfile::with('user')->get();
@@ -94,9 +85,6 @@ class RelationWithEnumTest extends TestCase
         });
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany
-     */
     public function test_lazy_load_has_many_relation_with_enum_and_composite_key()
     {
         $this->assertNotEmpty($this->user->userProfiles);
@@ -110,9 +98,6 @@ class RelationWithEnumTest extends TestCase
         });
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany
-     */
     public function test_eager_load_has_many_relation_with_enum_and_composite_key()
     {
         $this->user->load('userProfiles.userProfileTexts');
@@ -128,9 +113,6 @@ class RelationWithEnumTest extends TestCase
         });
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
-     */
     public function test_lazy_load_belongs_to_relation_with_enum_and_composite_key()
     {
         $userProfileTexts = UserProfileText::all();
@@ -142,9 +124,6 @@ class RelationWithEnumTest extends TestCase
         });
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
-     */
     public function test_eager_load_belongs_to_relation_with_enum_and_composite_key()
     {
         $userProfileTexts = UserProfileText::with('userProfile')->get();

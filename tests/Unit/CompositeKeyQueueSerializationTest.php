@@ -13,12 +13,9 @@ use Awobaz\Compoships\Tests\Models\ThreeColUser;
 use Awobaz\Compoships\Tests\Stubs\QueueableJobStub;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \Awobaz\Compoships\Compoships::getQueueableId
- * @covers \Awobaz\Compoships\Compoships::newQueryForRestoration
- * @covers \Awobaz\Compoships\Compoships::getCompositeKeyValues
- */
+#[CoversClass(\Awobaz\Compoships\Compoships::class)]
 class CompositeKeyQueueSerializationTest extends TestCase
 {
     public function test_basic_roundtrip_preserves_composite_identity()
