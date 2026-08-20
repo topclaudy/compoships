@@ -83,26 +83,6 @@ trait HasOneOrMany
     }
 
     /**
-     * Get the name of the "where in" method for eager loading.
-     *
-     * @param \Illuminate\Database\Eloquent\Model $model
-     * @param string|array                        $key
-     *
-     * @return string
-     */
-    protected function whereInMethod(Model $model, $key)
-    {
-        if (!is_array($key)) {
-            return parent::whereInMethod($model, $key);
-        }
-
-        $where = collect($key)->filter(fn ($key) => $model->getKeyName() === last(explode('.', $key))
-            && in_array($model->getKeyType(), ['int', 'integer']));
-
-        return $where->count() === count($key) ? 'whereIntegerInRaw' : 'whereIn';
-    }
-
-    /**
      * Get the fully qualified parent key name.
      *
      * @return string

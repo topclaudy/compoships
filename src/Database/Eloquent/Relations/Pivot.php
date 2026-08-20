@@ -43,6 +43,11 @@ class Pivot extends BasePivot
     /**
      * Get the queueable identity for the entity.
      *
+     * Pivots without a surrogate key are identified by every foreign and
+     * related key column, JSON-encoded so values containing any separator
+     * round-trip. The 3.1.x colon-separated format is still understood when
+     * restoring (see legacyColumnValuesFromId()) and is removed in 4.0.
+     *
      * @return mixed
      */
     public function getQueueableId()
@@ -51,25 +56,19 @@ class Pivot extends BasePivot
             return $this->getKey();
         }
 
-        $parts = [];
+        $values = [];
 
-        foreach ($this->getKeysAsArray($this->foreignKey) as $key) {
-            $parts[] = $key;
-            $parts[] = $this->getAttribute($key);
+        foreach ([...$this->getKeysAsArray($this->foreignKey), ...$this->getKeysAsArray($this->relatedKey)] as $key) {
+            $values[$key] = $this->getAttribute($key);
         }
 
-        foreach ($this->getKeysAsArray($this->relatedKey) as $key) {
-            $parts[] = $key;
-            $parts[] = $this->getAttribute($key);
-        }
-
-        return implode(':', $parts);
+        return json_encode($values);
     }
 
     /**
      * Get a new query to restore one or more models by their queueable IDs.
      *
-     * @param int[]|string[]|string $ids
+     * @param array|int|string $ids
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
@@ -79,24 +78,23 @@ class Pivot extends BasePivot
             return $this->newQueryForCollectionRestoration($ids);
         }
 
-        if (!str_contains($ids, ':')) {
+        $columnValues = $this->columnValuesFromQueueableId($ids);
+
+        if ($columnValues === null) {
             return parent::newQueryForRestoration($ids);
         }
 
-        $segments = explode(':', $ids);
         $query = $this->newQueryWithoutScopes();
 
-        for ($i = 0; $i < count($segments); $i += 2) {
-            $query->where($segments[$i], $segments[$i + 1]);
+        foreach ($columnValues as $column => $value) {
+            $query->where($column, $value);
         }
 
         return $query;
     }
 
     /**
-     * Get a new query to restore multiple models by their queueable IDs.
-     *
-     * @param int[]|string[] $ids
+     * @param array<int, mixed> $ids
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
@@ -104,23 +102,73 @@ class Pivot extends BasePivot
     {
         $ids = array_values($ids);
 
-        if (!str_contains($ids[0], ':')) {
+        if ($ids === [] || $this->columnValuesFromQueueableId($ids[0]) === null) {
             return parent::newQueryForRestoration($ids);
         }
 
         $query = $this->newQueryWithoutScopes();
 
         foreach ($ids as $id) {
-            $segments = explode(':', $id);
+            $columnValues = $this->columnValuesFromQueueableId($id) ?? [];
 
-            $query->orWhere(function ($query) use ($segments) {
-                for ($i = 0; $i < count($segments); $i += 2) {
-                    $query->where($segments[$i], $segments[$i + 1]);
+            $query->orWhere(function ($query) use ($columnValues) {
+                foreach ($columnValues as $column => $value) {
+                    $query->where($column, $value);
                 }
             });
         }
 
         return $query;
+    }
+
+    /**
+     * Decode a composite queueable id into column => value pairs, accepting the
+     * JSON form and the legacy colon form; null when the id is not composite.
+     *
+     * @param mixed $id
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function columnValuesFromQueueableId($id): ?array
+    {
+        if (!is_string($id)) {
+            return null;
+        }
+
+        if (str_starts_with($id, '{')) {
+            $decoded = json_decode($id, true);
+
+            return is_array($decoded) ? $decoded : null;
+        }
+
+        return $this->legacyColumnValuesFromId($id);
+    }
+
+    /**
+     * Decode the 3.1.x `column:value:column:value` format. Kept for jobs queued
+     * before the JSON format; remove in 4.0.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function legacyColumnValuesFromId(string $id): ?array
+    {
+        if (!str_contains($id, ':')) {
+            return null;
+        }
+
+        $segments = explode(':', $id);
+
+        if (count($segments) % 2 !== 0) {
+            return null;
+        }
+
+        $columnValues = [];
+
+        for ($i = 0; $i < count($segments); $i += 2) {
+            $columnValues[$segments[$i]] = $segments[$i + 1];
+        }
+
+        return $columnValues;
     }
 
     /**
