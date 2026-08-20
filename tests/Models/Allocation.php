@@ -74,6 +74,22 @@ class Allocation extends Model
     }
 
     /**
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
+     */
+    public function presetPackages()
+    {
+        return $this->originalPackages()->withAttributes(['name' => 'preset']);
+    }
+
+    /**
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
+     */
+    public function presetTrackingTasks()
+    {
+        return $this->trackingTasks()->withAttributes(['deleted_at' => null]);
+    }
+
+    /**
      * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
      */
     public function originalPackagesOneOfMany()

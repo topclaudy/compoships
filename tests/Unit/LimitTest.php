@@ -5,12 +5,11 @@ namespace Awobaz\Compoships\Tests\Unit;
 use Awobaz\Compoships\Tests\Models\User;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Eloquent\Model;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(\Awobaz\Compoships\Database\Grammar\MySqlGrammar::class)]
 class LimitTest extends TestCase
 {
-    /**
-     * @covers \Awobaz\Compoships\Database\Grammar\MySqlGrammar
-     */
     public function test_relation_limit()
     {
         Model::unguard();

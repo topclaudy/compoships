@@ -2,7 +2,9 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use Awobaz\Compoships\Concerns\BuildsCompositeEagerConstraints;
 use Awobaz\Compoships\Concerns\ResolvesBackedEnumValues;
+use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +12,7 @@ use Illuminate\Database\Query\JoinClause;
 
 trait HasOneOrMany
 {
+    use BuildsCompositeEagerConstraints;
     use ResolvesBackedEnumValues;
 
     /**
@@ -29,7 +32,8 @@ trait HasOneOrMany
 
             //If the foreign key is an array (multi-column relationship), we adjust the query.
             if (is_array($this->foreignKey)) {
-                $allParentKeyValuesAreNull = array_unique($parentKeyValue) === [null];
+                $query = $this->getRelationQuery();
+                $allParentKeyValuesAreNull = array_filter($parentKeyValue, fn ($value) => $value !== null) === [];
 
                 foreach ($this->foreignKey as $index => $key) {
                     if (is_string($key)) {
@@ -40,10 +44,10 @@ trait HasOneOrMany
                     } else {
                         $fullKey = $key;
                     }
-                    $this->query->where($fullKey, '=', $parentKeyValue[$index]);
+                    $query->where($fullKey, '=', $parentKeyValue[$index]);
 
                     if ($allParentKeyValuesAreNull) {
-                        $this->query->whereNotNull($fullKey);
+                        $query->whereNotNull($fullKey);
                     }
                 }
             } else {
@@ -62,37 +66,20 @@ trait HasOneOrMany
     public function addEagerConstraints(array $models)
     {
         if (is_array($this->localKey)) { //Check for multi-columns relationship
-            $whereIn = $this->whereInMethod($this->parent, $this->localKey);
-            $modelKeys = $this->getKeys($models, $this->localKey);
+            $this->rejectExpressionForeignKeys('matched during eager loading');
 
-            ((method_exists($this, 'getRelationQuery') ? $this->getRelationQuery() : null) ?? $this->query)->{$whereIn}($this->foreignKey, $modelKeys);
+            $added = $this->addCompositeKeyConstraints(
+                $this->getRelationQuery(),
+                $this->foreignKey,
+                $this->getKeys($models, $this->localKey)
+            );
 
-            if ($modelKeys === []) {
+            if (!$added) {
                 $this->eagerKeysWereEmpty = true;
             }
         } else {
             parent::addEagerConstraints($models);
         }
-    }
-
-    /**
-     * Get the name of the "where in" method for eager loading.
-     *
-     * @param \Illuminate\Database\Eloquent\Model $model
-     * @param string|array                        $key
-     *
-     * @return string
-     */
-    protected function whereInMethod(Model $model, $key)
-    {
-        if (!is_array($key)) {
-            return parent::whereInMethod($model, $key);
-        }
-
-        $where = collect($key)->filter(fn ($key) => $model->getKeyName() === last(explode('.', $key))
-            && in_array($model->getKeyType(), ['int', 'integer']));
-
-        return $where->count() === count($key) ? 'whereIntegerInRaw' : 'whereIn';
     }
 
     /**
@@ -142,7 +129,9 @@ trait HasOneOrMany
             return parent::upsert($values, $uniqueBy, $update);
         }
 
-        if (!empty($values) && !is_array(array_first($values))) {
+        $this->rejectExpressionForeignKeys('written');
+
+        if (!empty($values) && !is_array($values[array_key_first($values)])) {
             $values = [$values];
         }
 
@@ -156,54 +145,6 @@ trait HasOneOrMany
         }
 
         return $this->getQuery()->upsert($values, $uniqueBy, $update);
-    }
-
-    /**
-     * Attach a model instance to the parent model.
-     *
-     * @param \Illuminate\Database\Eloquent\Model $model
-     *
-     * @return \Illuminate\Database\Eloquent\Model
-     */
-    public function save(Model $model)
-    {
-        $foreignKey = $this->getForeignKeyName();
-        $parentKeyValue = $this->getParentKey();
-
-        if (is_array($foreignKey)) { //Check for multi-columns relationship
-            foreach ($foreignKey as $index => $key) {
-                $model->setAttribute($key, $parentKeyValue[$index]);
-            }
-        } else {
-            $model->setAttribute($foreignKey, $parentKeyValue);
-        }
-
-        return $model->save() ? $model : false;
-    }
-
-    /**
-     * Create a new instance of the related model.
-     *
-     * @param array $attributes
-     *
-     * @return \Illuminate\Database\Eloquent\Model
-     */
-    public function create(array $attributes = [])
-    {
-        return tap($this->related->newInstance($attributes), function ($instance) {
-            $foreignKey = $this->getForeignKeyName();
-            $parentKeyValue = $this->getParentKey();
-
-            if (is_array($foreignKey)) { //Check for multi-columns relationship
-                foreach ($foreignKey as $index => $key) {
-                    $instance->setAttribute($key, $parentKeyValue[$index]);
-                }
-            } else {
-                $instance->setAttribute($foreignKey, $parentKeyValue);
-            }
-
-            $instance->save();
-        });
     }
 
     /**
@@ -252,10 +193,10 @@ trait HasOneOrMany
         // matching very convenient and easy work. Then we'll just return them.
         foreach ($models as $model) {
             $key = $model->getAttribute($this->localKey);
-            //If the foreign key is an array, we know it's a multi-column relationship
-            //And we join the values to construct the dictionary key
+            //If the local key is an array, we know it's a multi-column relationship
+            //and build a collision-free dictionary key from the values
             $dictKey = is_array($key)
-                ? implode('-', array_map(fn ($v) => $this->resolveBackedEnumValue($v), $key))
+                ? $this->compositeDictionaryKey($key)
                 : ($key ?? '');
 
             if (isset($dictionary[$dictKey])) {
@@ -295,15 +236,43 @@ trait HasOneOrMany
         foreach ($results as $result) {
             //If the foreign key is an array, we know it's a multi-column relationship...
             if (is_array($foreign)) {
-                $dictKeyValues = array_map(fn ($k) => $this->resolveBackedEnumValue($result->{$k}), $foreign);
-                //... so we join the values to construct the dictionary key
-                $dictionary[implode('-', $dictKeyValues)][] = $result;
+                $dictionary[$this->compositeDictionaryKey(array_map(fn ($k) => $result->{$k}, $foreign))][] = $result;
             } else {
                 $dictionary[$result->{$foreign} ?? ''][] = $result;
             }
         }
 
         return $dictionary;
+    }
+
+    /**
+     * Create a new instance of the related model without mass-assignment protection.
+     *
+     * Laravel's implementation assigns the single foreign key directly instead
+     * of going through setForeignAttributesForCreate(), so the composite case
+     * needs its own override.
+     *
+     * @param array $attributes
+     *
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function forceCreate(array $attributes = [])
+    {
+        $foreignKey = $this->getForeignKeyName();
+
+        if (!is_array($foreignKey)) {
+            return parent::forceCreate($attributes);
+        }
+
+        $this->rejectExpressionForeignKeys('written');
+
+        $parentKeyValue = $this->getParentKey();
+
+        foreach ($foreignKey as $index => $key) {
+            $attributes[$key] = $parentKeyValue[$index];
+        }
+
+        return $this->applyInverseRelationToModel($this->related->forceCreate($attributes));
     }
 
     /**
@@ -316,14 +285,30 @@ trait HasOneOrMany
     protected function setForeignAttributesForCreate(Model $model)
     {
         $foreignKey = $this->getForeignKeyName();
-        $parentKeyValue = $this->getParentKey();
-        if (is_array($foreignKey)) { //Check for multi-columns relationship
-            foreach ($foreignKey as $index => $key) {
-                $model->setAttribute($key, $parentKeyValue[$index]);
-            }
-        } else {
+
+        if (!is_array($foreignKey)) {
             parent::setForeignAttributesForCreate($model);
+
+            return;
         }
+
+        $this->rejectExpressionForeignKeys('written');
+
+        $parentKeyValue = $this->getParentKey();
+
+        foreach ($foreignKey as $index => $key) {
+            $model->setAttribute($key, $parentKeyValue[$index]);
+        }
+
+        foreach ($this->getQuery()->pendingAttributes as $key => $value) {
+            $attributes ??= $model->getAttributes();
+
+            if (!array_key_exists($key, $attributes)) {
+                $model->setAttribute($key, $value);
+            }
+        }
+
+        $this->applyInverseRelationToModel($model);
     }
 
     /**
@@ -341,6 +326,29 @@ trait HasOneOrMany
             }
         } else {
             parent::addOneOfManyJoinSubQueryConstraints($join);
+        }
+    }
+
+    /**
+     * Expression foreign keys can constrain a query but name no attribute, so
+     * they cannot be written to a model or used to match eager-loaded rows.
+     *
+     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     */
+    protected function rejectExpressionForeignKeys(string $operation): void
+    {
+        $grammar = $this->getConnection()->getQueryGrammar();
+
+        foreach ((array) $this->foreignKey as $key) {
+            if ($grammar->isExpression($key)) {
+                throw new InvalidUsageException(sprintf(
+                    'A %s relation on %s has a foreign key containing a query expression, which cannot be %s. '.
+                    'Expression keys support lazy loading and query constraints only.',
+                    class_basename(static::class),
+                    get_class($this->parent),
+                    $operation
+                ));
+            }
         }
     }
 }

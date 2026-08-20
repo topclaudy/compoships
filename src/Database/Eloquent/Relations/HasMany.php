@@ -16,6 +16,31 @@ class HasMany extends BaseHasMany
     use HasOneOrMany;
 
     /**
+     * Convert the relationship to a "has one" relationship.
+     *
+     * Laravel's implementation instantiates its own HasOne, which cannot carry
+     * array keys; this returns the package's composite-aware HasOne instead.
+     *
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
+     */
+    public function one()
+    {
+        return HasOne::noConstraints(fn () => tap(
+            new HasOne(
+                $this->getQuery(),
+                $this->parent,
+                $this->foreignKey,
+                $this->localKey
+            ),
+            function ($hasOne) {
+                if ($inverse = $this->getInverseRelationship()) {
+                    $hasOne->inverse($inverse);
+                }
+            }
+        ));
+    }
+
+    /**
      * Get the results of the relationship.
      *
      * @return mixed

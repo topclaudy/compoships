@@ -11,13 +11,13 @@ use Awobaz\Compoships\Tests\Models\TrackingTask;
 use Awobaz\Compoships\Tests\Models\User;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Eloquent\Model;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \Awobaz\Compoships\Compoships
- * @covers \Awobaz\Compoships\Database\Query\Builder
- * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
- * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
- */
+#[CoversClass(\Awobaz\Compoships\Compoships::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Query\Builder::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\HasMany::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\HasOne::class)]
 class ComposhipsTest extends TestCase
 {
     /**
@@ -39,9 +39,6 @@ class ComposhipsTest extends TestCase
         $this->assertInstanceOf(Allocation::class, $allocation->trackingTasks->first()->allocation);
     }
 
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\HasOne
-     */
     public function testSaveModelNotUsingCompoships_onHasOne()
     {
         Model::unguard();

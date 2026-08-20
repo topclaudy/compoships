@@ -139,6 +139,17 @@ $team->projects()->attach([
 
 Passing an associative array key that is not a JSON-encoded tuple of the correct arity throws `Awobaz\Compoships\Exceptions\InvalidUsageException`.
 
+A third shape, `[$scalarId => $attributes]`, uses the scalar as the value of the **first** related-pivot-key column and reads the remaining key columns from the per-row or shared attributes. `attach()`, `sync()`, and `toggle()` all read it the same way; `[5 => []]` means "scalar id 5 with no per-row attributes".
+
+```php
+// relatedPivotKey = ['project_division_id', 'project_region_code']
+$team->projectsByDivision()->sync([
+    5 => ['project_region_code' => 'US', 'role' => 'lead'],
+]);
+```
+
+Note the asymmetry between `attach()` and `detach()` for a flat list of scalars: `attach(['US', 'EU'])` is two scalar ids (each needing the remaining key columns from attributes), while `detach(['US', 2])` is read as one tuple when its length matches the related-pivot-key arity. Use explicit tuples (`[['US', 2]]`) when in doubt.
+
 ### Factories
 
 Chances are that you may need factories for your Compoships models. If so, you will probably need to use
@@ -224,9 +235,17 @@ class User extends Model
 * belongsTo
 * belongsToMany
 
-Also please note that while **nullable columns are supported by Compoships**, relationships with only null values are not currently possible.
+**Nullable columns** are supported: a `null` key component matches `IS NULL` on the related side, on both lazy and eager loading. A key whose components are **all** `null` matches nothing and issues no query.
 
 **Note on `belongsToMany`:** Custom pivot models (via `using()`) with composite keys are supported. Your custom pivot class should extend `Awobaz\Compoships\Database\Eloquent\Relations\Pivot` instead of Laravel's base `Pivot` class to ensure correct behavior for save, delete, and queue operations.
+
+**Note on SQL Server:** row-value `IN` is not available, so composite `whereIn` compiles to an exact `((a = ? AND b = ?) OR ...)` group and `NOT IN` to its negation. The SQL is covered by grammar-level tests, but no SQL Server instance runs in CI; please report regressions.
+
+**Note on expression keys:** a foreign key list may contain a `DB::raw()` expression for lazy loading and query constraints. Writing through such a relation (`create()`, `save()`, `upsert()`) or eager loading it throws `InvalidUsageException`, because an expression names no attribute to write or match.
+
+**Note on custom grammars:** the package installs its own query grammar only while the connection carries Laravel's stock grammar for the driver. A grammar installed by your application or another package is left in place; eager-load `limit()` on a composite relation then throws `InvalidUsageException` until that grammar uses `Awobaz\Compoships\Database\Grammar\Concerns\CompileRowNumber`.
+
+**Note on factories:** `Factory::has()` supports composite relations and applies the relation's `withAttributes()` values (on illuminate/database 12.15+). `Factory::for()` with a composite `belongsTo` is not supported.
 
 ## Composite primary keys
 
@@ -305,7 +324,7 @@ class ProcessUsers
 }
 ```
 
-The wrapper preserves the original collection order, eager-loaded relations, and the model's connection. It rejects mixed-class collections (throws `LogicException`) and misconfigured `$compositeKey` declarations (throws `InvalidUsageException`) at wrap time. The wrapper is opaque to `SerializesModels`, so PHP's standard serialization captures its state directly. Each call to `restore()` issues one database query.
+The wrapper preserves the original collection order, eager-loaded relations, the model's connection, and the model's collection class. It accepts filtered or re-keyed collections. It rejects mixed-class collections (throws `LogicException`) and models that do not use the trait, declare no `$compositeKey`, or declare one that omits the primary key (throws `InvalidUsageException`) at wrap time. The wrapper is opaque to `SerializesModels`, so PHP's standard serialization captures its state directly. Each call to `restore()` issues one database query without global scopes and on the write connection, exactly like `SerializesModels::restoreCollection()`, so a member soft-deleted after queueing is still restored.
 
 If you declare `$compositeKey` on a model whose array does not contain the value of `$primaryKey`, the trait throws `Awobaz\Compoships\Exceptions\InvalidUsageException` on the first save, delete, or refresh. The array must enumerate the whole primary key.
 
@@ -316,6 +335,22 @@ Nullable composite-key columns are supported. When the original raw value of a c
 #### Note for consumers with their own override
 
 If your model already overrides `setKeysForSaveQuery()` or `setKeysForSelectQuery()`, call `parent::setKeysForSaveQuery($query)` (and the select equivalent) first to inherit the composite key handling. Without `parent::`, the override loses the composite WHERE silently.
+
+## Behaviour changes in 3.2.0
+
+3.2.0 fixes a set of correctness issues found in an audit of the relation, query-builder and queue code. Most are invisible unless you hit the bug, but these change observable behaviour:
+
+- Eager loading a composite relation whose key has a `null` component now returns the same rows as lazy loading (previously the eager path returned nothing for such parents). Keys whose components are all `null` no longer issue a query.
+- `create()`, `createMany()`, `save()`, and `saveMany()` on `hasOne`/`hasMany` relations (scalar and composite) now honour `withAttributes()` and set the inverse relation, via Laravel's `setForeignAttributesForCreate()` hook; the package's own `save()`/`create()` copies are gone.
+- A composite `belongsTo` on a child whose foreign key attributes are missing or all `null` resolves to the default model without querying, instead of returning an arbitrary parent.
+- `sync()`/`toggle()` on composite `belongsToMany` read `[$scalarId => $attributes]` entries the same way `attach()` does, and insert new rows in one statement.
+- `touch()` and `$touches` on composite relations update exactly the related rows identified by their composite key.
+- Composite `whereIn` on SQL Server compiles an exact predicate (see the SQL Server note above); on every driver, unqualified column names are no longer table-prefixed by the builder.
+- A custom query grammar on the connection is preserved instead of being replaced by the package grammar.
+- `QueueableCompositeCollection::restore()` runs without global scopes and on the write connection.
+- Eager loading or writing through a relation with an expression foreign key throws `InvalidUsageException` instead of silently loading nothing or failing inside the database.
+- Composite pivot queueable ids are JSON; the 3.1.x colon format is still decoded until 4.0.
+- Misconfigured key arrays (different lengths, or an array paired with a scalar) throw `InvalidUsageException` when the relation is defined.
 
 ## Support for nullable columns in 2.x
 
@@ -384,13 +419,14 @@ The package is tested against multiple Laravel and PHP versions in CI. To reprod
 ./run-matrix-tests.sh
 ```
 
-The script mirrors `.github/workflows/run-tests.yml` exactly. It iterates over every Laravel and PHP combination, installs the requested Laravel version with Composer inside an ephemeral Docker container, runs PHPUnit, and prints a pass/fail summary at the end. Docker is the only prerequisite.
+The script mirrors `.github/workflows/run-tests.yml` exactly. It iterates over every Laravel and PHP combination, installs the requested Laravel version with Composer inside an ephemeral Docker container, runs PHPUnit, and prints a pass/fail summary at the end. One extra job installs the lowest dependency versions admitted by `composer.json` (`--prefer-lowest` on PHP 8.2 with Laravel 12) so the declared floors stay true. Docker is the only prerequisite.
 
-You can narrow the run to a subset by passing a filter argument that matches against the matrix label (`L<laravel> PHP<php>`):
+You can narrow the run to a subset by passing a filter argument that matches against the matrix label (`L<laravel> - PHP<php> - <stability>`):
 
 ```bash
-./run-matrix-tests.sh "12.*"     # only Laravel 12 combinations
-./run-matrix-tests.sh "PHP8.4"   # only PHP 8.4 combinations
+./run-matrix-tests.sh "12.*"          # only Laravel 12 combinations
+./run-matrix-tests.sh "PHP8.4"        # only PHP 8.4 combinations
+./run-matrix-tests.sh "prefer-lowest" # only the lowest-dependency job
 ```
 
 ## Authors

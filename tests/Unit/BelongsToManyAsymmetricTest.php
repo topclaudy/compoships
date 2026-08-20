@@ -7,6 +7,7 @@ use Awobaz\Compoships\Tests\Models\Project;
 use Awobaz\Compoships\Tests\Models\User;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Coverage for asymmetric belongsToMany relations where one side is composite and
@@ -22,9 +23,8 @@ use Illuminate\Database\Capsule\Manager as Capsule;
  * Relations:
  *   User::projects()  -> scalar foreign + composite related
  *   Project::users()  -> composite foreign + scalar related
- *
- * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany
  */
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany::class)]
 class BelongsToManyAsymmetricTest extends TestCase
 {
     // -----------------------------------------------------------------

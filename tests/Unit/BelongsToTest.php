@@ -8,12 +8,11 @@ use Awobaz\Compoships\Tests\Models\ProductCode;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Model;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo::class)]
 class BelongsToTest extends TestCase
 {
-    /**
-     * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsTo
-     */
     public function test_uuid_no_inrecemnt_relation()
     {
         Model::unguard();

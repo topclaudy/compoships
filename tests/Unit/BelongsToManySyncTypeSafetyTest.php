@@ -9,14 +9,14 @@ use Awobaz\Compoships\Tests\Models\Team;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Closure;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use PHPUnit\Framework\Attributes\CoversClass;
 
 /**
  * Regression tests for type-safe composite-key sync()/toggle() comparisons
  * and arity-checked tuple normalization on the composite whereIn paths.
- *
- * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany
- * @covers \Awobaz\Compoships\Database\Query\Builder
  */
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Query\Builder::class)]
 class BelongsToManySyncTypeSafetyTest extends TestCase
 {
     public function test_sync_same_key_with_string_typed_component_updates_in_place()

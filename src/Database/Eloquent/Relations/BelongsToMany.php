@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use Awobaz\Compoships\Concerns\BuildsCompositeEagerConstraints;
 use Awobaz\Compoships\Concerns\ResolvesBackedEnumValues;
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,7 +20,55 @@ use Illuminate\Support\Collection as SupportCollection;
  */
 class BelongsToMany extends BaseBelongsToMany
 {
+    use BuildsCompositeEagerConstraints;
     use ResolvesBackedEnumValues;
+
+    /**
+     * Create a new belongs to many relationship instance.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param \Illuminate\Database\Eloquent\Model   $parent
+     * @param string                                $table
+     * @param array|string                          $foreignPivotKey
+     * @param array|string                          $relatedPivotKey
+     * @param array|string                          $parentKey
+     * @param array|string                          $relatedKey
+     * @param string|null                           $relationName
+     *
+     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     */
+    public function __construct(Builder $query, Model $parent, $table, $foreignPivotKey, $relatedPivotKey, $parentKey, $relatedKey, $relationName = null)
+    {
+        $this->validateKeyArity($relationName, 'parentKey', $parentKey, 'foreignPivotKey', $foreignPivotKey);
+        $this->validateKeyArity($relationName, 'relatedKey', $relatedKey, 'relatedPivotKey', $relatedPivotKey);
+
+        parent::__construct($query, $parent, $table, $foreignPivotKey, $relatedPivotKey, $parentKey, $relatedKey, $relationName);
+    }
+
+    /**
+     * @param string|null  $relationName
+     * @param string       $firstName
+     * @param array|string $first
+     * @param string       $secondName
+     * @param array|string $second
+     *
+     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     */
+    protected function validateKeyArity($relationName, $firstName, $first, $secondName, $second): void
+    {
+        if (count((array) $first) === count((array) $second)) {
+            return;
+        }
+
+        throw new InvalidUsageException(sprintf(
+            'Composite belongsToMany relation %s: %s has %d column(s) but %s has %d; both sides must have the same arity.',
+            $relationName ?? '{relation}',
+            $firstName,
+            count((array) $first),
+            $secondName,
+            count((array) $second)
+        ));
+    }
 
     /**
      * Whether this relation is composite on EITHER side. Methods that touch both
@@ -104,36 +153,15 @@ class BelongsToMany extends BaseBelongsToMany
             return;
         }
 
-        $whereIn = $this->whereInMethod($this->parent, $this->parentKey);
-        $modelKeys = $this->getCompositeKeys($models, $this->parentKey);
-        $qualifiedKeys = $this->qualifyPivotColumn($this->foreignPivotKey);
+        $added = $this->addCompositeKeyConstraints(
+            $this->getRelationQuery(),
+            $this->qualifyPivotColumn($this->foreignPivotKey),
+            $this->getCompositeKeys($models, $this->parentKey)
+        );
 
-        $query = $this->getRelationQuery() ?? $this->query;
-        $query->{$whereIn}($qualifiedKeys, $modelKeys);
-
-        if ($modelKeys === []) {
+        if (!$added) {
             $this->eagerKeysWereEmpty = true;
         }
-    }
-
-    /**
-     * Get the name of the "where in" method for eager loading.
-     *
-     * @param \Illuminate\Database\Eloquent\Model $model
-     * @param string|array                        $key
-     *
-     * @return string
-     */
-    protected function whereInMethod(Model $model, $key)
-    {
-        if (!is_array($key)) {
-            return parent::whereInMethod($model, $key);
-        }
-
-        $where = collect($key)->filter(fn ($key) => $model->getKeyName() === last(explode('.', $key))
-            && in_array($model->getKeyType(), ['int', 'integer']));
-
-        return $where->count() === count($key) ? 'whereIntegerInRaw' : 'whereIn';
     }
 
     /**
@@ -175,7 +203,7 @@ class BelongsToMany extends BaseBelongsToMany
         $dictionary = $this->buildDictionary($results);
 
         foreach ($models as $model) {
-            $key = $this->buildDictionaryKey($model, $this->parentKey) ?? '';
+            $key = $this->buildDictionaryKey($model, $this->parentKey);
 
             if (isset($dictionary[$key])) {
                 $model->setRelation(
@@ -204,7 +232,7 @@ class BelongsToMany extends BaseBelongsToMany
         $dictionary = [];
 
         foreach ($results as $result) {
-            $key = $this->buildDictionaryKey($result->{$this->accessor}, $this->foreignPivotKey) ?? '';
+            $key = $this->buildDictionaryKey($result->{$this->accessor}, $this->foreignPivotKey);
             $dictionary[$key][] = $result;
         }
 
@@ -504,7 +532,7 @@ class BelongsToMany extends BaseBelongsToMany
      */
     protected function isList(array $value): bool
     {
-        return $value === [] || array_is_list($value);
+        return $value !== [] && array_is_list($value);
     }
 
     /**
@@ -758,7 +786,7 @@ class BelongsToMany extends BaseBelongsToMany
      */
     public function newPivotQuery()
     {
-        if (!is_array($this->foreignPivotKey)) {
+        if (!$this->isComposite()) {
             return parent::newPivotQuery();
         }
 
@@ -776,10 +804,13 @@ class BelongsToMany extends BaseBelongsToMany
             $query->whereNull(...$arguments);
         }
 
-        foreach ($this->foreignPivotKey as $index => $key) {
+        $foreignPivotKeys = (array) $this->foreignPivotKey;
+        $parentKeys = (array) $this->parentKey;
+
+        foreach ($foreignPivotKeys as $index => $key) {
             $query->where(
                 $this->qualifyPivotColumn($key),
-                $this->resolveBackedEnumValue($this->parent->{$this->parentKey[$index]})
+                $this->resolveBackedEnumValue($this->parent->{$parentKeys[$index]})
             );
         }
 
@@ -931,7 +962,7 @@ class BelongsToMany extends BaseBelongsToMany
      */
     public function newPivot(array $attributes = [], $exists = false)
     {
-        if (!is_array($this->foreignPivotKey)) {
+        if (!$this->isComposite()) {
             return parent::newPivot($attributes, $exists);
         }
 
@@ -939,11 +970,45 @@ class BelongsToMany extends BaseBelongsToMany
 
         $pivot = $this->using
             ? $this->using::fromRawAttributes($this->parent, $attributes, $this->table, $exists)
-            : Pivot::fromAttributes($this->parent, $attributes, $this->table, $exists);
+            : $this->newDefaultCompositePivot($attributes, $exists);
 
         return $pivot
             ->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey)
             ->setRelatedModel($this->related);
+    }
+
+    /**
+     * Update an existing pivot record on the table via a custom class.
+     *
+     * Overridden because illuminate/database below 12.9 filters the attached
+     * pivots with `where($this->relatedPivotKey, ...)`, which never matches an
+     * array key; this mirrors the 12.9+ implementation for every admitted version.
+     *
+     * @param mixed $id
+     * @param array $attributes
+     * @param bool  $touch
+     *
+     * @return int
+     */
+    protected function updateExistingPivotUsingCustomClass($id, array $attributes, $touch)
+    {
+        if (!$this->isComposite()) {
+            return parent::updateExistingPivotUsingCustomClass($id, $attributes, $touch);
+        }
+
+        $pivot = $this->getCurrentlyAttachedPivotsForIds($id)->first();
+
+        $updated = $pivot ? $pivot->fill($attributes)->isDirty() : false;
+
+        if ($updated) {
+            $pivot->save();
+        }
+
+        if ($touch) {
+            $this->touchIfTouching();
+        }
+
+        return (int) $updated;
     }
 
     /**
@@ -955,7 +1020,7 @@ class BelongsToMany extends BaseBelongsToMany
      */
     protected function getCurrentlyAttachedPivotsForIds($ids = null)
     {
-        if (!is_array($this->relatedPivotKey)) {
+        if (!$this->isComposite()) {
             return parent::getCurrentlyAttachedPivotsForIds($ids);
         }
 
@@ -1000,10 +1065,16 @@ class BelongsToMany extends BaseBelongsToMany
         $result = [];
 
         foreach ($records as $key => $value) {
-            if (is_int($key) && is_array($value)) {
+            if (is_int($key) && is_array($value) && $this->isList($value)) {
+                // List-shaped value under an integer key is a full composite tuple.
                 $result[json_encode($value)] = [];
+            } elseif (is_int($key) && is_array($value)) {
+                // Associative (or empty) value under an integer key: the key is
+                // the scalar id, the value carries per-row attributes, exactly
+                // as resolveCompositeAttachEntry() reads it for attach().
+                $result[$key] = $value;
             } elseif (is_int($key)) {
-                $result[$value] = [];
+                $result[$this->resolveBackedEnumValue($value)] = [];
             } else {
                 $result[$key] = is_array($value) ? $value : [];
             }
@@ -1098,9 +1169,7 @@ class BelongsToMany extends BaseBelongsToMany
         $attach = array_diff_key($records, $current);
 
         if (count($attach) > 0) {
-            foreach ($attach as $record) {
-                $this->attach([$record['tuple']], $record['attributes'], false);
-            }
+            $this->attach($this->attachInputFromRecords($attach), [], false);
 
             $changes['attached'] = array_column($attach, 'tuple');
         }
@@ -1128,10 +1197,11 @@ class BelongsToMany extends BaseBelongsToMany
         }
 
         $changes = ['attached' => [], 'updated' => []];
+        $new = [];
 
         foreach ($records as $key => $record) {
             if (!array_key_exists($key, $current)) {
-                $this->attach([$record['tuple']], $record['attributes'], $touch);
+                $new[$key] = $record;
 
                 $changes['attached'][] = $record['tuple'];
             } elseif (count($record['attributes']) > 0 &&
@@ -1140,7 +1210,30 @@ class BelongsToMany extends BaseBelongsToMany
             }
         }
 
+        if ($new !== []) {
+            $this->attach($this->attachInputFromRecords($new), [], $touch);
+        }
+
         return $changes;
+    }
+
+    /**
+     * Convert normalized records back into the keyed attach() input shape so a
+     * batch of new rows is inserted with a single statement.
+     *
+     * @param array<string, array{tuple: array, attributes: array}> $records
+     *
+     * @return array<string, array>
+     */
+    protected function attachInputFromRecords(array $records): array
+    {
+        $input = [];
+
+        foreach ($records as $record) {
+            $input[json_encode($record['tuple'])] = $record['attributes'];
+        }
+
+        return $input;
     }
 
     /**
@@ -1205,6 +1298,164 @@ class BelongsToMany extends BaseBelongsToMany
         }
 
         return $current;
+    }
+
+    /**
+     * Touch all of the related models for the relationship.
+     *
+     * Laravel passes allRelatedIds() to whereKey(), which flattens composite
+     * tuples into scalar primary keys and touches the wrong rows, so the
+     * composite case constrains by the full related key instead.
+     *
+     * @return void
+     */
+    public function touch()
+    {
+        if (!is_array($this->relatedKey)) {
+            parent::touch();
+
+            return;
+        }
+
+        if ($this->related->isIgnoringTouch()) {
+            return;
+        }
+
+        $tuples = $this->allRelatedIds()->all();
+
+        if ($tuples === []) {
+            return;
+        }
+
+        $this->getRelated()->newQueryWithoutRelationships()
+            ->whereIn($this->getQualifiedRelatedKeyName(), $tuples)
+            ->update([
+                $this->related->getUpdatedAtColumn() => $this->related->freshTimestampString(),
+            ]);
+    }
+
+    /**
+     * Build the default (non-custom) pivot for a composite relation, honouring
+     * a related model that overrides newPivot() when it returns a package pivot.
+     *
+     * @param array $attributes
+     * @param bool  $exists
+     *
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\Pivot
+     */
+    protected function newDefaultCompositePivot(array $attributes, $exists)
+    {
+        $pivot = $this->related->newPivot($this->parent, $attributes, $this->table, $exists);
+
+        if ($pivot instanceof Pivot) {
+            return $pivot;
+        }
+
+        return Pivot::fromAttributes($this->parent, $attributes, $this->table, $exists);
+    }
+
+    /**
+     * Sync the intermediate tables with a list of IDs or collection of models with the given pivot values.
+     *
+     * @param mixed $ids
+     * @param array $values
+     * @param bool  $detaching
+     *
+     * @return array
+     */
+    public function syncWithPivotValues($ids, array $values, bool $detaching = true)
+    {
+        if (!is_array($this->relatedPivotKey)) {
+            return parent::syncWithPivotValues($ids, $values, $detaching);
+        }
+
+        $keyed = [];
+
+        foreach ($this->parseIds($ids) as $id) {
+            $keyed[is_array($id) ? json_encode($id) : $id] = $values;
+        }
+
+        return $this->sync($keyed, $detaching);
+    }
+
+    /**
+     * Chunk the results of a query by comparing IDs in a given order.
+     *
+     * @param int         $count
+     * @param callable    $callback
+     * @param string|null $column
+     * @param string|null $alias
+     * @param bool        $descending
+     *
+     * @return bool
+     */
+    public function orderedChunkById($count, callable $callback, $column = null, $alias = null, $descending = false)
+    {
+        [$column, $alias] = $this->chunkColumnAndAlias($column, $alias);
+
+        return parent::orderedChunkById($count, $callback, $column, $alias, $descending);
+    }
+
+    /**
+     * Query lazily, by chunking the results of a query by comparing IDs.
+     *
+     * @param int         $chunkSize
+     * @param string|null $column
+     * @param string|null $alias
+     *
+     * @return \Illuminate\Support\LazyCollection
+     */
+    public function lazyById($chunkSize = 1000, $column = null, $alias = null)
+    {
+        [$column, $alias] = $this->chunkColumnAndAlias($column, $alias);
+
+        return parent::lazyById($chunkSize, $column, $alias);
+    }
+
+    /**
+     * Query lazily, by chunking the results of a query by comparing IDs in descending order.
+     *
+     * @param int         $chunkSize
+     * @param string|null $column
+     * @param string|null $alias
+     *
+     * @return \Illuminate\Support\LazyCollection
+     */
+    public function lazyByIdDesc($chunkSize = 1000, $column = null, $alias = null)
+    {
+        [$column, $alias] = $this->chunkColumnAndAlias($column, $alias);
+
+        return parent::lazyByIdDesc($chunkSize, $column, $alias);
+    }
+
+    /**
+     * Laravel defaults keyed chunking to the related key, which is an array on
+     * composite relations; fall back to the related model's scalar primary key.
+     *
+     * @param string|null $column
+     * @param string|null $alias
+     *
+     * @throws \Awobaz\Compoships\Exceptions\InvalidUsageException
+     *
+     * @return array{0: string|null, 1: string|null}
+     */
+    protected function chunkColumnAndAlias($column, $alias): array
+    {
+        if (!is_array($this->relatedKey) || $column !== null) {
+            return [$column, $alias];
+        }
+
+        $keyName = $this->related->getKeyName();
+
+        if (!is_string($keyName)) {
+            throw new InvalidUsageException(sprintf(
+                'Keyed chunking on the composite relation %s requires a column: the related model %s has no scalar primary key.',
+                $this->relationName ?? '{relation}',
+                get_class($this->related)
+            ));
+        }
+
+        return [$this->related->qualifyColumn($keyName), $alias ?? $keyName];
     }
 
     /**
@@ -1313,20 +1564,6 @@ class BelongsToMany extends BaseBelongsToMany
      */
     protected function buildDictionaryKey($source, array $keys): string
     {
-        $values = array_map(fn ($k) => $this->resolveBackedEnumValue($source->{$k}), $keys);
-
-        return implode('-', $values);
-    }
-
-    /**
-     * Decode an array of JSON-encoded keys into their original array form.
-     *
-     * @param array $keys
-     *
-     * @return array
-     */
-    protected function decodeJsonKeys(array $keys): array
-    {
-        return array_map(fn ($key) => json_decode($key, true), $keys);
+        return $this->compositeDictionaryKey(array_map(fn ($k) => $source->{$k}, $keys));
     }
 }

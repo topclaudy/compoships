@@ -5,10 +5,12 @@
 #   laravel: [13.*, 12.*]
 #   php:     [8.5, 8.4, 8.3, 8.2]
 #   exclude: laravel 13.* + php 8.2
+#   plus one lowest-dependency job: laravel 12.* + php 8.2 with --prefer-lowest
 #
 # Usage:   ./run-matrix-tests.sh [filter]
-# Example: ./run-matrix-tests.sh "12.*"   (only Laravel 12 combos)
-# Example: ./run-matrix-tests.sh "PHP8.4" (only PHP 8.4 combos)
+# Example: ./run-matrix-tests.sh "12.*"          (only Laravel 12 combos)
+# Example: ./run-matrix-tests.sh "PHP8.4"        (only PHP 8.4 combos)
+# Example: ./run-matrix-tests.sh "prefer-lowest" (only the lowest-dependency job)
 #
 
 set -euo pipefail
@@ -22,7 +24,8 @@ RESULTS=()
 run_test() {
     local php_version="$1"
     local laravel_version="$2"
-    local label="L${laravel_version} - PHP${php_version}"
+    local stability="${3:-prefer-stable}"
+    local label="L${laravel_version} - PHP${php_version} - ${stability}"
 
     if [[ -n "$FILTER" && "$label" != *"$FILTER"* ]]; then
         SKIPPED=$((SKIPPED + 1))
@@ -45,7 +48,7 @@ run_test() {
             cp -r /app/. /tmp/workdir && cd /tmp/workdir && \
             curl -sS https://getcomposer.org/installer | php -- --quiet && \
             php composer.phar require 'illuminate/database:${laravel_version}' --no-interaction --no-update && \
-            php composer.phar update --no-interaction --prefer-dist --no-progress && \
+            php composer.phar update --no-interaction --prefer-dist --no-progress --${stability} && \
             php vendor/bin/phpunit
         " 2>&1; then
         PASSED=$((PASSED + 1))
@@ -68,6 +71,9 @@ for laravel in "13.*" "12.*"; do
         run_test "$php" "$laravel"
     done
 done
+
+# Workflow include: the lowest admitted dependency set on the lowest PHP
+run_test "8.2" "12.*" "prefer-lowest"
 
 # Summary
 echo ""

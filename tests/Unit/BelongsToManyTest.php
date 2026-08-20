@@ -11,12 +11,10 @@ use Awobaz\Compoships\Tests\Models\Team;
 use Awobaz\Compoships\Tests\Models\User;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany
- * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::belongsToMany
- * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::newBelongsToMany
- */
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany::class)]
+#[CoversClass(\Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::class)]
 class BelongsToManyTest extends TestCase
 {
     public function test_basic_relationship_loading()
