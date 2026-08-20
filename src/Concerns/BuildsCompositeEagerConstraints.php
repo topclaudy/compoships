@@ -18,7 +18,7 @@ trait BuildsCompositeEagerConstraints
 {
     /**
      * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
-     * @param array<int, string|\Illuminate\Contracts\Database\Query\Expression>     $columns
+     * @param array<int, string|\Illuminate\Contracts\Database\Query\Expression>       $columns
      * @param array<int, array<int, mixed>>                                            $tuples
      *
      * @return bool whether any constraint was added

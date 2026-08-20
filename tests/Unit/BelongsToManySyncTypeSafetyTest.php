@@ -14,7 +14,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 /**
  * Regression tests for type-safe composite-key sync()/toggle() comparisons
  * and arity-checked tuple normalization on the composite whereIn paths.
- *
  */
 #[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany::class)]
 #[CoversClass(\Awobaz\Compoships\Database\Query\Builder::class)]

@@ -6,7 +6,6 @@ use Awobaz\Compoships\Database\Eloquent\Relations\HasOneOrMany;
 use Awobaz\Compoships\Tests\Models\Allocation;
 use Awobaz\Compoships\Tests\Models\Code;
 use Awobaz\Compoships\Tests\Models\CodeNote;
-use Awobaz\Compoships\Tests\Models\OriginalPackage;
 use Awobaz\Compoships\Tests\TestCase\TestCase;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Model;

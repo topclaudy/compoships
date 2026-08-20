@@ -21,7 +21,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * Most tests use the new `Team::projectsWithMeta()` relation which adds
  * `->withPivot('role')->withTimestamps()` on top of the existing composite
  * `Team::projects()` definition.
- *
  */
 #[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany::class)]
 class BelongsToManyIntegrationTest extends TestCase

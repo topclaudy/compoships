@@ -83,9 +83,9 @@ class Builder extends BaseQueryBuilder
      * match the cross product of the tuples, which is not the same predicate.
      *
      * @param array<int, string|\Illuminate\Contracts\Database\Query\Expression> $columns
-     * @param array<int, array<int, mixed>>                                           $tuples
-     * @param string                                                                  $boolean
-     * @param bool                                                                    $not
+     * @param array<int, array<int, mixed>>                                      $tuples
+     * @param string                                                             $boolean
+     * @param bool                                                               $not
      *
      * @return $this
      */

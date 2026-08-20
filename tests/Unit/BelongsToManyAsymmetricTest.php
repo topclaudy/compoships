@@ -23,7 +23,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * Relations:
  *   User::projects()  -> scalar foreign + composite related
  *   Project::users()  -> composite foreign + scalar related
- *
  */
 #[CoversClass(\Awobaz\Compoships\Database\Eloquent\Relations\BelongsToMany::class)]
 class BelongsToManyAsymmetricTest extends TestCase
