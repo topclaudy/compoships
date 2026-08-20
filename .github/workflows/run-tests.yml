@@ -10,11 +10,18 @@ jobs:
             matrix:
                 laravel: [13.*, 12.*]
                 php: ['8.5', '8.4', '8.3', '8.2']
+                stability: [prefer-stable]
                 exclude:
                     - laravel: 13.*
                       php: '8.2'
+                include:
+                    # Lowest admitted dependency set: proves the composer.json
+                    # floors (php ^8.2, illuminate/database ^12.0) are real.
+                    - laravel: 12.*
+                      php: '8.2'
+                      stability: prefer-lowest
 
-        name: L${{ matrix.laravel }} - PHP${{ matrix.php }}
+        name: L${{ matrix.laravel }} - PHP${{ matrix.php }} - ${{ matrix.stability }}
 
         steps:
             -   name: Checkout code
@@ -34,7 +41,7 @@ jobs:
             -   name: Install dependencies
                 run: |
                     composer require "illuminate/database:${{ matrix.laravel }}" --no-interaction --no-update
-                    composer update --no-interaction
+                    composer update --no-interaction --${{ matrix.stability }}
             -   name: Execute tests
                 run: |
                     echo "Laravel ${{  matrix.laravel }}"
