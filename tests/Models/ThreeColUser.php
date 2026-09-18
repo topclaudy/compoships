@@ -22,4 +22,16 @@ class ThreeColUser extends Model
     protected $guarded = [];
 
     protected $compositeKey = ['id', 'tenant_id', 'region_id'];
+
+    /**
+     * @return \Awobaz\Compoships\Database\Eloquent\Relations\HasMany
+     */
+    public function profiles()
+    {
+        return $this->hasMany(
+            ThreeColUserProfile::class,
+            ['user_id', 'tenant_id', 'region_id'],
+            ['id', 'tenant_id', 'region_id']
+        );
+    }
 }

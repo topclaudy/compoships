@@ -240,6 +240,14 @@ class Migration extends BaseMigration
             $table->primary(['id', 'tenant_id', 'region_id']);
         });
 
+        Capsule::schema()->create('three_col_user_profiles', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('user_id');
+            $table->string('tenant_id');
+            $table->string('region_id');
+            $table->string('label')->nullable();
+        });
+
         Capsule::schema()->create('soft_delete_tenant_users', function (Blueprint $table) {
             $table->string('id');
             $table->string('tenant_id');
