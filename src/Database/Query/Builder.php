@@ -3,12 +3,41 @@
 namespace Awobaz\Compoships\Database\Query;
 
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Query\Builder as BaseQueryBuilder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class Builder extends BaseQueryBuilder
 {
+    /**
+     * Split Oracle IN lists because Oracle accepts at most 1000 expressions
+     * in a single IN clause.
+     *
+     * @return $this
+     */
+    public function whereInOracle($column, $values, $boolean = 'and', $not = false)
+    {
+        $type = $not ? 'NotIn' : 'In';
+
+        if ($values instanceof Arrayable) {
+            $values = $values->toArray();
+        }
+
+        if (is_array($values) && count($values) > 1000) {
+            $chunks = array_chunk($values, 1000);
+
+            return $this->where(function ($query) use ($column, $chunks, $type, $not) {
+                foreach ($chunks as $ch) {
+                    $sqlClause = $not ? 'where'.$type : 'orWhere'.$type;
+                    $query->{$sqlClause}($column, $ch);
+                }
+            }, null, null, $boolean);
+        }
+
+        return parent::whereIn($column, $values, $boolean, $not);
+    }
+
     /**
      * Add a "where in" clause to the query.
      *
@@ -75,6 +104,10 @@ class Builder extends BaseQueryBuilder
             $this->whereRaw("({$columns}) {$inOperator} ({$placeholderList})", Arr::flatten($values), $boolean);
 
             return $this;
+        }
+
+        if ($this->getConnection()->getDriverName() === 'oracle') {
+            return $this->whereInOracle($column, $values, $boolean, $not);
         }
 
         return parent::whereIn($column, $values, $boolean, $not);
