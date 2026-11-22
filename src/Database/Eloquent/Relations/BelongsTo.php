@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use Awobaz\Compoships\Concerns\AddsMissingKeyColumnsToEagerSelect;
 use Awobaz\Compoships\Concerns\ResolvesBackedEnumValues;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo as BaseBelongsTo;
  */
 class BelongsTo extends BaseBelongsTo
 {
+    use AddsMissingKeyColumnsToEagerSelect;
     use ResolvesBackedEnumValues;
 
     /**
@@ -121,6 +123,20 @@ class BelongsTo extends BaseBelongsTo
         } else {
             parent::addEagerConstraints($models);
         }
+    }
+
+    /**
+     * Get the relationship for eager loading.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getEager()
+    {
+        if (is_array($this->ownerKey)) { //Check for multi-columns relationship
+            $this->addMissingKeyColumnsToEagerSelect($this->ownerKey);
+        }
+
+        return parent::getEager();
     }
 
     /**
