@@ -15,6 +15,39 @@ class BuilderTest extends TestCase
 {
     /**
      * @covers \Awobaz\Compoships\Compoships::newBaseQueryBuilder
+     * @covers \Awobaz\Compoships\Database\Query\Builder::whereIn
+     */
+    public function test_allocation_query_uses_compoships_builder_for_composite_where_in()
+    {
+        $query = Allocation::query()->whereIn(['booking_id', 'vehicle_id'], [[1, 10], [2, 20]]);
+
+        $this->assertInstanceOf(
+            \Awobaz\Compoships\Database\Query\Builder::class,
+            $query->getQuery()
+        );
+        $this->assertStringContainsString(' IN ((?, ?), (?, ?))', $query->toSql());
+        $this->assertSame([1, 10, 2, 20], $query->getBindings());
+    }
+
+    public function test_composite_where_in_with_more_than_1000_tuples_continues_to_work()
+    {
+        $tuples = array_map(
+            fn ($value) => [$value, $value * 10],
+            range(1, 1001)
+        );
+
+        $query = Allocation::query()->whereIn(['booking_id', 'vehicle_id'], $tuples);
+
+        $this->assertInstanceOf(
+            \Awobaz\Compoships\Database\Query\Builder::class,
+            $query->getQuery()
+        );
+        $this->assertSame(1, substr_count(strtoupper($query->toSql()), ' IN ('));
+        $this->assertCount(2002, $query->getBindings());
+    }
+
+    /**
+     * @covers \Awobaz\Compoships\Compoships::newBaseQueryBuilder
      * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::hasMany
      * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::newHasMany
      * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::sanitizeKey
