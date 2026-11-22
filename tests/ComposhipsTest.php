@@ -241,6 +241,23 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($allocation->user);
     }
 
+    public function testDissociateOnbelongsTo()
+    {
+        Model::unguard();
+
+        $user = new User();
+        $user->booking_id = 1;
+        $user->save();
+
+        $allocation = new Allocation();
+        $allocation->user()->associate($user);
+        $allocation->user()->dissociate();
+
+        $this->assertNull($allocation->user_id);
+        $this->assertNull($allocation->booking_id);
+        $this->assertNull($allocation->user);
+    }
+
     public function testHasOneOrManyFactoryRelationship()
     {
         $allocation = Allocation::factory()
