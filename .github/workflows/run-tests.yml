@@ -9,7 +9,7 @@ jobs:
             fail-fast: false
             matrix:
                 laravel: [13.*, 12.*]
-                php: ['8.5', '8.4', '8.3', '8.2']
+                php: ['8.6', '8.5', '8.4', '8.3', '8.2']
                 exclude:
                     - laravel: 13.*
                       php: '8.2'
