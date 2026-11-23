@@ -228,6 +228,15 @@ Also please note that while **nullable columns are supported by Compoships**, re
 
 **Note on `belongsToMany`:** Custom pivot models (via `using()`) with composite keys are supported. Your custom pivot class should extend `Awobaz\Compoships\Database\Eloquent\Relations\Pivot` instead of Laravel's base `Pivot` class to ensure correct behavior for save, delete, and queue operations.
 
+**Note on eager loading a column subset:** On a composite key relationship you do not have to list the relationship key columns in an explicit column subset. When you eager load with `with('relation:column,...')`, **Compoships** keeps those key columns in the select clause so the related models can still be matched back to their parents. Without them the keys would be dropped and the relationship would resolve to an empty result.
+
+```php
+// Selects id and name, plus the composite keys (team_id, category_id).
+$users = User::with('tasks:id,name')->get();
+```
+
+The keys are only appended, never removed, so a subset that already contains them (or a wildcard such as `with('relation:*')`) behaves exactly as before. Scalar (non-composite) relationships keep Laravel's documented behavior and are left untouched.
+
 ## Composite primary keys
 
 By default, Eloquent builds the WHERE clause for `UPDATE`, `DELETE`, and `refresh()` / `fresh()` using only the scalar `$primaryKey`. On tables whose primary key spans multiple columns (such as `(id, tenant_id)` in multi-tenant or partitioned schemas), `$model->save()` on a hydrated row emits a query like `UPDATE table SET ... WHERE id = ?`, missing the discriminator. The same scalar id can exist under another discriminator value, so the operation silently targets the wrong row.

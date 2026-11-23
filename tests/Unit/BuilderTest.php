@@ -15,6 +15,39 @@ class BuilderTest extends TestCase
 {
     /**
      * @covers \Awobaz\Compoships\Compoships::newBaseQueryBuilder
+     * @covers \Awobaz\Compoships\Database\Query\Builder::whereIn
+     */
+    public function test_allocation_query_uses_compoships_builder_for_composite_where_in()
+    {
+        $query = Allocation::query()->whereIn(['booking_id', 'vehicle_id'], [[1, 10], [2, 20]]);
+
+        $this->assertInstanceOf(
+            \Awobaz\Compoships\Database\Query\Builder::class,
+            $query->getQuery()
+        );
+        $this->assertStringContainsString(' IN ((?, ?), (?, ?))', $query->toSql());
+        $this->assertSame([1, 10, 2, 20], $query->getBindings());
+    }
+
+    public function test_composite_where_in_with_more_than_1000_tuples_continues_to_work()
+    {
+        $tuples = array_map(
+            fn ($value) => [$value, $value * 10],
+            range(1, 1001)
+        );
+
+        $query = Allocation::query()->whereIn(['booking_id', 'vehicle_id'], $tuples);
+
+        $this->assertInstanceOf(
+            \Awobaz\Compoships\Database\Query\Builder::class,
+            $query->getQuery()
+        );
+        $this->assertSame(1, substr_count(strtoupper($query->toSql()), ' IN ('));
+        $this->assertCount(2002, $query->getBindings());
+    }
+
+    /**
+     * @covers \Awobaz\Compoships\Compoships::newBaseQueryBuilder
      * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::hasMany
      * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::newHasMany
      * @covers \Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships::sanitizeKey
@@ -53,5 +86,30 @@ class BuilderTest extends TestCase
         })->get();
         $this->assertCount(1, $allocations);
         $this->assertCount(2, $allocations[0]->originalPackages);
+    }
+
+    public function test_wherein_uses_fallback_when_null_values()
+    {
+        $allocationId1 = Capsule::table('allocations')->insertGetId([
+            'user_id'    => 1,
+            'booking_id' => 1,
+        ]);
+        $allocationId2 = Capsule::table('allocations')->insertGetId([
+            'user_id'    => 2,
+            'booking_id' => null,
+        ]);
+        $allocation1 = Allocation::find($allocationId1);
+        $allocation2 = Allocation::find($allocationId2);
+
+        $query1 = Allocation::query()->getRelation('user');
+        $query1->addEagerConstraints([$allocation1]);
+        $sql1 = $query1->toRawSql();
+
+        $query2 = Allocation::query()->getRelation('user');
+        $query2->addEagerConstraints([$allocation2]);
+        $sql2 = $query2->toRawSql();
+
+        $this->assertEquals('select * from "users" where ("users"."id", "users"."booking_id") IN ((1, 1))', $sql1);
+        $this->assertEquals('select * from "users" where (("users"."id" = 2 and "users"."booking_id" is null))', $sql2);
     }
 }

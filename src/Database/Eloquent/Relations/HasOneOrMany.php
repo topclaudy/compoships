@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use Awobaz\Compoships\Concerns\AddsMissingKeyColumnsToEagerSelect;
 use Awobaz\Compoships\Concerns\ResolvesBackedEnumValues;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -10,6 +11,7 @@ use Illuminate\Database\Query\JoinClause;
 
 trait HasOneOrMany
 {
+    use AddsMissingKeyColumnsToEagerSelect;
     use ResolvesBackedEnumValues;
 
     /**
@@ -73,6 +75,20 @@ trait HasOneOrMany
         } else {
             parent::addEagerConstraints($models);
         }
+    }
+
+    /**
+     * Get the relationship for eager loading.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getEager()
+    {
+        if (is_array($this->foreignKey)) { //Check for multi-columns relationship
+            $this->addMissingKeyColumnsToEagerSelect($this->foreignKey);
+        }
+
+        return parent::getEager();
     }
 
     /**

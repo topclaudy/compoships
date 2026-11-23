@@ -241,6 +241,47 @@ class ComposhipsTest extends TestCase
         $this->assertNotNull($allocation->user);
     }
 
+    public function testDissociateOnbelongsTo()
+    {
+        Model::unguard();
+
+        $user = new User();
+        $user->booking_id = 1;
+        $user->save();
+
+        $allocation = new Allocation();
+        $allocation->user()->associate($user);
+        $allocation->user()->dissociate();
+
+        $this->assertNull($allocation->user_id);
+        $this->assertNull($allocation->booking_id);
+        $this->assertNull($allocation->user);
+    }
+
+    /**
+     * A child that carries none of its composite foreign keys must not resolve to the first
+     * row of the parent table.
+     */
+    public function testBelongsToWithoutForeignKeysResolvesToNothing()
+    {
+        Model::unguard();
+
+        $user = new User();
+        $user->booking_id = 1;
+        $user->save();
+
+        $new = new Allocation();
+        $stored = new Allocation();
+        $stored->save();
+
+        foreach ([$new, $stored, Allocation::find($stored->id)] as $allocation) {
+            $this->assertNull($allocation->user);
+            $this->assertNull($allocation->user()->first());
+            $this->assertFalse($allocation->user()->exists());
+            $this->assertSame(0, $allocation->user()->count());
+        }
+    }
+
     public function testHasOneOrManyFactoryRelationship()
     {
         $allocation = Allocation::factory()

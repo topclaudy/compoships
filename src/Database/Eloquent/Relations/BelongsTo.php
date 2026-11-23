@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships\Database\Eloquent\Relations;
 
+use Awobaz\Compoships\Concerns\AddsMissingKeyColumnsToEagerSelect;
 use Awobaz\Compoships\Concerns\ResolvesBackedEnumValues;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo as BaseBelongsTo;
  */
 class BelongsTo extends BaseBelongsTo
 {
+    use AddsMissingKeyColumnsToEagerSelect;
     use ResolvesBackedEnumValues;
 
     /**
@@ -25,13 +27,28 @@ class BelongsTo extends BaseBelongsTo
      */
     public function getResults()
     {
-        if (!is_array($this->foreignKey)) {
-            if (is_null($this->child->{$this->foreignKey})) {
-                return $this->getDefaultFor($this->parent);
-            }
+        if ($this->childHasNoForeignKey()) {
+            return $this->getDefaultFor($this->parent);
         }
 
         return $this->query->first() ?: $this->getDefaultFor($this->parent);
+    }
+
+    /**
+     * Whether the child carries no foreign key value at all. A composite key that is only
+     * partly null is still matched (null to null); a key with only null values is not supported.
+     *
+     * @return bool
+     */
+    protected function childHasNoForeignKey()
+    {
+        foreach ((array) $this->foreignKey as $key) {
+            if (!is_null($this->child->{$key})) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -65,6 +82,22 @@ class BelongsTo extends BaseBelongsTo
     }
 
     /**
+     * @return Model
+     */
+    public function dissociate()
+    {
+        if (!is_array($this->foreignKey)) {
+            return parent::dissociate();
+        }
+
+        foreach ($this->foreignKey as $key) {
+            $this->child->setAttribute($key, null);
+        }
+
+        return $this->child->setRelation($this->relationName, null);
+    }
+
+    /**
      * Set the base constraints on the relation query.
      *
      * @return void
@@ -95,6 +128,14 @@ class BelongsTo extends BaseBelongsTo
                         $this->query->whereNotNull($fullKey);
                     }
                 }
+
+                // A child without any foreign key value refers to no parent. A child that was
+                // never hydrated does not even carry the attributes, so no constraint was added
+                // above and the query would match the first row of the parent table, also when
+                // the relation is used as a query (first, exists, count, ...).
+                if ($this->childHasNoForeignKey()) {
+                    $this->query->whereRaw('1 = 0');
+                }
             } else {
                 parent::addConstraints();
             }
@@ -121,6 +162,20 @@ class BelongsTo extends BaseBelongsTo
         } else {
             parent::addEagerConstraints($models);
         }
+    }
+
+    /**
+     * Get the relationship for eager loading.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getEager()
+    {
+        if (is_array($this->ownerKey)) { //Check for multi-columns relationship
+            $this->addMissingKeyColumnsToEagerSelect($this->ownerKey);
+        }
+
+        return parent::getEager();
     }
 
     /**
