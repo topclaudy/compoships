@@ -2,6 +2,7 @@
 
 namespace Awobaz\Compoships;
 
+use Awobaz\Compoships\Contracts\BuilderResolver;
 use Awobaz\Compoships\Database\Eloquent\Concerns\HasRelationships;
 use Awobaz\Compoships\Database\Grammar\MariaDbGrammar;
 use Awobaz\Compoships\Database\Grammar\MySqlGrammar;
@@ -9,6 +10,7 @@ use Awobaz\Compoships\Database\Grammar\PostgresGrammar;
 use Awobaz\Compoships\Database\Grammar\SQLiteGrammar;
 use Awobaz\Compoships\Database\Grammar\SqlServerGrammar;
 use Awobaz\Compoships\Database\Query\Builder as QueryBuilder;
+use Awobaz\Compoships\Database\Query\Compoships as QueryCompoships;
 use Awobaz\Compoships\Exceptions\InvalidUsageException;
 use Illuminate\Support\Str;
 
@@ -235,6 +237,23 @@ trait Compoships
     protected function newBaseQueryBuilder()
     {
         $connection = $this->getConnection();
+        $resolverClass = function_exists('config') ? config('compoships.resolver') : null;
+
+        if ($resolverClass) {
+            if (!is_a($resolverClass, BuilderResolver::class, true)) {
+                throw new InvalidUsageException("The query builder resolver must implements '".BuilderResolver::class."' contract");
+            }
+
+            $builder = $resolverClass::resolve($connection);
+
+            if ($builder) {
+                if (!array_key_exists(QueryCompoships::class, class_uses_recursive($builder))) {
+                    throw new InvalidUsageException("The query builder must use the '".QueryCompoships::class."' trait");
+                }
+
+                return $builder;
+            }
+        }
 
         $grammar = match ($connection->getDriverName()) {
             'mysql'   => new MySqlGrammar($connection),
