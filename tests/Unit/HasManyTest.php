@@ -259,6 +259,10 @@ class HasManyTest extends TestCase
 
     public function test_Illuminate_hasOneOrMany_upsert__single_key_relation()
     {
+        if (getLaravelVersion() < 11) {
+            $this->markTestSkipped('Only for Laravel versions above 11');
+        }
+
         $allocation = $this->createAllocation();
 
         $allocation->originalPackages()->upsert([
@@ -459,6 +463,10 @@ class HasManyTest extends TestCase
 
     public function test_Illuminate_chaperone()
     {
+        if (getLaravelVersion() < 11) {
+            $this->markTestSkipped('Only for Laravel versions above 11');
+        }
+
         $allocationId1 = Capsule::table('allocations')->insertGetId([
             'booking_id' => 1,
             'vehicle_id' => 1,

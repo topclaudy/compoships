@@ -278,6 +278,10 @@ class BelongsToManyAsymmetricTest extends TestCase
 
     public function test_composite_foreign_scalar_related_relation_loading()
     {
+        if (getLaravelVersion() < 11) {
+            $this->markTestSkipped('Only for Laravel versions above 11');
+        }
+
         $user1 = $this->createUser();
         $user2 = $this->createUser();
         $project = $this->createProject('US', 1, 'Website');
@@ -309,6 +313,10 @@ class BelongsToManyAsymmetricTest extends TestCase
 
     public function test_composite_foreign_scalar_related_sync()
     {
+        if (getLaravelVersion() < 11) {
+            $this->markTestSkipped('Only for Laravel versions above 11');
+        }
+
         $user1 = $this->createUser();
         $user2 = $this->createUser();
         $user3 = $this->createUser();
@@ -325,6 +333,10 @@ class BelongsToManyAsymmetricTest extends TestCase
 
     public function test_composite_foreign_scalar_related_detach_specific()
     {
+        if (getLaravelVersion() < 11) {
+            $this->markTestSkipped('Only for Laravel versions above 11');
+        }
+
         $user1 = $this->createUser();
         $user2 = $this->createUser();
         $project = $this->createProject('US', 1, 'Website');
@@ -350,6 +362,10 @@ class BelongsToManyAsymmetricTest extends TestCase
 
     public function test_composite_foreign_scalar_related_toggle()
     {
+        if (getLaravelVersion() < 11) {
+            $this->markTestSkipped('Only for Laravel versions above 11');
+        }
+
         $user1 = $this->createUser();
         $user2 = $this->createUser();
         $project = $this->createProject('US', 1, 'Website');

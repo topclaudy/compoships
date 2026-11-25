@@ -84,7 +84,7 @@ trait Compoships
 
             if (
                 in_array($connection->getDriverName(), ['sqlsrv']) ||
-                    Arr::some($values, fn ($value) => in_array(null, $value, true))
+                    Arr::first($values, fn ($value) => in_array(null, $value, true)) !== null
             ) {
                 // use a series of OR/AND clauses when optimized row value expressions can't be used
                 return $this->where(function ($query) use ($column, $values) {

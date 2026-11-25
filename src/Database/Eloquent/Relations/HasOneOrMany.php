@@ -158,7 +158,7 @@ trait HasOneOrMany
             return parent::upsert($values, $uniqueBy, $update);
         }
 
-        if (!empty($values) && !is_array(array_first($values))) {
+        if (!empty($values) && !is_array($values[array_key_first($values)])) {
             $values = [$values];
         }
 

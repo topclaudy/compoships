@@ -103,13 +103,13 @@ class BuilderTest extends TestCase
 
         $query1 = Allocation::query()->getRelation('user');
         $query1->addEagerConstraints([$allocation1]);
-        $sql1 = $query1->toRawSql();
+        $sql1 = $query1->toSql();
 
         $query2 = Allocation::query()->getRelation('user');
         $query2->addEagerConstraints([$allocation2]);
-        $sql2 = $query2->toRawSql();
+        $sql2 = $query2->toSql();
 
-        $this->assertEquals('select * from "users" where ("users"."id", "users"."booking_id") IN ((1, 1))', $sql1);
-        $this->assertEquals('select * from "users" where (("users"."id" = 2 and "users"."booking_id" is null))', $sql2);
+        $this->assertEquals('select * from "users" where ("users"."id", "users"."booking_id") IN ((?, ?))', $sql1);
+        $this->assertEquals('select * from "users" where (("users"."id" = ? and "users"."booking_id" is null))', $sql2);
     }
 }

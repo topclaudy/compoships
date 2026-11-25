@@ -417,6 +417,10 @@ class BelongsToManyTest extends TestCase
 
     public function test_custom_pivot_model_loading()
     {
+        if (getLaravelVersion() < 11) {
+            $this->markTestSkipped('Only for Laravel versions above 11');
+        }
+
         $team = $this->createTeam('US', 1, 'Alpha');
         $project = $this->createProject('US', 1, 'Website');
 
