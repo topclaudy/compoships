@@ -941,9 +941,14 @@ class BelongsToMany extends BaseBelongsToMany
             ? $this->using::fromRawAttributes($this->parent, $attributes, $this->table, $exists)
             : Pivot::fromAttributes($this->parent, $attributes, $this->table, $exists);
 
-        return $pivot
-            ->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey)
-            ->setRelatedModel($this->related);
+        return tap(
+            $pivot->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey),
+            function ($pivot) {
+                if (method_exists($pivot, 'setRelatedModel')) {
+                    $pivot->setRelatedModel($this->related);
+                }
+            }
+        );
     }
 
     /**
@@ -978,9 +983,14 @@ class BelongsToMany extends BaseBelongsToMany
 
                 $pivot = $class::fromRawAttributes($this->parent, (array) $record, $this->getTable(), true);
 
-                return $pivot
-                    ->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey)
-                    ->setRelatedModel($this->related);
+                return tap(
+                    $pivot->setPivotKeys($this->foreignPivotKey, $this->relatedPivotKey),
+                    function ($pivot) {
+                        if (method_exists($pivot, 'setRelatedModel')) {
+                            $pivot->setRelatedModel($this->related);
+                        }
+                    }
+                );
             });
     }
 

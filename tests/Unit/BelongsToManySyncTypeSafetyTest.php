@@ -39,6 +39,10 @@ class BelongsToManySyncTypeSafetyTest extends TestCase
 
     public function test_sync_same_key_with_custom_pivot_updates_in_place_with_valid_sql()
     {
+        if (getLaravelVersion() < 12) {
+            $this->markTestSkipped('Only for Laravel versions above 12');
+        }
+
         $team = $this->createTeam('US', 1, 'Alpha');
         $this->createProject('US', 1, 'Website');
         $team->projectsWithPivotModel()->attach([['US', 1]], ['role' => 'old']);
@@ -57,6 +61,10 @@ class BelongsToManySyncTypeSafetyTest extends TestCase
 
     public function test_sync_same_key_with_string_typed_component_on_custom_pivot_updates_in_place()
     {
+        if (getLaravelVersion() < 12) {
+            $this->markTestSkipped('Only for Laravel versions above 12');
+        }
+
         $team = $this->createTeam('US', 1, 'Alpha');
         $this->createProject('US', 1, 'Website');
         $team->projectsWithPivotModel()->attach([['US', 1]], ['role' => 'old']);
@@ -232,6 +240,10 @@ class BelongsToManySyncTypeSafetyTest extends TestCase
 
     public function test_sync_update_targets_row_by_composite_key_on_pivot_table_without_surrogate_id()
     {
+        if (getLaravelVersion() < 12) {
+            $this->markTestSkipped('Only for Laravel versions above 12');
+        }
+
         $team = $this->createTeam('US', 1, 'Alpha');
         $this->createProject('US', 1, 'Website');
         $this->createProject('EU', 2, 'API');

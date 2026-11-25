@@ -7,8 +7,16 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
-abstract class AbstractTestCase extends \PHPUnit\Framework\TestCase
+abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
+    /**
+     * @inheritDoc
+     */
+    protected function setUp(): void
+    {
+        $this->setupDatabase();
+    }
+
     protected function setupDatabase()
     {
         Model::reguard();
